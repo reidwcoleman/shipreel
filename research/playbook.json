@@ -1,0 +1,529 @@
+{
+  "principles": [
+    {
+      "rule": "Find a repeatable viral format yourself before paying creators or scaling accounts.",
+      "why": "Hiring is 'probably 5% of it'; creators are hired to film, not to figure out how to go viral. Founders who know the format can brief and train creators.",
+      "source": "Nicole (Glam Up/Sprout) on App Masters, https://www.youtube.com/watch?v=rnNGEmAJWso (transcript)"
+    },
+    {
+      "rule": "Once a format hits, replicate it over and over; only vary the hook.",
+      "why": "Alberto gets 2-5M views/month and 100K downloads from essentially one slideshow format; roughly 1 in 6 posts goes viral in Spain.",
+      "source": "Tap and Swipe podcast, https://www.youtube.com/watch?v=NgsLwjkNo7A (transcript, self-reported)"
+    },
+    {
+      "rule": "Post 1-3 times per day per account, every day, and push through the zero-traction phase.",
+      "why": "Larry posts 3/day minimum; Alberto 3/day; Jack (Lovely) and Max Blade (Talk Macros) about 2/day, and days without posts showed fewer new subs. Buffer: accounts posting in 20+ of 26 weeks get ~450% more engagement per post than sporadic posters.",
+      "source": "Larry skill (clawhub.ai/olliewazza/skills/larry); Adam Lyttle https://www.youtube.com/watch?v=HjnXnssrj4M; Buffer creator growth playbook"
+    },
+    {
+      "rule": "Spend most effort on slide 1 / the first 1-3 seconds; use specific person+conflict+reveal hooks.",
+      "why": "Larry's winners were 'I showed my mum/nan what AI thinks our living room could be' (170K-300K views); his analysis found the winners are curiosity 'reveals', not insults. Hook families: 'What AI thinks' reveal, time-shock ('hasn't changed since 1989'), forbidden/defiance ('my landlord said I can't change anything').",
+      "source": "Oliver Henry on Greg Isenberg podcast, https://www.youtube.com/watch?v=OV5eK91YY68 (transcript)"
+    },
+    {
+      "rule": "The CTA slide must name the app and the outcome; make it feel discovered, not advertised.",
+      "why": "'She's redecorating now. Snugly' got ~300K views and almost no downloads; 'The Snugly app helped me finally convince her to get the kitchen done' converted. Alberto: 'find a way for the user to feel they found your app, not the reverse'.",
+      "source": "Oliver Henry (transcript); Alberto (transcript)"
+    },
+    {
+      "rule": "Design one dramatic 'wow' screen (or widget) specifically to be shown on social.",
+      "why": "Dramatic screenshots make viewers ask for the app; widgets were the wow moment in Alberto's two best apps; Nicole spends day 2 in Figma designing 'the screen that will go viral'.",
+      "source": "Alberto and Nicole (transcripts)"
+    },
+    {
+      "rule": "Prefer realistic, slightly imperfect visuals; avoid AI-looking images and AI humans.",
+      "why": "Early DALL-E 3 images and AI faces flopped ('humans are extremely good at recognizing an AI human'); an imperfect image with a missing oven became the best post (~400K) because commenters piled in to point out the mistake.",
+      "source": "Oliver Henry (transcript)"
+    },
+    {
+      "rule": "Optimize for installs and revenue, not views: connect RevenueCat/Stripe and diagnose with a views x conversion 2x2.",
+      "why": "High views + low conversion = fix CTA; low views + high conversion rate = fix hook; both low = reset; both high = scale; installs but no payers = fix onboarding/paywall. Views alone mislead (vendor example: 500K views -> ~40 installs).",
+      "source": "Larry skill; LarryLoop; TokPortal use case (vendor)"
+    },
+    {
+      "rule": "Winners decay: rotate between winning hooks and retire a hook when its hit rate drops.",
+      "why": "Oliver's best 'landlord' hook fell to 'one video in five' (132K -> 8K -> 7K -> 4K) and the agent stopped using it automatically.",
+      "source": "Oliver Henry (transcript)"
+    },
+    {
+      "rule": "Start in your home market on a real local phone and a warmed, niche-trained account.",
+      "why": "Alberto: about 1 in 10 videos goes viral on his Spain phone vs 1 in 30-35 on his VPN phone targeting the US; creators warm new accounts ~3 days by following niche micro accounts (not macro accounts).",
+      "source": "Alberto and Nicole (transcripts); mechanism unverified"
+    },
+    {
+      "rule": "Upload as a draft and publish from the phone with a native trending sound.",
+      "why": "TikTok's API cannot choose trending sounds; practitioners believe API-direct posts get less reach (unverified). Larry, Postiz's case study and Upload-Post all default to drafts.",
+      "source": "Oliver Henry (transcript); Postiz blog; Upload-Post pricing page"
+    },
+    {
+      "rule": "Keep every account's content original: no watermarks, no identical files across accounts.",
+      "why": "TikTok makes unoriginal or watermarked content For You-ineligible and treats identical content across accounts as spam; Instagram ranks originality up and down-ranks watermarked reposts and aggregators.",
+      "source": "ContentIQ TikTok rules (verified Sep 28 2026); Coruzant/Dataslayer on Instagram originality"
+    },
+    {
+      "rule": "Fix the in-app funnel: onboarding quiz and hard paywall matter as much as content.",
+      "why": "Larry's agent rewrote onboarding and produced the best new-user day in months; QUITTR credits its 12-screen quiz (99% completion) and hard paywall; RevenueCat 2026: hard paywall 10.7% vs freemium 2.1% download->paid (D35).",
+      "source": "Oliver Henry (transcript); Startup Spells on QUITTR; RevenueCat State of Subscription Apps 2026"
+    },
+    {
+      "rule": "Build product features that are content (trend-hooked features, widgets, shareable outputs).",
+      "why": "Jack watches viral content in his niche and builds features to hook into the trend; his top video hit 4M views and 503 comments mostly asking for the app name.",
+      "source": "Adam Lyttle, https://www.youtube.com/watch?v=HjnXnssrj4M (transcript)"
+    },
+    {
+      "rule": "Once organic works, multiply it with paid creators on base + view-milestone bonuses, then run winners as ads.",
+      "why": "Typical deals: $10-30 base per video plus decreasing-CPM bonuses; viral.app median $16/video and $1 CPM; Cal AI targeted ~$5 CPM with ~150 influencers by month 7 and reused top organic videos as paid creative at ~$7K/day.",
+      "source": "Nicole (transcript); viral.app/ugc-rates (Oct 2026); Chris Koerner newsletter on Cal AI"
+    },
+    {
+      "rule": "Explore broadly first, then exploit: 5-6 formats in the first two weeks of a new account.",
+      "why": "Alberto treats >15K views on a new account as the signal a format can go viral; if nothing hits after exploration, rethink the app's positioning.",
+      "source": "Alberto (transcript)"
+    }
+  ],
+  "cadence": {
+    "tiktok": {
+      "posts_per_day": "1-3 per account (practitioners: Larry 3/day minimum, Alberto 3/day, Jack/Max ~2/day). Ramp new accounts: 1-2/day for 2 weeks, then up to 3.",
+      "best_times_local": [
+        "07:30 (Larry skill)",
+        "16:30 (Larry skill)",
+        "18:00-21:00 for app-install content (tap-3: installs peak 19-21h)",
+        "21:00 (Larry skill; Buffer: 18:00-23:00 daily is strong)",
+        "Weekend mornings, e.g. Sun 09:00 (Buffer 7.1M-post study)"
+      ],
+      "notes": "Buffer (11.4M posts, 150K accounts): vs 1 post/week, 2-5/week = +17% views per post, 6-10 = +29%, 11+ = +34%; medians stay flat, so the gain is more lottery tickets. Studies conflict on exact times (Sprout favors Tue-Thu 14-18h), so switch to your own TikTok Studio data after ~30 posts. Post drafts and add a trending sound on the phone. Audited API clients have a reported cap of ~15 direct posts/creator/24h (3p, unverified)."
+    },
+    "reels": {
+      "posts_per_day": "0.5-1 (3-5 per week minimum; 6-10+/week accelerates growth). Cross-post TikTok winners daily if available.",
+      "best_times_local": [
+        "09:00 weekdays (Buffer)",
+        "18:00 weekdays (Buffer)",
+        "Tue 13:00-19:00 (Sprout)",
+        "Wed 12:00-21:00 (Sprout)"
+      ],
+      "notes": "Buffer: follower growth rate +0.12%/week at 1-2 posts/week vs +0.26% at 3-5, +0.44% at 6-9, +0.66% at 10+; reach per post +12% at 3-5/week. Upload clean, watermark-free files. Use Trial Reels (shown to non-followers first) for hook tests [verify current behavior]. Shares/sends per reach are widely reported as the key signal for non-follower reach. API: 100 published posts per rolling 24h; API carousels max 10 items."
+    },
+    "shorts": {
+      "posts_per_day": "0.2-1 (Buffer baseline 1-3/week; practitioners repurpose TikTok winners daily).",
+      "best_times_local": [
+        "Fri-Sat 16:00-19:00 (Buffer)",
+        "18:00-21:00 weekday evenings (secondary sources)"
+      ],
+      "notes": "Track 'viewed vs swiped away': 70%+ viewed is strong, ~50/50 is average, under 30% dies (third-party bands; compare to your own median). View counting changed in March 2025, so compare only against recent Shorts. API: videos.insert default 100 calls/day."
+    },
+    "x": {
+      "posts_per_day": "3-5 (3-4 sustainable), including build-in-public updates and replies.",
+      "best_times_local": [
+        "08:00-11:00 weekdays (Buffer)",
+        "Tue-Thu 12:00-18:00 (Sprout)"
+      ],
+      "notes": "Best for build-in-public: revenue screenshots, demo clips, changelog threads. X says links are no longer deboosted (Jul 28 2026), but third-party data still shows weak link posts; when in doubt put the link in a reply. Replying to comments adds ~8% engagement (Buffer). Avoid bursting many posts at once (reported, unverified). Hosted Postiz strips links from X posts."
+    },
+    "linkedin": {
+      "posts_per_day": "0.3-1 (2-5 per week; 11+/week roughly triples engagements per post vs once a week).",
+      "best_times_local": [
+        "Wed-Sun 15:00-18:00 (Buffer)",
+        "Tue-Thu 11:00-17:00 (Sprout, secondary)"
+      ],
+      "notes": "Carousels/document posts lead engagement; replying to comments adds ~30% engagement (Buffer). Best for B2B, dev tools and founder narrative; short native video works for launches."
+    }
+  },
+  "benchmarks": {
+    "hook_hold_rate": "TikTok 3-second hold: 60-70% = good organic (grow-it), 70-80% typical for organic UGC (Agniverse, vendor); paid ads have a 33% median and 55% for the top 10% (Benly, 12K+ ads Q1 2026, via Agniverse). YouTube Shorts viewed-vs-swiped: 70%+ strong, ~50% average, under 30% dies.",
+    "completion": "Sub-15s videos: 40-60% completion achievable; a healthy curve holds ~70% after 3s, ~60% at 15s, ~50% at 30s; 60s videos: 8-15% completion can still be healthy (third-party ranges, no official TikTok numbers). Slideshow vs video completion (68% vs 52%) is an unsourced claim.",
+    "views_to_installs": "Organic blended 0.5-2% (5-20 installs per 1,000 views) per Agniverse (vendor, 5,800+ consumer-app videos); by format: slideshows 0.2-0.4%, silent/text 0.3-0.6%, reaction 0.4-0.8%, talking head 1-2%. Bio-link tap->install 1.1% (homepage), 1.4% (raw App Store URL), 3.6% (feature landing page), 5.2% (feature landing page + smart deep link) per tap-3 (vendor, 84 accounts, ~1.2M clicks). Download->paid median 2.0% globally; hard paywall 10.7% vs freemium 2.1% (RevenueCat 2026).",
+    "notes": "Real anecdotes are far lower when the CTA is weak: 300K views -> ~0 downloads (Oliver Henry before fixing the CTA); 500K views -> ~40 installs (TokPortal example); ~2,000 views -> 11 downloads with a wrong-language listing (LifePilot). View distribution is extremely skewed: average ~11-12.5K views per video, 1-3% of videos exceed 100K, and 8 of 34 hooks produced 85%+ of views in one campaign (Agniverse). Many organic installs come via App Store search days later, so click-based attribution undercounts. Action thresholds per post: Larry skill 50K+ = make 3 variations, 10-50K = keep, 1-10K = one more variation, under 1K twice = drop; Agniverse: under 200 = account problem, 200-2K = weak hook, 2K-10K = weak retention, 10K+ = winner; Alberto: 15K+ on a new account = promising format."
+  },
+  "iteration_loop": [
+    "Research: collect 10-20 niche outliers (views divided by the creator's median, Sandcastles-style) and your own past winners; extract format, hook family, slide arc, audio mood.",
+    "Brief: regenerate the product brief from the codebase and the latest release (features, wow screens, pricing, persona, objections).",
+    "Generate: for each format, hold body/images/CTA constant and create 3-5 hook variants from different families (reveal, time-shock, forbidden, POV, listicle, mistakes).",
+    "Guardrail: check safe zones (no text in bottom 20% / top 10%), legibility, watermark-free, unique per account, AIGC label if realistic AI people, hashtags <= 5, CTA names the app.",
+    "Schedule: one variant per slot at consistent times (e.g., 07:30 / 16:30 / 21:00 local); keep the same CTA/link for 14+ days.",
+    "Publish: TikTok as draft -> phone notification -> add trending sound that matches the emotion -> post; Reels/Shorts/LinkedIn/X direct with clean files.",
+    "Measure at 24h and 72h: views, 3s hold, avg % watched/completion, shares, saves/sends, profile visits, link taps; join with installs (App Store Connect/Play Console sources, smart-link clicks, promo codes, HDYHAU survey) and trials/revenue (RevenueCat/Stripe).",
+    "Classify each post against thresholds (50K+ double down; 10-50K keep; 1-10K one more try; under 1K twice drop).",
+    "Diagnose with the 2x2: high views/low conversion -> fix CTA; low views/high conversion -> fix hook; both low -> new format; both high -> 3 variations plus more accounts; installs but no payers -> fix onboarding/paywall.",
+    "Exploit: clone winners into 3 variants, rotate between top hooks, track each hook's hit rate and retire it when it falls (e.g., under 1 hit in 5 posts).",
+    "Amplify: cross-post winners to Reels/Shorts, brief creators with the winning script, boost the best organic posts as Spark Ads/Meta ads.",
+    "Remember: write weekly learnings (winning hooks, dead hooks, CTA results, audio notes) to a per-app memory file the agent rereads before generating."
+  ],
+  "reach_killers": [
+    "Another platform's watermark or logo in the video (TikTok FYF-ineligible; Instagram down-ranks watermarked reposts).",
+    "Reposting the same file or near-identical content across accounts (TikTok spam rule since Sep 2025); unoriginal content without creative edits (adding subtitles alone is insufficient).",
+    "AI-looking images and AI humans; landscape crops, black bars, wrong aspect ratio (Oliver Henry).",
+    "Text in the bottom 20% or top 10% of the frame (hidden by UI) or too small to read.",
+    "No sound, or music that doesn't match the emotion of the video.",
+    "Looking like an ad: hard pitch on slide 1, brand-first framing.",
+    "Brand-new cold accounts posting immediately, or accounts that post more than they consume (practitioner belief, unverified).",
+    "VPN/geo mismatch between phone, SIM and target market (Alberto: 1 in 30-35 viral vs 1 in 10 at home; mechanism unverified).",
+    "API-direct posting instead of draft + manual publish (practitioner consensus, unverified).",
+    "Hashtag stuffing (more than 5) and formulaic, long captions (Postiz case study).",
+    "Inconsistent, sporadic posting (Buffer: consistency compounds engagement per post).",
+    "Overusing one winning hook until it decays.",
+    "Undisclosed commercial content (TikTok, effective Sep 24 2026: may reduce visibility or force the disclosure toggle).",
+    "Unlabeled realistic AI content (may be removed, restricted or labeled by TikTok).",
+    "On X: link-only posts still underperform per third-party data despite the official 'no penalty' line; bursts of many posts reportedly reduce reach (unverified).",
+    "Conversion killers (not reach): CTA that never names the app, raw App Store links opened in in-app browsers, switching bio links weekly, wrong-language store listing."
+  ],
+  "traffic_routing": [
+    "Name the app and the outcome on the CTA slide and in the caption; offer 'search [App] on the App Store' because many organic installs come via store search days later.",
+    "TikTok bio: a clickable link needs 1,000 followers (personal) or a verified business account; personal accounts cannot link directly to App Store pages (blocked since 2023), business accounts can and get a 'Download app' button.",
+    "Send bio traffic to a feature-specific landing page that matches the video, not the homepage or raw store URL (tap-3, vendor: 1.1% homepage, 1.4% raw App Store, 3.6% feature page, 5.2% feature page + smart deep link).",
+    "Escape the in-app browser (redirect to the default browser or use smart links) before showing the store: 3.8x installs in tap-3's data (vendor).",
+    "Swap the landing page daily to match the top-performing video (2.1x installs vs one generic page; tap-3, vendor), but keep one link/CTA for 14+ days.",
+    "Write benefit-led CTA copy that omits 'app'/'download' (e.g., 'Record your first workout free'): +27% install rate (tap-3, vendor).",
+    "Use deferred deep links (Branch, AppsFlyer, Adjust) so installs land on the promised feature and skip generic onboarding: 2.4x D7 retention (tap-3, vendor).",
+    "Attribute organic traffic: App Store campaign links (pt/ct tokens) and Play Store UTM referrers per account or post; unique promo codes per account/creator; an in-app 'How did you hear about us?' onboarding step; App Store Connect and Play Console source reports.",
+    "Connect RevenueCat or Stripe so every post/hook/CTA gets revenue, not just views (Larry loop, LarryLoop, Volume).",
+    "Reply to 'what's the app?' comments with the name and pin it; comment volume is itself a reach signal (Jack: 503 comments on a 4M-view video, mostly asking the app name).",
+    "Instagram: use the bio link (up to 5), story link stickers and comment-to-DM automations; Reels caption links are not clickable.",
+    "X/LinkedIn: link in the post is officially fine on X since Jul 2026, but test link-in-reply vs link-in-post; use UTM-tagged links per post."
+  ],
+  "feature_ideas": [
+    {
+      "name": "Codebase -> Product Brief",
+      "why": "No competitor understands the product; Claude Code/Codex can read README, screens, routes, paywall/pricing config, onboarding copy, App Store metadata and recent commits to produce features ranked by visual wow, persona, pains, proof and objections that every template uses.",
+      "priority": "P0"
+    },
+    {
+      "name": "Real-app footage capture (iOS Simulator, Android emulator, Playwright)",
+      "why": "Hook+demo videos and 'dramatic screenshot' CTA slides need real screens; xcrun simctl recordVideo / adb screenrecord / Playwright let the agent script flows and capture them automatically; developers already have these tools.",
+      "priority": "P0"
+    },
+    {
+      "name": "Slideshow engine with platform-safe text rendering",
+      "why": "Most of the proven app growth (Larry, Alberto, UMAX) is slideshows; bake in the proven spec: 9:16 (1080x1920 / 1024x1536), 3-6 slide arcs, ~28% vertical text placement, 4-6 words per line, stroke outline, TikTok-native-style fonts, safe zones, consistent scene across slides.",
+      "priority": "P0"
+    },
+    {
+      "name": "Hook Lab: variants, controlled tests and a hook ledger",
+      "why": "Hooks drive reach; generate 3-5 variants per body across hook families, rotate them across slots, track hit rate and decay per hook, auto-make 3 variations of anything over 50K and retire hooks that stop hitting.",
+      "priority": "P0"
+    },
+    {
+      "name": "Draft-first publishing with phone handoff, plus direct posting where safe",
+      "why": "TikTok's API can't pick trending sounds and unaudited clients post private-only; push TikTok drafts with a phone notification (add sound, post in ~60s), post directly to IG/YT/LinkedIn/X via official APIs, or plug in Post Bridge/Upload-Post/self-hosted Postiz as the posting backend.",
+      "priority": "P0"
+    },
+    {
+      "name": "Revenue loop and 2x2 diagnosis",
+      "why": "Connect RevenueCat, Stripe, App Store Connect and Play Console; attribute installs and revenue per post via smart links, promo codes and survey answers; show the views x conversion 2x2 with explicit thresholds and recommended next action.",
+      "priority": "P0"
+    },
+    {
+      "name": "Pre-post guardrails",
+      "why": "Prevent reach killers: watermark detection (TikTok, CapCut, Sora/other generators), per-account uniqueness (no identical files), safe-zone and legibility checks, AIGC label prompt for realistic AI people, commercial disclosure toggle, hashtag cap of 5, caption length, CTA-names-the-app check.",
+      "priority": "P0"
+    },
+    {
+      "name": "BYO AI with per-post cost meter and flat pricing",
+      "why": "Credits, expiring balances and cancellation friction are the category's most common complaints (Arcads 2.6 on Trustpilot, OpusClip, MakeUGC); using the user's own Claude Code/Codex plus image API keys makes honest flat pricing possible.",
+      "priority": "P0"
+    },
+    {
+      "name": "Hook + demo video template and basic editor (captions, trims, overlays)",
+      "why": "Hook+demo is the second core app format (Oliver generated ~400 combos per batch before Larry; Fastlane sells it); needs animated captions (Submagic-style presets), text hooks, trims and audio placeholders.",
+      "priority": "P0"
+    },
+    {
+      "name": "Attribution plumbing as pull requests",
+      "why": "Shipreel has repo access: open PRs that add a 'How did you hear about us?' onboarding step, deep-link and UTM capture, App Store campaign tokens and Play referrers, RevenueCat attributes and per-creator promo codes. No marketing tool can do this.",
+      "priority": "P1"
+    },
+    {
+      "name": "Feature landing pages with in-app-browser escape and smart store redirect",
+      "why": "Vendor data: feature page + smart deep link 5.2% vs raw App Store 1.4%, browser escape 3.8x, daily page matching the top video 2.1x; generate pages in the user's web repo and deploy to their Vercel/Netlify.",
+      "priority": "P1"
+    },
+    {
+      "name": "Format cloning from reference videos and an outlier scanner",
+      "why": "Practitioners copy proven formats; let users paste reference URLs (analyzed via frames + transcript) and maintain a watchlist of niche accounts with outlier scores (views divided by the creator's median), Sandcastles-style but with no credit burn.",
+      "priority": "P1"
+    },
+    {
+      "name": "Analytics ingestion via screenshot OCR and CSV exports; Trial Reels workflow",
+      "why": "Retention metrics (3s hold, completion) aren't fully available via APIs for most accounts; Oliver sent screenshots to Larry; Claude vision can parse TikTok Studio retention screens; Trial Reels give clean hook tests on Instagram.",
+      "priority": "P1"
+    },
+    {
+      "name": "Post-install coach",
+      "why": "When installs are good but payers aren't, propose onboarding quiz and paywall changes as code with RevenueCat benchmarks (hard paywall 10.7% vs freemium 2.1%); Larry's onboarding rewrite produced the best day of new users.",
+      "priority": "P1"
+    },
+    {
+      "name": "Multi-account and multi-market manager with warm-up checklist and localization",
+      "why": "Growth scales via accounts per niche/market (Alberto: 6-7 accounts per phone, Spain first, separate English phone); provide human warm-up checklists/timers, per-account voice and uniqueness, localized variants; never automate fake engagement.",
+      "priority": "P1"
+    },
+    {
+      "name": "Changelog -> build-in-public posts and 'what's new' shorts",
+      "why": "Developer-native channels (X, LinkedIn) are missing from slideshow tools; git commits and releases are a free content stream with real proof.",
+      "priority": "P1"
+    },
+    {
+      "name": "Templates as code plus timeline editor",
+      "why": "Version-controlled, forkable templates the agent can edit (React/Remotion-style); if embedding Remotion, budget for the Automators license ($0.01/render, $100/mo minimum).",
+      "priority": "P1"
+    },
+    {
+      "name": "Agent chat surface and per-app memory files",
+      "why": "Larry is steered by WhatsApp messages and recovers from context loss via memory files; offer chat (desktop, phone push/Telegram/Slack) and a durable winners/losers ledger per app.",
+      "priority": "P1"
+    },
+    {
+      "name": "Shipreel MCP server and CLI",
+      "why": "Agent surfaces are table stakes (Postiz, Post Bridge, Blotato, Genviral, Volume, Upload-Post); developers will script Shipreel from Claude Code/Codex.",
+      "priority": "P1"
+    },
+    {
+      "name": "Creator mode: briefs, course, content bank, payouts",
+      "why": "Once a format works, creators multiply it; auto-generate scripts with per-line emotion and shot lists, onboarding course outline, content bank, payout calculator (base + milestone bonuses, e.g., $16 median/video, $1 CPM) and creator account tracking (viral.app-style).",
+      "priority": "P2"
+    },
+    {
+      "name": "AI UGC avatars with realism gate and disclosure",
+      "why": "Talking heads convert best per view (1-2% vs 0.2-0.4% for slideshows), but AI actors draw 'clearly AI' complaints; offer only with a realism review step and automatic AIGC labeling.",
+      "priority": "P2"
+    },
+    {
+      "name": "Paid amplification export",
+      "why": "Cal AI and QUITTR scaled by running top organic creatives as ads; export winners with naming conventions and Spark Ads code workflows; suggest budgets ($50-100/day start, +25%/week at 1.2-2x ROAS per Rork).",
+      "priority": "P2"
+    },
+    {
+      "name": "Virality score as triage only",
+      "why": "OpusClip users find a virality score useful for prioritizing; train it on the user's own history and show it as a ranking aid, not a promise.",
+      "priority": "P2"
+    },
+    {
+      "name": "Studio mode (many apps, approvals, team seats)",
+      "why": "App studios run many apps and accounts; per-app workspaces, approval queues and shared hook libraries.",
+      "priority": "P2"
+    },
+    {
+      "name": "Optional Android 'add sound and publish' helper",
+      "why": "The Postiz case study used a ~$50 Android phone over ADB to pick trending audio and publish drafts; useful for power users but carries platform-automation risk, so keep it opt-in and clearly labeled.",
+      "priority": "P2"
+    }
+  ],
+  "competitors": [
+    {
+      "name": "ReelFarm",
+      "url": "https://reel.farm",
+      "pricing": "Growth $49/mo (100 slideshows, 10 formats); Scale $95 (250, 20 formats); Enterprise $195 (750, 200 formats, BYO Anthropic key). 3 free TikToks. (site, Oct 2026)",
+      "strengths": "Original TikTok slideshow automation; format library from real businesses; set-and-forget automations; unlimited accounts and seats; API + Skill.md; strong brand among faceless-page operators.",
+      "weaknesses": "TikTok-only native posting (Reels/Shorts export only); tracks views, not installs or revenue; Pinterest-sourced images raise rights questions; limits count generated slideshows; thin independent reviews (Product Hunt 3.0/5 from 2, one alleging 0% sales and 30% churn)."
+    },
+    {
+      "name": "LarryLoop (Oliver Henry)",
+      "url": "https://www.larryloop.com",
+      "pricing": "Starter $39/mo (1 post/day, 1 project); Growth $99 (3/day, 3 projects); Scale $249 (10/day, unlimited). (site)",
+      "strengths": "Productized Larry loop with per-post revenue attribution (Stripe, RevenueCat) and an iteration engine that kills losing hooks; credible founder story; '11,000+ users' (self-reported).",
+      "weaknesses": "TikTok-only; generic product understanding from web research; posting method (draft vs direct) unclear; the free Larry skill undercuts it."
+    },
+    {
+      "name": "Larry skill (OpenClaw / LarryBrain)",
+      "url": "https://clawhub.ai/olliewazza/skills/larry",
+      "pricing": "Free skill; pay for OpenClaw host, model (e.g., Claude Max) and image API.",
+      "strengths": "Most specific public playbook (slide spec, overlay rules, times, warm-up, thresholds, 2x2 diagnosis); TikTok drafts via Postiz; RevenueCat loop; widely copied (Upload-Post fork).",
+      "weaknesses": "DIY setup (Docker/VPS), context drift, fragile auth, operator-dependent; one channel and one format; no UI or editor."
+    },
+    {
+      "name": "Volume",
+      "url": "https://tryvolume.app",
+      "pricing": "Core $29.99/mo (60 posts, 100 AI images); Pro $69.99 (300 posts, 400 images); 3-day trial; only posted slideshows count. (site blog, Sep 2026)",
+      "strengths": "App-focused; 'App shots' (screenshot to realistic phone-in-hand photo); trend research to approvals; RevenueCat analytics; MCP + API + Skill.md; managed enterprise tier.",
+      "weaknesses": "TikTok-only for now (Instagram 'coming soon'); direct auto-posting (no sound step); little independent review coverage."
+    },
+    {
+      "name": "Fastlane",
+      "url": "https://www.usefastlane.ai",
+      "pricing": "Free plan; paid from $29/mo; human-warmed TikTok/IG accounts $100/account/mo.",
+      "strengths": "URL-to-content (slideshows, AI UGC with 1,000+ characters, hook+demo, memes from 25K+ trending videos); native posting to TikTok, Reels, Shorts, LinkedIn; per-post signup/sales attribution.",
+      "weaknesses": "Learns from your website, not your product; selling warmed accounts carries platform ToS risk; most comparison content is self-published."
+    },
+    {
+      "name": "Genviral",
+      "url": "https://www.genviral.io",
+      "pricing": "Creator $29/mo; Professional $49; Business $99; Scale $199; ~17% off annual (site). Hosted accounts reportedly $450 for 5 (unverified).",
+      "strengths": "Scheduler + AI Studio (30+ models, 200+ templates incl. slideshows) on 10 networks; competitor tracking; 'Vira' autopilot; CLI with 60+ commands and an open-source agent skill for OpenClaw/Claude Code/Codex.",
+      "weaknesses": "Shared credits across features; confusing free/paid messaging; hosted accounts on dedicated devices are a ToS gray area."
+    },
+    {
+      "name": "Blotato",
+      "url": "https://www.blotato.com",
+      "pricing": "Starter $29/mo (1,250 credits, 20 accounts); Creator $97 (5,000 credits, 40 accounts); Agency $499 (28,000 credits). 7-day trial without API. (site)",
+      "strengths": "AI writing/images/faceless video/voice + remix + publishing to 9 platforms; API + MCP; n8n/Make nodes; Trustpilot 4.8 (388 reviews).",
+      "weaknesses": "Credits run out (one estimate ~24 faceless videos/mo on Starter); learning curve and glitches; creator-brand-centric; light analytics; no revenue loop."
+    },
+    {
+      "name": "Postiz",
+      "url": "https://postiz.com",
+      "pricing": "Hosted: Standard $29/mo (5 channels), Team $39 (10), Pro $49 (30), Ultimate $99 (100); ~20% off annual. Open source (AGPL-3.0) self-host free plus infra (~$5-10/mo).",
+      "strengths": "30 platforms; MCP, CLI and API on every plan; webhooks, n8n/Make/Zapier; used by Larry for TikTok drafts; self-hostable.",
+      "weaknesses": "Hosted version strips all URLs from X posts (issue #1939 closed 'not planned' Sep 30 2026); self-hosting requires your own platform app approvals; no creative judgment or revenue loop."
+    },
+    {
+      "name": "Post Bridge",
+      "url": "https://www.post-bridge.com",
+      "pricing": "Free (5 posts/mo); Marketer $39/mo (15 accounts, API, MCP); Operator $99 (99 accounts, then $1/account). 7-day trial. (site, Oct 2026)",
+      "strengths": "Simple flat pricing; 10 platforms incl. TikTok carousels; API and MCP included; ChatGPT app (Sep 2026); 1,400+ paying customers (self-reported).",
+      "weaknesses": "Pure distribution: no creative, no analytics loop; older listings show different tiers, so pricing has churned."
+    },
+    {
+      "name": "Upload-Post",
+      "url": "https://www.upload-post.com",
+      "pricing": "Not shown on pricing page; free trial; positioned cheaper than Ayrshare ($49+) (unverified).",
+      "strengths": "22 platforms; REST API + SDKs; MCP server with 40 tools (MIT, hosted or npx); white-label API; recommends TikTok draft mode; powers a Larry skill fork.",
+      "weaknesses": "Infrastructure only; carousel support not confirmed on the page."
+    },
+    {
+      "name": "Buffer",
+      "url": "https://buffer.com",
+      "pricing": "Free (3 channels); Essentials ~$5-6/channel/mo; Team ~$10-12/channel/mo (3p).",
+      "strengths": "Simplest scheduler; strong free tier; publishes large-sample posting research.",
+      "weaknesses": "No creative generation, no app attribution, no iteration loop."
+    },
+    {
+      "name": "Later",
+      "url": "https://later.com",
+      "pricing": "~$18.75-25 / $37.50-50 / $82.50-110 per month; no free tier; 14-day trial (3p, sources conflict).",
+      "strengths": "Visual IG/TikTok planning and link-in-bio.",
+      "weaknesses": "Expensive for indie devs; no creative or revenue loop."
+    },
+    {
+      "name": "Metricool",
+      "url": "https://metricool.com",
+      "pricing": "Free (1 brand, 20 posts/mo); ~$18-20 (5 brands); ~$45-53 (15 brands) (3p).",
+      "strengths": "Best-value analytics, competitor tracking, best-time heatmaps across brands.",
+      "weaknesses": "Not app-specific; no creative or install attribution."
+    },
+    {
+      "name": "Arcads",
+      "url": "https://www.arcads.ai",
+      "pricing": "~$110/mo Starter, ~$220 Creator, custom Pro (3p; no public pricing page).",
+      "strengths": "Fast AI-actor UGC ad production for agencies and paid social.",
+      "weaknesses": "Trustpilot 2.6/5 (187 reviews, 49% 1-star): output 'NOTHING like their ads', lip-sync glitches, credits lost on cancel, unprocessed refunds, hard-to-reach support; physical-product presets fail ~20% (3p)."
+    },
+    {
+      "name": "MakeUGC",
+      "url": "https://www.makeugc.ai",
+      "pricing": "$59 (500 credits) / $79 / $149 per month, shown as 50% off (3p, Oct 1 2026); $1 3-day trial; API $99-299.",
+      "strengths": "Cheap high-volume AI UGC; 500+ actors; product-in-hand; B-roll; PDF-to-video.",
+      "weaknesses": "Trial credits may not finish one video; cancellation/continued-billing complaints; thin editing; inconsistent realism."
+    },
+    {
+      "name": "Creatify",
+      "url": "https://creatify.ai",
+      "pricing": "Free (10 credits, watermark); Starter $39 (100 credits); Pro $99 (300 credits); prices up ~18-100% vs older listings (3p).",
+      "strengths": "URL-to-video ads, avatars, batch variants for e-commerce.",
+      "weaknesses": "Credits vanish during iteration (5 credits per 15s; 3 per 15s per revision); key features gated to Pro; outputs need editing."
+    },
+    {
+      "name": "Captions / Mirage",
+      "url": "https://www.captions.ai",
+      "pricing": "Basic $9.99/mo (200 credits); Max $24.99 (500, unlocks AI twins); Scale $69.99-279.99 (3p).",
+      "strengths": "Strong mobile editing layer: captions, AI edit, eye contact, AI twins/actors.",
+      "weaknesses": "Conflicting credit-per-second costs; audio desync reports; commercial-use consent terms; no posting/feedback loop."
+    },
+    {
+      "name": "HeyGen",
+      "url": "https://www.heygen.com",
+      "pricing": "Free (3 videos/mo); Creator $29/mo ($24 annual); Pro $49; Business $149 + $20/seat (3p).",
+      "strengths": "High-quality avatars (Avatar IV); cheap talking heads (~$0.48 per 30s, 3p estimate); translation.",
+      "weaknesses": "Credits don't roll over; Avatar IV minutes capped; product-in-hand via Veo ~$5.80/ad; not native to organic UGC or auto-publishing."
+    },
+    {
+      "name": "Higgsfield (Marketing Studio)",
+      "url": "https://higgsfield.ai",
+      "pricing": "Not verified this session.",
+      "strengths": "Many image/video models in one place; UGC, unboxing and presenter ads; import product from URL; 'Virality Predictor' (per Higgsfield's own skill description).",
+      "weaknesses": "Ad-centric, not an organic posting/iteration loop; pricing unverified."
+    },
+    {
+      "name": "Submagic",
+      "url": "https://www.submagic.co",
+      "pricing": "Free (3 videos, watermark); ~$19 / $39 / $69 per month; Magic Clips add-on ~$19 (3p).",
+      "strengths": "Fast animated captions with style presets; Trustpilot ~4.6 (757 reviews).",
+      "weaknesses": "Per-seat plus add-on costs; 2-minute cap on Starter; stuck exports; repetitive styles; no strategy layer."
+    },
+    {
+      "name": "OpusClip",
+      "url": "https://www.opus.pro",
+      "pricing": "Free; Starter $15/mo; Pro $29 (~$14.50 annual); Business custom (3p).",
+      "strengths": "Long-to-short clipping; virality score useful for triage; Trustpilot 4.0 (510).",
+      "weaknesses": "Credits per source minute and expiring credits; constant upsells; charges after cancellation; 20-40% of clips discarded (3p); scheduler unreliable for TikTok (3p); app devs rarely have long-form source."
+    },
+    {
+      "name": "CapCut",
+      "url": "https://www.capcut.com",
+      "pricing": "Free; Pro $19.99/mo or $179.99/yr; Ultra $79/mo (8,645 AI credits); Teams ~$12.49/seat (site).",
+      "strengths": "Default editor for TikTok natives; trend-linked templates; auto captions; AI features.",
+      "weaknesses": "Manual; no strategy or feedback loop; template/music commercial-use limits and ToS concerns (verify current terms)."
+    },
+    {
+      "name": "Canva",
+      "url": "https://www.canva.com",
+      "pricing": "~$15/mo Pro (unverified; pricing page blocked).",
+      "strengths": "Ubiquitous templates, brand kits, bulk create, content planner; Oliver Henry built his first breakout slideshow in Canva.",
+      "weaknesses": "Manual and not short-form native; no analytics-driven iteration."
+    },
+    {
+      "name": "Remotion (+ Agent Skills)",
+      "url": "https://www.remotion.dev",
+      "pricing": "Free for individuals and companies of 3 or fewer people; Creators $25/seat/mo; Automators $0.01/render with $100/mo minimum (required for apps where end users render); Enterprise from $500/mo.",
+      "strengths": "Code-first video in React; official Agent Skills for Claude Code/Codex (create, markup, captions, render) via 'npx skills add remotion-dev/skills'.",
+      "weaknesses": "Developer tool, not a marketing system; licensing cost if embedded in Shipreel."
+    },
+    {
+      "name": "ShortsGenerator",
+      "url": "https://www.shortsgenerator.com",
+      "pricing": "Free (1 video); Hobby $19.99; Standard $49.99; Professional $99.99 per month (site).",
+      "strengths": "Easy text-to-faceless-shorts; auto refunds on failed renders.",
+      "weaknesses": "Trustpilot 3.5 (56 reviews): repetitive output, generation failures; generic content."
+    },
+    {
+      "name": "Sandcastles",
+      "url": "https://sandcastles.ai",
+      "pricing": "Pro $49/mo (100 credits); Visionary $99 (250); Titan $499 (1,500 + API); ~20% off annual.",
+      "strengths": "Outlier detection vs each creator's own baseline; scripts remixed from outliers.",
+      "weaknesses": "Credits burn fast (~3 actions/day on Pro), no rollover, no refunds; no production or posting."
+    },
+    {
+      "name": "Virlo",
+      "url": "https://virlo.ai",
+      "pricing": "Starter $49/mo (2,000 credits); Pro $199 (12,000); 7-day trial (site).",
+      "strengths": "TikTok/Shorts trend and niche intelligence for agencies.",
+      "weaknesses": "All sales final; credits burn; trends sometimes stale; most comparisons are self-published."
+    },
+    {
+      "name": "viral.app",
+      "url": "https://viral.app",
+      "pricing": "Pro $99/mo ($79 annual); Ultra $299; Scale $499; managed programs $10-20K/mo; 3% payout fee (3p).",
+      "strengths": "Brand-side UGC programs: creator tracking, milestone payouts, reporting; publishes live UGC rate data (Oct 2026: $16/video median, $1 CPM).",
+      "weaknesses": "Expensive for indies; only useful once you pay creators."
+    },
+    {
+      "name": "TokPortal",
+      "url": "https://www.tokportal.com",
+      "pricing": "Starter $49/mo (1 account), Creator $95 (3), Marketer $195 (8), plus credits for account creation (~25-32), warming (7-15) and uploads (2).",
+      "strengths": "Turnkey multi-account distribution with warming and MCP; detailed (vendor) multi-account playbooks.",
+      "weaknesses": "Platform ToS risk (inauthentic behavior/spam); self-contradicting cost math; unsourced shadowban claims; also runs an account-rental marketplace."
+    },
+    {
+      "name": "Luminary Lane",
+      "url": "https://www.luminarylane.app",
+      "pricing": "Not listed.",
+      "strengths": "Managed 'AI CMO' with 20+ specialist agents and human approval; pitched as Larry without the DIY.",
+      "weaknesses": "Generic multi-channel GTM; not short-form or app-install native."
+    },
+    {
+      "name": "Free hook generators and platform-native editors (OpusClip/Submagic hook tools, Instagram Edits, YouTube Create, TikTok editor)",
+      "url": "https://www.opus.pro",
+      "pricing": "Free.",
+      "strengths": "Zero cost; native fonts and sounds inside TikTok's own editor (Alberto deliberately types overlays there).",
+      "weaknesses": "No connection to your results; hooks are commoditized without performance feedback (not researched in depth this session)."
+    }
+  ]
+}

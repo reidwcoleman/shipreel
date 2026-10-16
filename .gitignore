@@ -1,0 +1,36 @@
+# deps
+/node_modules
+# next
+/.next/
+/.next-*/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+# user data (projects, renders, secrets) lives here
+/workspace/
+# env
+.env*
+!.env.example
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+/.venv/
+/coverage
+# downloaded reference videos (copyrighted; research only)
+/refs/
+# music beds are fetched by `npm run fetch-music` (Mixkit's license: use in videos, don't redistribute the files)
+/public/music/*.mp3
+# research scratch: frames/clips of third-party videos, local tool installs
+/research/**/node_modules/
+/research/**/__pycache__/
+/research/tools/quality/work/
+/research/**/*.mp4
+/research/**/*.mkv
+/research/**/*.mov
+/research/**/*.webm
+/research/**/*.gif
+/research/**/*.jpg
+/research/**/*.jpeg
+/research/**/*.png

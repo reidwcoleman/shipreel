@@ -1,0 +1,860 @@
+{
+  "as_of": "2026-10-15",
+  "platforms": {
+    "tiktok": {
+      "official": {
+        "auth": "OAuth 2.0 Login Kit v2 (https://www.tiktok.com/v2/auth/authorize/). Scopes: user.info.basic + video.publish (Direct Post) and/or video.upload (inbox drafts). Desktop apps: redirect host must be localhost or 127.0.0.1 with a port (wildcard port allowed); PKCE required, code_challenge_method=S256 (TikTok documents a hex-encoded SHA256 challenge). Web apps need an HTTPS redirect. App review is required to leave sandbox; a separate Content Posting API audit is required for public Direct Post.",
+        "unaudited_limits": "Unaudited clients: all Direct Post content forced to SELF_ONLY (private); up to 5 users may post per 24h; accounts must be private at posting time; error unaudited_client_can_only_post_to_private_accounts. Sandbox: up to 10 owned target accounts and 'no access to Content Posting API for public videos'. Inbox drafts (video.upload): docs list no audit restriction, only 5 pending shares per 24h [unverified for unaudited non-sandbox apps].",
+        "video_flow": [
+          "POST https://open.tiktokapis.com/v2/post/publish/creator_info/query/ (privacy_level_options, comment/duet/stitch disabled flags, max_video_post_duration_sec) - required before building the Direct Post UI",
+          "Direct Post: POST /v2/post/publish/video/init/ {post_info:{title, privacy_level, disable_duet, disable_comment, disable_stitch, video_cover_timestamp_ms, brand_content_toggle, brand_organic_toggle, is_aigc}, source_info:{source:FILE_UPLOAD, video_size, chunk_size, total_chunk_count}} -> publish_id + upload_url",
+          "Draft/inbox instead: POST /v2/post/publish/inbox/video/init/ {source_info:{...}} (no post_info) -> publish_id + upload_url; user finishes the post in the TikTok app from an inbox notification",
+          "PUT upload_url with Content-Type video/mp4|video/quicktime|video/webm, Content-Length, Content-Range: bytes FIRST-LAST/TOTAL (chunks 5-64 MB, final up to 128 MB, 1-1000 chunks, in order; upload_url valid 1h)",
+          "Alternative source PULL_FROM_URL with video_url on a domain/URL prefix verified in the TikTok developer portal (https, no redirects)",
+          "POST /v2/post/publish/status/fetch/ {publish_id} -> PROCESSING_UPLOAD | PROCESSING_DOWNLOAD | SEND_TO_USER_INBOX | PUBLISH_COMPLETE | FAILED (or webhooks post.publish.*)"
+        ],
+        "photo_flow": [
+          "POST https://open.tiktokapis.com/v2/post/publish/content/init/ {media_type:'PHOTO', post_mode:'DIRECT_POST'|'MEDIA_UPLOAD', post_info:{title(<=90), description(<=4000), privacy_level, disable_comment, auto_add_music, brand_content_toggle, brand_organic_toggle}, source_info:{source:'PULL_FROM_URL', photo_cover_index, photo_images:[urls]}} -> publish_id",
+          "Only PULL_FROM_URL is supported for photos; image URLs must be on a verified domain/prefix (FILE_UPLOAD not available for photos)",
+          "Poll /v2/post/publish/status/fetch/"
+        ],
+        "limits": {
+          "init_rate_limit": "6 requests/min per user access token (video/init, inbox/video/init, content/init)",
+          "status_rate_limit": "30 requests/min per token",
+          "creator_info_rate_limit": "20 requests/min per token",
+          "daily_posts": "about 15 posts/day per creator, shared across all Direct Post API clients (Zernio: 15 videos + 15 photo posts counted separately)",
+          "pending_drafts": "max 5 pending inbox shares per 24h (spam_risk_too_many_pending_share)",
+          "video": "MP4 (recommended)/WebM/MOV; H.264/H.265/VP8/VP9; 23-60 fps; 360-4096 px each side; <=4 GB; <=10 min via API (creator max from creator_info)",
+          "photos": "JPEG or WebP; <=20 MB each; <=1080p; up to 35 per post",
+          "caption": "video title <=2200 UTF-16 runes; photo title <=90, description <=4000"
+        },
+        "docs": "https://developers.tiktok.com/doc/content-posting-api-get-started"
+      },
+      "notes": "Do not ask Shipreel users to bring their own TikTok app (app review + audit + verified HTTPS domain for photos). Use an aggregator's audited app. Default to draft mode (MEDIA_UPLOAD) for videos that need a trending sound (the API cannot attach sounds; photo posts can set auto_add_music). Implement TikTok's Direct Post UX rules (creator nickname, no default privacy, toggles off, commercial-content disclosure, Music Usage Confirmation, preview, no watermarks). Aggregators now connect new accounts via the TikTok for Business app lane: per Zernio, videos there are public-only (use drafts for anything else) and drafts need TikTok app >= 31.8 [vendor docs]. US ToS issuer is now 'TikTok USDS Joint Venture'."
+    },
+    "instagram": {
+      "official": {
+        "auth": "Meta app. Option A: Instagram API with Instagram Login (Business Login for Instagram) on graph.instagram.com, scopes instagram_business_basic + instagram_business_content_publish, no Facebook Page needed; dashboard 'Generate token' gives 60-day tokens; refresh via GET graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token. Option B: Instagram API with Facebook Login for Business on graph.facebook.com, scopes instagram_basic + instagram_content_publish + pages_read_engagement, requires a linked Facebook Page.",
+        "unaudited_limits": "No private-lock. Development mode / Standard Access: works for professional accounts you own or manage that have a role on the app (public posting allowed). App Review + Advanced Access only needed for accounts you do not own or manage.",
+        "video_flow": [
+          "POST /{IG_ID}/media media_type=REELS, video_url=<public URL>, caption, share_to_feed, cover_url|thumb_offset, audio_name, collaborators(<=3), location_id, user_tags, trial_params -> container id",
+          "GET /{CONTAINER_ID}?fields=status_code until FINISHED (EXPIRED, ERROR, FINISHED, IN_PROGRESS, PUBLISHED); poll ~1/min up to 5 min",
+          "POST /{IG_ID}/media_publish creation_id=<CONTAINER_ID>",
+          "Resumable (Facebook Login only per docs): POST /{IG_ID}/media upload_type=resumable media_type=REELS -> POST https://rupload.facebook.com/ig-api-upload/{API_VERSION}/{CONTAINER_ID} with headers Authorization: OAuth <token>, offset, file_size (or file_url) -> resume using video_status.uploading_phase.bytes_transferred",
+          "Trending/catalog audio (Facebook Login only): GET /ig_audio?audio_type=music|original_sound&user_id=... then audio_configuration={audio_id, audio_volume, video_volume} on the REELS container"
+        ],
+        "photo_flow": [
+          "For each slide: POST /{IG_ID}/media image_url=<public JPEG URL> is_carousel_item=true -> child id (videos allowed as items via video_url, media_type=VIDEO)",
+          "POST /{IG_ID}/media media_type=CAROUSEL children=<id1,id2,...> caption=... -> parent id",
+          "POST /{IG_ID}/media_publish creation_id=<parent id>"
+        ],
+        "limits": {
+          "publishing": "100 API-published posts per rolling 24h (GET /{IG_ID}/content_publishing_limit); the carousel section of the same guide says 50 [doc conflict]",
+          "containers": "400 containers per 24h; containers expire after 24h",
+          "carousel": "up to 10 images/videos; Reels cannot be carousel items",
+          "reels": "MOV/MP4, moov atom at front, H.264/HEVC, AAC <=48 kHz, 23-60 fps, <=1920 px wide, 3 s-15 min, <=300 MB, VBR <=25 Mbps",
+          "images": "JPEG only, <=8 MB, aspect 4:5 to 1.91:1, 320-1440 px wide",
+          "hosting": "media must be on a publicly accessible server at publish time (Meta cURLs it) unless using FB-Login resumable upload"
+        },
+        "docs": "https://developers.facebook.com/docs/instagram-platform/content-publishing"
+      },
+      "notes": "For a local BYO integration with Instagram Login you need a temporary public URL (presigned S3/R2 GET URL or a cloudflared quick tunnel) kept alive until FINISHED. rupload with Instagram Login is reported by third parties [unverified]. No drafts via API. Requires an Instagram professional (Business or Creator) account."
+    },
+    "youtube": {
+      "official": {
+        "auth": "Google OAuth 2.0, scope https://www.googleapis.com/auth/youtube.upload (add youtube.readonly to read status). Desktop app client with loopback redirect http://127.0.0.1:PORT (localhost allowed but may hit firewalls); PKCE supported. Consent screen in 'Testing' status => refresh tokens expire in 7 days; set to 'In production' (unverified-app warning; 100-user cap for sensitive scopes [unverified that youtube.upload is sensitive]). 100 refresh tokens per Google account per client ID.",
+        "unaudited_limits": "Docs changed between 2026-09-04 and 2026-10-08: the banner 'All videos uploaded via the videos.insert endpoint from unverified API projects created after 28 July 2020 will be restricted to private viewing mode' was removed and status.privacyStatus now reads 'Videos uploaded from unverified API projects are not restricted to private viewing mode.' No revision-history entry; third-party guides (Aug 2026) still describe the lock -> treat as likely lifted but [unverified]; detect via videos.list status after upload. Quota: since 2026-06-01 videos.insert uses its own 'Video Uploads' bucket: 100 calls/day per project, 1 unit each (upload cost fell ~1600 -> ~100 units on 2025-12-04).",
+        "video_flow": [
+          "POST https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status with headers Authorization, Content-Type: application/json; charset=UTF-8, X-Upload-Content-Length, X-Upload-Content-Type and body {snippet:{title, description, tags, categoryId}, status:{privacyStatus, publishAt?, selfDeclaredMadeForKids, containsSyntheticMedia}} -> 200 + Location (session URI)",
+          "PUT <session URI> with the video bytes (chunks must be multiples of 256 KB except the last)",
+          "Resume: PUT <session URI> with Content-Range: bytes */TOTAL and Content-Length: 0 -> 308 Resume Incomplete + Range header",
+          "GET https://www.googleapis.com/youtube/v3/videos?part=status,processingDetails&id=VIDEO_ID to confirm privacyStatus/processing",
+          "Shorts: no flag; square/vertical videos <=3 min are classified as Shorts automatically"
+        ],
+        "photo_flow": [
+          "Not supported (YouTube API uploads videos only)"
+        ],
+        "limits": {
+          "quota": "videos.insert: 100 calls/day/project (Video Uploads bucket, 1 unit each); other methods share the default 10,000 units/day; thumbnails.set 50 units",
+          "file": "<=256 GB; MIME video/* or application/octet-stream",
+          "shorts": "square or vertical, <=3 minutes; custom thumbnails not supported for Shorts",
+          "unverified_channel": "videos limited to 15 minutes until the channel is phone-verified",
+          "scheduling": "status.privacyStatus=private + status.publishAt (ISO 8601)"
+        },
+        "docs": "https://developers.google.com/youtube/v3/docs/videos/insert"
+      },
+      "notes": "Good optional direct adapter (BYO Google Cloud project per user). If Shipreel ever ships one shared client ID, the 100 uploads/day bucket is shared by all users and extra quota requires the quota form/compliance review."
+    },
+    "x": {
+      "official": {
+        "auth": "OAuth 2.0 Authorization Code with PKCE (scopes tweet.read tweet.write users.read media.write offline.access; access tokens last 2h unless offline.access gives a refresh token) or OAuth 1.0a user context. Callback URLs must exactly match a registered URL.",
+        "unaudited_limits": "No review tiers; pay-per-use credits (no subscriptions): Post create $0.015, Post create with URL $0.200, summoned $0.010; reads $0.005/post; 3M post reads/month cap; $20 credit for saving a card, first auto-recharge matched up to $50. Free/Basic/Pro closed to new developers (third-party reports, Feb 2026) [unverified on docs.x.com].",
+        "video_flow": [
+          "POST https://api.x.com/2/media/upload/initialize JSON {media_type:'video/mp4', total_bytes, media_category:'tweet_video'} -> data.id",
+          "POST https://api.x.com/2/media/upload/{id}/append multipart: segment_index, media (chunk <=5 MB recommended)",
+          "POST https://api.x.com/2/media/upload/{id}/finalize",
+          "GET https://api.x.com/2/media/upload?command=STATUS&media_id={id} until processing_info.state=succeeded (honor check_after_secs)",
+          "POST https://api.x.com/2/tweets JSON {text, media:{media_ids:[id]}}"
+        ],
+        "photo_flow": [
+          "Upload each image (media_category tweet_image, <=5 MB) then POST /2/tweets with up to 4 media_ids"
+        ],
+        "limits": {
+          "video": "tweet_video 20 min / 8 GB default; Premium 125 min / 16 GB",
+          "images": "<=5 MB; GIF <=15 MB; up to 4 photos or 1 video or 1 GIF per post",
+          "cost": "$0.015 per post; $0.200 if the post contains a URL"
+        },
+        "docs": "https://docs.x.com/x-api/media/quickstart/media-upload-chunked"
+      },
+      "notes": "Put store links in a reply or omit them to avoid the $0.20 URL rate (Upload-Post strips URLs by default). Native scheduling via v2 not found [unverified]."
+    },
+    "linkedin": {
+      "official": {
+        "auth": "OAuth 2.0 3-legged (https://www.linkedin.com/oauth/v2/authorization). 'Share on LinkedIn' product (self-serve) grants w_member_social for personal profiles; add 'Sign In with LinkedIn using OpenID Connect' (openid profile) to get the member id from GET /v2/userinfo (sub). Company pages need w_organization_social via the Community Management API (reviewed). Redirect URLs registered with HTTPS (localhost acceptance [unverified]). Access tokens last 60 days; programmatic refresh tokens only for approved MDP partners; Developer Portal has a manual token generator.",
+        "unaudited_limits": "Personal posting via Share on LinkedIn needs no review. Throttle: 150 requests per member per day, 100,000 per app per day (Share on LinkedIn table).",
+        "video_flow": [
+          "POST https://api.linkedin.com/rest/videos?action=initializeUpload with headers LinkedIn-Version: YYYYMM, X-Restli-Protocol-Version: 2.0.0 and body {initializeUploadRequest:{owner:'urn:li:person:{id}', fileSizeBytes, uploadCaptions:false, uploadThumbnail:false}} -> value.video, value.uploadInstructions[{uploadUrl, firstByte, lastByte}], value.uploadToken",
+          "PUT each byte range to its uploadUrl (Content-Type application/octet-stream, ~4 MB parts); save each ETag response header",
+          "POST /rest/videos?action=finalizeUpload {finalizeUploadRequest:{video, uploadToken, uploadedPartIds:[etags in order]}}",
+          "GET /rest/videos/{urn} until status AVAILABLE",
+          "POST /rest/posts {author, commentary, visibility:'PUBLIC', distribution:{feedDistribution:'MAIN_FEED', targetEntities:[], thirdPartyDistributionChannels:[]}, content:{media:{title, id:'urn:li:video:...'}}, lifecycleState:'PUBLISHED', isReshareDisabledByAuthor:false} -> 201 + x-restli-id"
+        ],
+        "photo_flow": [
+          "Upload images via the Images API (urn:li:image) then create an organic MultiImage post via /rest/posts (content.multiImage) - carousel type is sponsored-only",
+          "Alternative 'document carousel': upload a PDF via the Documents API and post it"
+        ],
+        "limits": {
+          "video": "3 s to 30 min; 75 KB to 500 MB; MP4 (schema max 5 GB)",
+          "versions": "LinkedIn-Version header required; 202511 sunsets 2026-11-16",
+          "tokens": "60-day access tokens; refresh tokens only for MDP partners"
+        },
+        "docs": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/videos-api"
+      },
+      "notes": "The consumer Share on LinkedIn doc still shows legacy /v2/ugcPosts + /v2/assets registerUpload; vendors report /rest/posts and /rest/videos work with self-serve w_member_social (e.g. version 202608) [vendor report]."
+    },
+    "threads": {
+      "official": {
+        "auth": "Meta Threads app; authorization window https://threads.com/oauth/authorize (client_id, redirect_uri, scope incl. threads_basic + threads_content_publish, response_type=code, state); code exchange POST https://graph.threads.com/oauth/access_token; long-lived tokens 60 days, refresh via GET /refresh_access_token. Posting examples use graph.threads.net/v1.0.",
+        "unaudited_limits": "Users with the Threads Tester role (App Dashboard > App roles > Roles) can grant permissions without App Review; App Review + published app only needed for users without a role.",
+        "video_flow": [
+          "POST https://graph.threads.net/v1.0/{threads-user-id}/threads media_type=VIDEO video_url=<public URL> text=... -> creation id",
+          "Wait ~30 s (Meta recommendation) for processing",
+          "POST /{threads-user-id}/threads_publish creation_id=..."
+        ],
+        "photo_flow": [
+          "For each item: POST /{user-id}/threads media_type=IMAGE|VIDEO image_url|video_url is_carousel_item=true",
+          "POST /{user-id}/threads media_type=CAROUSEL children=<ids> text=...",
+          "POST /{user-id}/threads_publish creation_id=..."
+        ],
+        "limits": {
+          "posts": "250 API-published posts per 24h (carousel counts as 1); 1,000 replies; check GET /{id}/threads_publishing_limit?fields=quota_usage,config",
+          "carousel": "2 to 20 images/videos",
+          "video": "MOV/MP4, <=1 GB, <=300 s, 23-60 fps, <=1920 px wide, 9:16 recommended",
+          "images": "JPEG/PNG, <=8 MB, 320-1440 px wide",
+          "hosting": "media must be on a public server (Meta cURLs it)"
+        },
+        "docs": "https://developers.facebook.com/docs/threads/posts"
+      },
+      "notes": "Text limit (500 chars) not re-verified this session."
+    },
+    "bluesky": {
+      "official": {
+        "auth": "App password via com.atproto.server.createSession (identifier + app password) or atproto OAuth. No app registration or review.",
+        "unaudited_limits": "None. Video requires a verified account email (check com.atproto.server.getSession) and per-account daily video limits (app.bsky.video.getUploadLimits -> canUpload, remainingDailyVideos, remainingDailyBytes).",
+        "video_flow": [
+          "POST https://bsky.social/xrpc/com.atproto.server.createSession {identifier, password} -> accessJwt, did, didDoc (PDS endpoint)",
+          "GET {PDS}/xrpc/com.atproto.server.getServiceAuth?aud=did:web:{PDS host}&lxm=com.atproto.repo.uploadBlob&exp={now+1800} -> token",
+          "POST https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did={did}&name={file} with Authorization: Bearer {service token}, Content-Type: video/mp4, raw bytes -> job status (jobId, state)",
+          "GET https://video.bsky.app/xrpc/app.bsky.video.getJobStatus?jobId=... until jobStatus.blob exists (already_exists error still returns the blob)",
+          "POST {PDS}/xrpc/com.atproto.repo.createRecord collection app.bsky.feed.post with embed {$type:'app.bsky.embed.video', video: blob, aspectRatio:{width,height}, alt?, captions?}",
+          "Simple alternative: com.atproto.repo.uploadBlob to the PDS then embed (video processes after posting)"
+        ],
+        "photo_flow": [
+          "POST {PDS}/xrpc/com.atproto.repo.uploadBlob per image (<=2 MB) -> blob",
+          "createRecord with embed {$type:'app.bsky.embed.images', images:[{image, alt, aspectRatio}]} (max 4)",
+          "New app.bsky.embed.gallery lexicon (June 2026): up to 20 items schema-level, clients should enforce 10; alt + aspectRatio required [client rendering unverified]"
+        ],
+        "limits": {
+          "video": "MP4 <=300 MB (lexicon maxSize 300000000), <=10 minutes (since 2026-08-25); up to 20 VTT captions <=20 KB",
+          "images": "<=2 MB each, max 4 per post (embed.images)",
+          "text": "300 graphemes (3000 bytes)"
+        },
+        "docs": "https://docs.bsky.app/docs/tutorials/video (now redirects to bsky.network; source: github.com/bluesky-social/bsky-docs docs/tutorials/video.mdx)"
+      },
+      "notes": "Recommended as an always-direct adapter. The official TS sample reads uploadVideo's response as a JobStatus at top level while the lexicon wraps it in 'jobStatus' - handle both. Exact aud for getUploadLimits [unverified]."
+    },
+    "facebook_reels": {
+      "official": {
+        "auth": "Meta app with Facebook Login for Business; Page access token with pages_show_list, pages_read_engagement, pages_manage_posts. Pages only (no personal profiles).",
+        "unaudited_limits": "Development mode: works for Pages managed by users with a role on the app; App Review needed for other users.",
+        "video_flow": [
+          "POST https://graph.facebook.com/{ver}/{page-id}/video_reels upload_phase=start -> video_id + upload_url",
+          "POST https://rupload.facebook.com/video-upload/{ver}/{video_id} with Authorization: OAuth {page token}, offset: 0, file_size: N and the bytes (or a file_url header for hosted files)",
+          "POST /{page-id}/video_reels upload_phase=finish video_id=... video_state=PUBLISHED description=... (or video_state=SCHEDULED + scheduled_publish_time; DRAFT also exposed by aggregators)",
+          "GET /{video-id}?fields=status"
+        ],
+        "photo_flow": [
+          "Not covered (Page photo posts/multi-photo feed posts use /{page-id}/photos and /feed)"
+        ],
+        "limits": {
+          "spec": "9:16; 1080x1920 recommended, min 540x960; 3-90 s; 24-60 fps",
+          "rate": "30 API-published Reels per 24h per Page"
+        },
+        "docs": "https://developers.facebook.com/docs/video-api/guides/reels-publishing"
+      },
+      "notes": "Only platform here besides YouTube with a native schedule parameter."
+    },
+    "pinterest": {
+      "official": {
+        "auth": "OAuth 2.0 (scopes pins:write, boards:read). New apps get Trial access; Standard access requires a video recording of the app completing an action with the Pinterest API including the OAuth flow, even for apps with one intended user.",
+        "unaudited_limits": "Trial access: Pins and boards are 'only visible to their creator as Sandbox entities'; daily rate limits. The sandbox host (api-sandbox.pinterest.com) cannot create video Pins.",
+        "video_flow": [
+          "POST https://api.pinterest.com/v5/media {media_type:'video'} -> media_id, upload_url, upload_parameters",
+          "POST upload_url as multipart/form-data with every upload_parameters field plus file (file last)",
+          "GET /v5/media/{media_id} until status succeeded (registered|processing|succeeded|failed)",
+          "POST /v5/pins {board_id, title<=100, description<=800, link<=2048, alt_text<=500, media_source:{source_type:'video_id', media_id, cover_image_url | cover_image_key_frame_time | cover_image_data}}"
+        ],
+        "photo_flow": [
+          "Single image: media_source {source_type:'image_url', url} or {source_type:'image_base64', content_type, data}",
+          "Carousel: media_source {source_type:'multiple_image_urls', items:[{url, title?, description?, link?}] (2-5), index} or multiple_image_base64"
+        ],
+        "limits": {
+          "text": "title 100, description 800, alt_text 500, link 2048",
+          "carousel": "2-5 images"
+        },
+        "docs": "https://developers.pinterest.com/docs/key-concepts/access-tiers/ (spec: github.com/pinterest/api-description v5/openapi.json)"
+      },
+      "notes": "BYO is impractical because Trial pins are invisible to others; use an aggregator. Native schedule parameter not found [unverified]."
+    }
+  },
+  "aggregators": [
+    {
+      "id": "upload-post",
+      "name": "Upload-Post",
+      "url": "https://www.upload-post.com (docs https://docs.upload-post.com, OpenAPI https://docs.upload-post.com/openapi.json)",
+      "pricing": "Basic $24/mo or $16/mo billed annually ($192/yr): 5 profiles, unlimited uploads, all platforms incl. TikTok. Professional $50/mo ($33 annual): 25 profiles, white-label connect page. Advanced $147/mo; Business $438/mo. Add-ons: X link posting $19/mo (50 link-posts); extra profiles.",
+      "free_tier": "Free: 10 uploads/month, 2 profiles, no credit card; excludes TikTok (403 'TikTok uploads are not available on the Free plan').",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky",
+        "reddit",
+        "google_business",
+        "discord",
+        "telegram",
+        "slack",
+        "mastodon",
+        "nostr",
+        "lemmy",
+        "devto",
+        "hashnode",
+        "wordpress",
+        "whop",
+        "listmonk"
+      ],
+      "auth_header": "Authorization: Apikey YOUR_API_KEY",
+      "endpoints": [
+        {
+          "purpose": "upload video (one request, many platforms; local file or URL)",
+          "method": "POST",
+          "url": "https://api.upload-post.com/api/upload",
+          "content_type": "multipart/form-data",
+          "fields": {
+            "user": "required - profile username",
+            "platform[]": "required, repeat - tiktok|instagram|youtube|facebook|linkedin|x|threads|pinterest|bluesky|...",
+            "video": "required - binary file or public video URL",
+            "title": "caption/title (required for YouTube and Reddit); platform overrides: tiktok_title, instagram_title, youtube_title, x_title, linkedin_title, threads_title, bluesky_title, pinterest_title, facebook_title",
+            "description": "extended text for LinkedIn, Facebook, YouTube, Pinterest",
+            "scheduled_date": "ISO-8601, future, <=365 days -> 202 + job_id",
+            "timezone": "IANA zone for scheduled_date (default UTC)",
+            "async_upload": "true -> returns request_id immediately (auto-async after 59 s)",
+            "request_id": "your own tracking id",
+            "add_to_queue": "true -> next queue slot (not with scheduled_date)",
+            "first_comment": "first comment (per-platform overrides like instagram_first_comment)",
+            "post_mode": "TikTok: DIRECT_POST (default) | MEDIA_UPLOAD (drafts; alias tiktok_upload_to_draft=true)",
+            "privacy_level": "TikTok: PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY",
+            "disable_duet / disable_comment / disable_stitch": "TikTok booleans",
+            "cover_timestamp": "TikTok cover frame ms (default 1000)",
+            "brand_content_toggle / brand_organic_toggle / is_aigc": "TikTok disclosures",
+            "tiktok_music_id": "TikTok Commercial Music Library track id (needs 'music' capability; on docs page, not in OpenAPI) [verify]",
+            "media_type": "Instagram: REELS (default) | STORIES",
+            "share_mode": "Instagram: CUSTOM | TRIAL_REELS_SHARE_TO_FOLLOWERS_IF_LIKED | TRIAL_REELS_DONT_SHARE_TO_FOLLOWERS",
+            "share_to_feed / collaborators / cover_url / cover_image / audio_name / user_tags / location_id / thumb_offset": "Instagram Reel options",
+            "youtube_description / tags[] / categoryId / privacyStatus / selfDeclaredMadeForKids / containsSyntheticMedia / thumbnail / youtube_playlist_id": "YouTube options",
+            "facebook_page_id / facebook_media_type / video_state": "Facebook (REELS|STORIES; DRAFT|PUBLISHED)",
+            "visibility / target_linkedin_page_id / linkedin_description": "LinkedIn options",
+            "pinterest_board_id / pinterest_link / pinterest_alt_text / pinterest_cover_image_url": "Pinterest options (board required)",
+            "threads_topic_tag / bluesky_* / reply_settings / community_id": "Threads, Bluesky, X options",
+            "Idempotency-Key (header)": "prevents duplicate uploads on retry"
+          },
+          "example_curl": "curl -X POST https://api.upload-post.com/api/upload \\\n  -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\" \\\n  -H \"Idempotency-Key: shipreel-job-7f3c2a\" \\\n  -F \"user=shipreel-default\" \\\n  -F \"platform[]=tiktok\" -F \"platform[]=instagram\" -F \"platform[]=youtube\" \\\n  -F \"video=@/Users/me/Shipreel/renders/launch-hook.mp4;type=video/mp4\" \\\n  -F \"title=I built an app that roasts your screen time #buildinpublic\" \\\n  -F \"post_mode=MEDIA_UPLOAD\" \\\n  -F \"media_type=REELS\" -F \"share_to_feed=true\" \\\n  -F \"youtube_title=I built an app that roasts your screen time #Shorts\" \\\n  -F \"youtube_description=Get it: https://apps.apple.com/app/id0000000000\" \\\n  -F \"privacyStatus=public\" -F \"selfDeclaredMadeForKids=false\" -F \"categoryId=28\" \\\n  -F \"async_upload=true\" -F \"request_id=shipreel-job-7f3c2a\""
+        },
+        {
+          "purpose": "upload photo carousel (TikTok slideshow, Instagram/Threads carousel, etc.)",
+          "method": "POST",
+          "url": "https://api.upload-post.com/api/upload_photos",
+          "content_type": "multipart/form-data",
+          "fields": {
+            "user": "required",
+            "platform[]": "required",
+            "photos[]": "required, repeat - image files (Instagram/Threads accept videos for mixed carousels)",
+            "title": "caption; tiktok_title (TikTok photo title, truncated to 90)",
+            "description": "TikTok photo description (<=4000), LinkedIn, Facebook, Pinterest, Reddit body",
+            "post_mode": "TikTok DIRECT_POST | MEDIA_UPLOAD (drafts)",
+            "privacy_level": "TikTok privacy (required by TikTok for photos; default PUBLIC_TO_EVERYONE)",
+            "auto_add_music": "TikTok recommended music on photos",
+            "photo_cover_index": "TikTok cover index (0-based)",
+            "media_type": "Instagram IMAGE | STORIES (carousel auto when multiple photos)",
+            "scheduled_date / timezone / async_upload / add_to_queue": "same as /upload"
+          },
+          "example_curl": "curl -X POST https://api.upload-post.com/api/upload_photos \\\n  -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\" \\\n  -F \"user=shipreel-default\" -F \"platform[]=tiktok\" -F \"platform[]=instagram\" \\\n  -F \"photos[]=@slide1.jpg\" -F \"photos[]=@slide2.jpg\" -F \"photos[]=@slide3.jpg\" \\\n  -F \"title=3 apps I wish I had in college\" \\\n  -F \"tiktok_title=3 apps I wish I had in college\" \\\n  -F \"description=Full list + links in bio #studytok\" \\\n  -F \"privacy_level=PUBLIC_TO_EVERYONE\" -F \"auto_add_music=true\" -F \"photo_cover_index=0\""
+        },
+        {
+          "purpose": "check status of async upload or scheduled post",
+          "method": "GET",
+          "url": "https://api.upload-post.com/api/uploadposts/status?request_id={request_id} | ?job_id={job_id}",
+          "content_type": "none",
+          "fields": {
+            "request_id": "from async uploads",
+            "job_id": "from scheduled posts",
+            "response": "{request_id, job_id, status: pending|in_progress|completed, completed, total, results:[{platform, success, message, upload_timestamp}], last_update}"
+          },
+          "example_curl": "curl \"https://api.upload-post.com/api/uploadposts/status?request_id=shipreel-job-7f3c2a\" -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\""
+        },
+        {
+          "purpose": "create profile and hosted connect link (account linking)",
+          "method": "POST",
+          "url": "https://api.upload-post.com/api/uploadposts/users  then  https://api.upload-post.com/api/uploadposts/users/generate-jwt",
+          "content_type": "application/json",
+          "fields": {
+            "username": "required - stable profile id",
+            "redirect_url": "where the browser returns after linking (e.g. http://localhost:4747/settings/posting) [localhost acceptance unverified]",
+            "platforms": "platforms to show",
+            "connect_title / connect_description / logo_image / show_calendar / language / ui_labels": "branding of the hosted page",
+            "response": "{success, access_url (valid 48h), duration}"
+          },
+          "example_curl": "curl -X POST https://api.upload-post.com/api/uploadposts/users -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\" -H \"Content-Type: application/json\" -d '{\"username\":\"shipreel-default\"}'\ncurl -X POST https://api.upload-post.com/api/uploadposts/users/generate-jwt -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\" -H \"Content-Type: application/json\" -d '{\"username\":\"shipreel-default\",\"redirect_url\":\"http://localhost:4747/settings/posting?connected=1\",\"platforms\":[\"tiktok\",\"instagram\",\"youtube\",\"x\",\"linkedin\",\"threads\",\"facebook\",\"pinterest\"],\"connect_title\":\"Connect your accounts to Shipreel\",\"show_calendar\":false}'"
+        },
+        {
+          "purpose": "TikTok publishing settings and trending CML music",
+          "method": "GET",
+          "url": "https://api.upload-post.com/api/uploadposts/tiktok/settings?profile={username}  and  https://api.upload-post.com/api/uploadposts/tiktok/music/trending?profile={username}&genre=ALL&country_code=US&date_range=7DAY",
+          "content_type": "none",
+          "fields": {
+            "settings response": "privacy_level_options, max_video_post_duration_sec, comment_disabled, duet_disabled, stitch_disabled",
+            "music response": "tracks[] -> pass id as tiktok_music_id (not commercial_music_id)"
+          },
+          "example_curl": "curl \"https://api.upload-post.com/api/uploadposts/tiktok/settings?profile=shipreel-default\" -H \"Authorization: Apikey $UPLOAD_POST_API_KEY\""
+        }
+      ],
+      "status_endpoint": "GET https://api.upload-post.com/api/uploadposts/status?request_id=... or ?job_id=... (also GET /api/uploadposts/history; webhooks via POST /api/uploadposts/users/notifications)",
+      "scheduling": "scheduled_date (ISO-8601, <=365 days) + timezone -> 202 job_id; queue via add_to_queue + queue settings; list/cancel/edit via GET/DELETE/PATCH /api/uploadposts/schedule[/{job_id}]",
+      "notes": "Recommended default for Shipreel: the only checked aggregator that takes the local file in the same multipart call. TikTok through its own approved app (no dev app or audit for the user); limits 6 posts/min, 15/day per TikTok account, media 3-600 s. Per-connection TikTok capabilities (music, location, cover_image, draft, photo_privacy, video_privacy, inbox_fallback) from GET /api/uploadposts/users; unsupported optional fields are ignored with a warning. Unconnected platforms return skipped:true. X: URLs stripped by default to bill $0.015. Company founded Jan 2025."
+    },
+    {
+      "id": "zernio",
+      "name": "Zernio (formerly Late / getlate.dev)",
+      "url": "https://zernio.com (docs https://docs.zernio.com; getlate.dev and docs.getlate.dev 301-redirect here)",
+      "pricing": "Usage-based per connected account per month: accounts 1-2 free, 3-10 $6 each, 11-100 $3 each, 101+ $1 each; all features included; X API usage passed through at X's rates (posts $0.015, with URL $0.200).",
+      "free_tier": "First 2 connected accounts free with unlimited posts and full API access, no credit card; 60 requests/min (600 paid).",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky",
+        "reddit",
+        "google_business",
+        "telegram",
+        "snapchat",
+        "discord",
+        "slack",
+        "whatsapp"
+      ],
+      "auth_header": "Authorization: Bearer YOUR_API_KEY",
+      "endpoints": [
+        {
+          "purpose": "presign media upload (local file)",
+          "method": "POST",
+          "url": "https://zernio.com/api/v1/media/presign",
+          "content_type": "application/json",
+          "fields": {
+            "filename": "e.g. launch-hook.mp4",
+            "contentType": "e.g. video/mp4",
+            "response": "{uploadUrl, publicUrl, key, type}; then PUT bytes to uploadUrl (up to 5 GB)"
+          },
+          "example_curl": "curl -X POST https://zernio.com/api/v1/media/presign -H \"Authorization: Bearer $ZERNIO_API_KEY\" -H \"Content-Type: application/json\" -d '{\"filename\":\"launch-hook.mp4\",\"contentType\":\"video/mp4\"}'\ncurl -X PUT \"$UPLOAD_URL\" -H \"Content-Type: video/mp4\" --data-binary @launch-hook.mp4"
+        },
+        {
+          "purpose": "upload video (create post to several accounts)",
+          "method": "POST",
+          "url": "https://zernio.com/api/v1/posts",
+          "content_type": "application/json",
+          "fields": {
+            "content": "caption text",
+            "mediaItems": "[{type: video|image|gif|document, url, thumbnail?, instagramThumbnail?}] (public HTTPS URLs, e.g. presign publicUrl)",
+            "platforms": "[{platform, accountId, customContent?, platformSpecificData?}]",
+            "platformSpecificData (youtube)": "title, visibility public|private|unlisted, madeForKids, containsSyntheticMedia, categoryId, playlistId, firstComment",
+            "platformSpecificData (instagram)": "contentType 'story' (else video => Reel), shareToFeed, audioConfiguration {audioId, audioVolume, videoVolume} (Facebook Login only), collaborators, userTags, isAiGenerated",
+            "tiktokSettings": "privacy_level, allow_comment, allow_duet, allow_stitch, content_preview_confirmed:true, express_consent_given:true, draft, media_type video|photo, photo_cover_index, description, auto_add_music, commercialContentType, video_made_with_ai",
+            "publishNow / scheduledFor + timezone / isDraft": "publish timing",
+            "profileId": "optional profile"
+          },
+          "example_curl": "curl -X POST https://zernio.com/api/v1/posts -H \"Authorization: Bearer $ZERNIO_API_KEY\" -H \"Content-Type: application/json\" -d '{\"content\":\"I built an app that roasts your screen time #buildinpublic\",\"mediaItems\":[{\"type\":\"video\",\"url\":\"https://media.zernio.com/temp/.../launch-hook.mp4\"}],\"platforms\":[{\"platform\":\"tiktok\",\"accountId\":\"TT_ACCOUNT_ID\"},{\"platform\":\"instagram\",\"accountId\":\"IG_ACCOUNT_ID\",\"platformSpecificData\":{\"shareToFeed\":true}},{\"platform\":\"youtube\",\"accountId\":\"YT_ACCOUNT_ID\",\"platformSpecificData\":{\"title\":\"I built an app that roasts your screen time #Shorts\",\"visibility\":\"public\",\"madeForKids\":false,\"categoryId\":\"28\"}}],\"tiktokSettings\":{\"draft\":true,\"privacy_level\":\"PUBLIC_TO_EVERYONE\",\"allow_comment\":true,\"allow_duet\":false,\"allow_stitch\":false,\"content_preview_confirmed\":true,\"express_consent_given\":true},\"publishNow\":true}'"
+        },
+        {
+          "purpose": "upload photo carousel",
+          "method": "POST",
+          "url": "https://zernio.com/api/v1/posts",
+          "content_type": "application/json",
+          "fields": {
+            "mediaItems": "[{type:'image', url}, ...] up to 35 for TikTok, 10 for Instagram",
+            "tiktokSettings.media_type": "photo",
+            "tiktokSettings.description": "up to 4000 chars (content becomes the 90-char photo title)"
+          },
+          "example_curl": "curl -X POST https://zernio.com/api/v1/posts -H \"Authorization: Bearer $ZERNIO_API_KEY\" -H \"Content-Type: application/json\" -d '{\"content\":\"3 apps I wish I had in college\",\"mediaItems\":[{\"type\":\"image\",\"url\":\"https://media.zernio.com/temp/1.jpg\"},{\"type\":\"image\",\"url\":\"https://media.zernio.com/temp/2.jpg\"}],\"platforms\":[{\"platform\":\"tiktok\",\"accountId\":\"TT_ACCOUNT_ID\"},{\"platform\":\"instagram\",\"accountId\":\"IG_ACCOUNT_ID\"}],\"tiktokSettings\":{\"media_type\":\"photo\",\"photo_cover_index\":0,\"description\":\"Full list in bio #studytok\",\"privacy_level\":\"PUBLIC_TO_EVERYONE\",\"allow_comment\":true,\"auto_add_music\":true,\"content_preview_confirmed\":true,\"express_consent_given\":true},\"publishNow\":true}'"
+        },
+        {
+          "purpose": "connect an account",
+          "method": "GET",
+          "url": "https://zernio.com/api/v1/connect/{platform}?profileId={profileId}&redirect_url={url}",
+          "content_type": "none",
+          "fields": {
+            "response": "{authUrl, state}",
+            "bluesky": "POST /v1/connect/bluesky/credentials {identifier, appPassword, state, redirectUri?}"
+          },
+          "example_curl": "curl \"https://zernio.com/api/v1/connect/tiktok?profileId=$PROFILE_ID&redirect_url=http://localhost:4747/settings/posting\" -H \"Authorization: Bearer $ZERNIO_API_KEY\""
+        }
+      ],
+      "status_endpoint": "GET https://zernio.com/api/v1/posts/{postId} -> post.status draft|scheduled|published|failed and platforms[].status/platformPostUrl (webhooks incl. post.tiktok.url_resolved)",
+      "scheduling": "scheduledFor (ISO 8601) + timezone; publishNow; isDraft; queue; POST /v1/posts/{id}/retry",
+      "notes": "Best free entry point (2 accounts) and the hot-standby adapter. Instagram catalog/trending audio supported (Facebook Login connections). TikTok: Business-app lane (all new connections) = videos public-only, drafts for other audiences; drafts need TikTok app >= 31.8; a draft is reported 'published' once TikTok accepts it (isDraft true, no URL); 5 pending drafts/24h. Zernio caps 25 posts/hour/account."
+    },
+    {
+      "id": "post-for-me",
+      "name": "Post for Me",
+      "url": "https://www.postforme.dev (API docs https://api.postforme.dev/docs; source github.com/DayMoonDevelopment/post-for-me, AGPL-3.0)",
+      "pricing": "$10/mo: up to 1,000 successful posts/month, unlimited social accounts, API keys and team members; use their platform credentials or bring your own; Enterprise custom.",
+      "free_tier": "None stated on the pricing page [unverified].",
+      "platforms": [
+        "tiktok",
+        "tiktok_business",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky"
+      ],
+      "auth_header": "Authorization: Bearer YOUR_API_KEY",
+      "endpoints": [
+        {
+          "purpose": "presign media upload",
+          "method": "POST",
+          "url": "https://api.postforme.dev/v1/media/create-upload-url",
+          "content_type": "application/json",
+          "fields": {
+            "response": "{upload_url (signed PUT), media_url (public)}"
+          },
+          "example_curl": "curl -X POST https://api.postforme.dev/v1/media/create-upload-url -H \"Authorization: Bearer $PFM_API_KEY\" -H \"Content-Type: application/json\" -d '{}'\ncurl -X PUT \"$UPLOAD_URL\" -H \"Content-Type: video/mp4\" --data-binary @launch-hook.mp4"
+        },
+        {
+          "purpose": "upload video (create post)",
+          "method": "POST",
+          "url": "https://api.postforme.dev/v1/social-posts",
+          "content_type": "application/json",
+          "fields": {
+            "caption": "required",
+            "social_accounts": "required - array of social account ids (spc_...)",
+            "media": "[{url, thumbnail_url?, thumbnail_timestamp_ms?, alt_text?, skip_processing?}]",
+            "platform_configurations.tiktok": "privacy_status public|private|followers|friends, allow_comment, allow_duet, allow_stitch, disclose_your_brand, disclose_branded_content, is_ai_generated, is_draft, auto_add_music, title",
+            "platform_configurations.instagram": "placement reels|stories|timeline, share_to_feed, collaborators, trial_reel_type, audio_name",
+            "platform_configurations.youtube": "title, description, tags, category_id, privacy_status, made_for_kids, contains_synthetic_media, publish_at, localizations (marked required in spec; pass {})",
+            "account_configurations": "[{social_account_id, configuration}] per-account overrides",
+            "scheduled_at": "UTC ISO 8601 or null for now",
+            "external_id / isDraft": "your id / do not process"
+          },
+          "example_curl": "curl -X POST https://api.postforme.dev/v1/social-posts -H \"Authorization: Bearer $PFM_API_KEY\" -H \"Content-Type: application/json\" -d '{\"caption\":\"I built an app that roasts your screen time #buildinpublic\",\"social_accounts\":[\"spc_tiktok_xxx\",\"spc_instagram_xxx\",\"spc_youtube_xxx\"],\"media\":[{\"url\":\"MEDIA_URL\",\"thumbnail_timestamp_ms\":1000}],\"platform_configurations\":{\"tiktok\":{\"is_draft\":true},\"instagram\":{\"placement\":\"reels\",\"share_to_feed\":true},\"youtube\":{\"title\":\"I built an app that roasts your screen time #Shorts\",\"privacy_status\":\"public\",\"made_for_kids\":false,\"localizations\":{}}},\"scheduled_at\":null,\"external_id\":\"shipreel-job-7f3c2a\"}'"
+        },
+        {
+          "purpose": "connect an account",
+          "method": "POST",
+          "url": "https://api.postforme.dev/v1/social-accounts/auth-url",
+          "content_type": "application/json",
+          "fields": {
+            "platform": "required (facebook, instagram, tiktok, tiktok_business, youtube, x, linkedin, pinterest, threads, bluesky)",
+            "platform_data": "provider data (e.g. instagram connection_type instagram|facebook)",
+            "redirect_url_override": "not accepted with Post for Me system credentials",
+            "response": "{url, platform}"
+          },
+          "example_curl": "curl -X POST https://api.postforme.dev/v1/social-accounts/auth-url -H \"Authorization: Bearer $PFM_API_KEY\" -H \"Content-Type: application/json\" -d '{\"platform\":\"tiktok\"}'"
+        }
+      ],
+      "status_endpoint": "GET https://api.postforme.dev/v1/social-post-results?post_id={id} (also GET /v1/social-posts/{id}; webhooks via /v1/webhooks)",
+      "scheduling": "scheduled_at (UTC ISO 8601) on create; PUT /v1/social-posts/{id} to change",
+      "notes": "Cheapest flat price. Whether its system TikTok app is audited for public Direct Post is [unverified]. Photo-carousel item limits [unverified]."
+    },
+    {
+      "id": "ayrshare",
+      "name": "Ayrshare",
+      "url": "https://www.ayrshare.com",
+      "pricing": "Premium $149/mo (1 profile, up to 14 accounts across 14 networks, single user); Launch $299/mo (10 profiles); Business $599/mo ($499 annual base, 30 profiles); Enterprise custom. Unlimited posts and API calls.",
+      "free_tier": "None (28-day free trial on Launch only; other plans billed at signup).",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky",
+        "reddit",
+        "telegram",
+        "google_business",
+        "snapchat"
+      ],
+      "auth_header": "Authorization: Bearer API_KEY (+ Profile-Key: PROFILE_KEY for user profiles; X posts also need X-Twitter-OAuth1-Api-Key / X-Twitter-OAuth1-Api-Secret)",
+      "endpoints": [
+        {
+          "purpose": "upload local media (presigned)",
+          "method": "GET",
+          "url": "https://api.ayrshare.com/api/media/uploadUrl?fileName={name}&contentType={mp4|mov|png|jpg}",
+          "content_type": "none",
+          "fields": {
+            "response": "{uploadUrl, accessUrl, contentType}; PUT file to uploadUrl once, then use accessUrl in mediaUrls"
+          },
+          "example_curl": "curl -H \"Authorization: Bearer $AYRSHARE_API_KEY\" \"https://api.ayrshare.com/api/media/uploadUrl?fileName=launch-hook.mp4&contentType=mp4\"\ncurl -X PUT -H \"Content-Type: video/mp4\" --upload-file launch-hook.mp4 \"$UPLOAD_URL\""
+        },
+        {
+          "purpose": "upload video (post)",
+          "method": "POST",
+          "url": "https://api.ayrshare.com/api/post",
+          "content_type": "application/json",
+          "fields": {
+            "post": "required text",
+            "platforms": "required array",
+            "mediaUrls": "https URLs (video needs paid plan)",
+            "isVideo": "when URL lacks a video extension",
+            "scheduleDate": "UTC datetime",
+            "tikTokOptions": "draft, visibility public|private|followers|friends, disableComments, disableDuet, disableStitch, thumbNailOffset, thumbNail, isAIGenerated, isBrandedContent, isBrandOrganic, autoAddMusic, imageCoverIndex, title",
+            "instagramOptions": "shareReelsFeed, audioName, thumbNail, thumbNailOffset, collaborators, trialParams, stories",
+            "youTubeOptions": "title (required), visibility (default private), shorts, tags, categoryId, madeForKids, thumbNail, playListId, notifySubscribers, publishAt",
+            "idempotencyKey": "dedupe"
+          },
+          "example_curl": "curl -X POST https://api.ayrshare.com/api/post -H \"Authorization: Bearer $AYRSHARE_API_KEY\" -H \"Content-Type: application/json\" -d '{\"post\":\"I built an app that roasts your screen time\",\"platforms\":[\"tiktok\",\"instagram\",\"youtube\"],\"mediaUrls\":[\"ACCESS_URL\"],\"tikTokOptions\":{\"draft\":true},\"instagramOptions\":{\"shareReelsFeed\":true},\"youTubeOptions\":{\"title\":\"I built an app that roasts your screen time\",\"shorts\":true,\"visibility\":\"public\"}}'"
+        }
+      ],
+      "status_endpoint": "GET https://api.ayrshare.com/api/post/:id -> status success|error|pending|awaiting approval, postIds[{status,id,postUrl,platform}] (webhooks / history for scheduled)",
+      "scheduling": "scheduleDate (UTC) on /api/post; YouTube publishAt alternative",
+      "notes": "Mature but too expensive for solo devs. TikTok drafts and photo carousels (up to 35 images; JPG/JPEG/WEBP, no PNG) supported; Instagram carousel up to 10."
+    },
+    {
+      "id": "blotato",
+      "name": "Blotato",
+      "url": "https://www.blotato.com (API docs https://help.blotato.com/rest-api-reference)",
+      "pricing": "Starter $29/mo (20 accounts, 1,250 AI credits, 400 MB uploads); Creator $97/mo (40 accounts, 1 GB); Agency $499/mo (100 accounts). Flat, no per-post fee; credits only for AI generation.",
+      "free_tier": "7-day trial excludes API access; generating an API key starts the paid Starter plan.",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky"
+      ],
+      "auth_header": "blotato-api-key: YOUR_API_KEY",
+      "endpoints": [
+        {
+          "purpose": "presign local media",
+          "method": "POST",
+          "url": "https://backend.blotato.com/v2/media/uploads",
+          "content_type": "application/json",
+          "fields": {
+            "filename": "with extension",
+            "response": "{presignedUrl, publicUrl}; PUT bytes with correct Content-Type"
+          },
+          "example_curl": "curl -X POST https://backend.blotato.com/v2/media/uploads -H \"Content-Type: application/json\" -H \"blotato-api-key: $BLOTATO_API_KEY\" -d '{\"filename\":\"launch-hook.mp4\"}'\ncurl -X PUT \"$PRESIGNED_URL\" -H \"Content-Type: video/mp4\" --data-binary @launch-hook.mp4"
+        },
+        {
+          "purpose": "upload video (one account per request)",
+          "method": "POST",
+          "url": "https://backend.blotato.com/v2/posts",
+          "content_type": "application/json",
+          "fields": {
+            "post.accountId": "from GET /v2/users/me/accounts",
+            "post.content": "{text, mediaUrls[], platform, additionalPosts?}",
+            "post.target (tiktok)": "targetType, privacyLevel, disabledComments, disabledDuet, disabledStitch, isBrandedContent, isYourBrand, isAiGenerated (all required); isDraft, title, autoAddMusic, imageCoverIndex, videoCoverTimestamp",
+            "post.target (youtube)": "title, privacyStatus, shouldNotifySubscribers (required); isMadeForKids, containsSyntheticMedia, playlistIds, thumbnailUrl",
+            "post.target (instagram)": "mediaType reel|story, shareToFeed, coverImageUrl, audioName, collaborators, trial, firstComment",
+            "scheduledTime / useNextFreeSlot": "root-level siblings of post"
+          },
+          "example_curl": "curl -X POST https://backend.blotato.com/v2/posts -H \"Content-Type: application/json\" -H \"blotato-api-key: $BLOTATO_API_KEY\" -d '{\"post\":{\"accountId\":\"98435\",\"content\":{\"text\":\"I built an app that roasts your screen time\",\"mediaUrls\":[\"PUBLIC_URL\"],\"platform\":\"tiktok\"},\"target\":{\"targetType\":\"tiktok\",\"privacyLevel\":\"PUBLIC_TO_EVERYONE\",\"disabledComments\":false,\"disabledDuet\":false,\"disabledStitch\":false,\"isBrandedContent\":false,\"isYourBrand\":true,\"isAiGenerated\":false,\"isDraft\":true}}}'"
+        }
+      ],
+      "status_endpoint": "GET https://backend.blotato.com/v2/posts/{postSubmissionId} -> in-progress|scheduled|published|failed (poll >= 10 s)",
+      "scheduling": "scheduledTime (ISO 8601 with offset) or useNextFreeSlot at the root of the body",
+      "notes": "Multi-platform requires N requests. Own caps stricter than platforms (e.g. TikTok 3 accounts x 10 posts/day on Starter, YouTube 10 uploads/channel/day on Starter). LinkedIn: 2-10 images auto-build a PDF document carousel."
+    },
+    {
+      "id": "postiz",
+      "name": "Postiz",
+      "url": "https://postiz.com (docs https://docs.postiz.com; open source, self-hostable)",
+      "pricing": "Cloud plans from $29/month; public API, MCP and CLI on every plan. Self-hosting is free.",
+      "free_tier": "7-day free trial (cloud). Self-host free, but you must create your own developer apps per platform (TikTok audit, verified media domain, HTTPS).",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "instagram-standalone",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "linkedin-page",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky",
+        "reddit",
+        "mastodon",
+        "telegram",
+        "discord",
+        "slack",
+        "gmb",
+        "medium",
+        "devto",
+        "hashnode",
+        "wordpress",
+        "lemmy",
+        "nostr",
+        "vk",
+        "warpcast",
+        "dribbble",
+        "twitch",
+        "kick",
+        "skool",
+        "whop",
+        "listmonk"
+      ],
+      "auth_header": "Authorization: YOUR_API_KEY (no Bearer prefix; OAuth tokens start with pos_)",
+      "endpoints": [
+        {
+          "purpose": "upload media",
+          "method": "POST",
+          "url": "https://api.postiz.com/public/v1/upload",
+          "content_type": "multipart/form-data",
+          "fields": {
+            "file": "binary",
+            "response": "{id, path}"
+          },
+          "example_curl": "curl -X POST https://api.postiz.com/public/v1/upload -H \"Authorization: $POSTIZ_API_KEY\" -F \"file=@launch-hook.mp4\""
+        },
+        {
+          "purpose": "upload video (create posts across integrations)",
+          "method": "POST",
+          "url": "https://api.postiz.com/public/v1/posts",
+          "content_type": "application/json",
+          "fields": {
+            "type": "now | schedule | draft",
+            "date": "ISO datetime",
+            "shortLink / tags": "required keys",
+            "posts[]": "{integration:{id}, value:[{content, image:[{id, path}]}], settings:{__type, ...}}",
+            "settings (tiktok)": "title, privacy_level, duet, stitch, comment, autoAddMusic yes|no, brand_content_toggle, brand_organic_toggle, video_made_with_ai, content_posting_method DIRECT_POST|UPLOAD",
+            "settings (youtube)": "title (2-100), type public|unlisted|private, selfDeclaredMadeForKids yes|no, thumbnail, tags",
+            "settings (instagram)": "post_type post|story, is_trial_reel, graduation_strategy, collaborators, audio {id, audio_volume, video_volume} (FB-linked only)"
+          },
+          "example_curl": "curl -X POST https://api.postiz.com/public/v1/posts -H \"Authorization: $POSTIZ_API_KEY\" -H \"Content-Type: application/json\" -d '{\"type\":\"now\",\"date\":\"2026-10-15T20:00:00.000Z\",\"shortLink\":false,\"tags\":[],\"posts\":[{\"integration\":{\"id\":\"TIKTOK_ID\"},\"value\":[{\"content\":\"I built an app that roasts your screen time\",\"image\":[{\"id\":\"VID_ID\",\"path\":\"https://uploads.postiz.com/x.mp4\"}]}],\"settings\":{\"__type\":\"tiktok\",\"title\":\"\",\"privacy_level\":\"PUBLIC_TO_EVERYONE\",\"duet\":false,\"stitch\":false,\"comment\":true,\"autoAddMusic\":\"no\",\"brand_content_toggle\":false,\"brand_organic_toggle\":false,\"content_posting_method\":\"UPLOAD\"}},{\"integration\":{\"id\":\"YT_ID\"},\"value\":[{\"content\":\"I built an app that roasts your screen time\",\"image\":[{\"id\":\"VID_ID\",\"path\":\"https://uploads.postiz.com/x.mp4\"}]}],\"settings\":{\"__type\":\"youtube\",\"title\":\"I built an app that roasts your screen time\",\"type\":\"public\",\"selfDeclaredMadeForKids\":\"no\",\"tags\":[]}}]}'"
+        }
+      ],
+      "status_endpoint": "GET https://api.postiz.com/public/v1/posts (date-range list; per-post status endpoint not documented [unverified]); GET /public/v1/notifications",
+      "scheduling": "type 'schedule' + date; PUT /public/v1/posts/{id}/status to toggle draft/schedule",
+      "notes": "Create-post endpoint limited to 90 requests/hour (100 on cloud); batch several posts per request. TikTok UPLOAD mode is reported 'published' by Postiz although it only reached the inbox; Postiz says the user must finish within 24 h or it is discarded [vendor claim]. Self-hosting does not avoid platform reviews."
+    },
+    {
+      "id": "buffer",
+      "name": "Buffer API (GraphQL)",
+      "url": "https://developers.buffer.com",
+      "pricing": "Free: up to 3 channels, 10 scheduled posts per channel; Essentials $5/channel/mo; Team $10/channel/mo (14-day trial on paid).",
+      "free_tier": "Yes: Free plan includes 1 API key, 100 requests/15 min, 250/day, 3,000/30 days.",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky",
+        "mastodon",
+        "google_business"
+      ],
+      "auth_header": "Authorization: Bearer YOUR_API_KEY (OAuth 2.0 PKCE for apps acting for other users)",
+      "endpoints": [
+        {
+          "purpose": "upload video (createPost mutation; media must already be at a public URL)",
+          "method": "POST",
+          "url": "https://api.buffer.com",
+          "content_type": "application/json (GraphQL)",
+          "fields": {
+            "text": "post text",
+            "channelId": "channel",
+            "schedulingType / mode": "automatic + addToQueue, or customScheduled + dueAt",
+            "assets": "[{video:{url, metadata:{thumbnailOffset}}}] or image/document entries",
+            "saveToDraft": "Buffer draft"
+          },
+          "example_curl": "curl -X POST https://api.buffer.com -H \"Authorization: Bearer $BUFFER_API_KEY\" -H \"Content-Type: application/json\" -d '{\"query\":\"mutation { createPost(input: { text: \\\"I built an app that roasts your screen time\\\", channelId: \\\"CHANNEL_ID\\\", schedulingType: automatic, mode: addToQueue, assets: [{ video: { url: \\\"https://files.example.com/launch-hook.mp4\\\", metadata: { thumbnailOffset: 2000 } } }] }) { ... on PostActionSuccess { post { id } } ... on MutationError { message } } }\"}'"
+        }
+      ],
+      "status_endpoint": "GraphQL post query by id (see developers.buffer.com examples) [exact query not copied]",
+      "scheduling": "queue (addToQueue) or customScheduled with dueAt",
+      "notes": "No upload endpoint: host media at stable public URLs (no expiring presigned links). Per-channel pricing gets costly across 7+ platforms. Whether Buffer's TikTok 'draft' equals TikTok inbox drafts [unverified]."
+    },
+    {
+      "id": "outstand",
+      "name": "Outstand (2026 newcomer)",
+      "url": "https://www.outstand.so",
+      "pricing": "$19/month including 3,000 posts, then $0.007/post to 10,000 and $0.005 beyond; unlimited connected accounts; Business $129/mo (50,000 posts); BYOK supported.",
+      "free_tier": "[unverified]",
+      "platforms": [
+        "x",
+        "linkedin",
+        "instagram",
+        "tiktok",
+        "facebook",
+        "threads",
+        "bluesky",
+        "youtube",
+        "pinterest"
+      ],
+      "auth_header": "[unverified]",
+      "endpoints": [],
+      "status_endpoint": "[unverified]",
+      "scheduling": "yes (per vendor)",
+      "notes": "From outstand.so/llms.txt (updated 2026-10-05); 12 platforms; MCP server since March 2026. Request shapes not verified."
+    },
+    {
+      "id": "postproxy",
+      "name": "PostProxy (2026 newcomer)",
+      "url": "https://postproxy.dev",
+      "pricing": "$17/mo base including 5 profiles, then $4-$1 per extra profile; profile-group plan $49/mo.",
+      "free_tier": "10 posts free, no credit card.",
+      "platforms": [
+        "tiktok",
+        "instagram",
+        "youtube",
+        "facebook",
+        "linkedin",
+        "x",
+        "threads",
+        "pinterest",
+        "bluesky"
+      ],
+      "auth_header": "[unverified]",
+      "endpoints": [],
+      "status_endpoint": "[unverified]",
+      "scheduling": "yes (per vendor)",
+      "notes": "From postproxy.dev/llms.txt. Request shapes not verified."
+    },
+    {
+      "id": "bundle-social",
+      "name": "bundle.social (2026 newcomer)",
+      "url": "https://bundle.social",
+      "pricing": "Free $0 (20 posts/mo, 3 social sets, API); Pro $100/mo (10,000 posts); Business $400/mo (100,000 posts); unlimited connected accounts on paid plans.",
+      "free_tier": "20 posts/month, 3 social sets.",
+      "platforms": [
+        "tiktok",
+        "youtube",
+        "instagram",
+        "facebook",
+        "x",
+        "threads",
+        "linkedin",
+        "pinterest",
+        "reddit",
+        "mastodon",
+        "bluesky"
+      ],
+      "auth_header": "[unverified]",
+      "endpoints": [],
+      "status_endpoint": "[unverified]",
+      "scheduling": "yes (per vendor)",
+      "notes": "From bundle.social/llms.txt (2026-07-30). OpenAPI at https://api.bundle.social/swagger-json. Request shapes not verified."
+    },
+    {
+      "id": "postzen",
+      "name": "PostZen (2026 newcomer)",
+      "url": "https://www.postzen.dev",
+      "pricing": "Free 2 accounts / 20 posts per month; paid $19, $49, $149 per month with unlimited posts; extra accounts $3.",
+      "free_tier": "2 accounts, 20 posts/month.",
+      "platforms": [
+        "instagram",
+        "x",
+        "linkedin",
+        "facebook",
+        "threads",
+        "youtube",
+        "tiktok",
+        "bluesky",
+        "pinterest",
+        "telegram"
+      ],
+      "auth_header": "[unverified]",
+      "endpoints": [],
+      "status_endpoint": "[unverified]",
+      "scheduling": "yes (per vendor)",
+      "notes": "From postzen.dev/llms.txt. Request shapes not verified."
+    }
+  ],
+  "browser_automation": {
+    "verdict": "Do not use as a default. Offer at most an opt-in, user-supervised 'assisted manual' mode (reveal file, copy caption, open the upload page or phone handoff). Fully automated Playwright posting is fragile, violates TikTok and YouTube terms, and risks the account, while official or aggregator routes now cover all 9 platforms.",
+    "notes": "Evidence: wkaisertexas/tiktok-uploader (778 stars, last push 2026-02-12) has open 2026 issues: modal overlay intercepting clicks (2026-05-04), TikTok Studio 'Something went wrong' silent failure (2026-04-28), auth error (2026-01-07), cookie/calendar bugs. dreammis/social-auto-upload (15.5k stars) needs constant selector fixes; a 2026-09 issue reports Xiaohongshu flagging posts as AI/automation, another YouTube prompts on Linux servers; an open PR (2026-08-28) adds an Upload-Post uploader so overseas platforms skip the browser. linouk23/youtube_uploader_selenium untouched since 2023. instagrapi (private Instagram API) issues in Oct 2026 center on challenge_required and fingerprint mismatches. ToS: TikTok US Terms 3.4 ban 'any automated system or software, including automated bots, except as approved in writing by TikTok USDS Joint Venture'; YouTube Terms ban accessing the Service 'using any automated means (such as robots, botnets or scrapers)' except search engines or with prior written permission; Instagram Terms ban automated access/account creation without permission [quoted from prior knowledge; page not fetchable]. Gotchas: headless detection (use headed, persistent profile on the user's own Mac/IP), 2FA/captcha, UI A/B tests and modal overlays, upload 'success' that never publishes, session cookies expiring, Mac must be awake at post time, sound/music pickers not reliably scriptable."
+  },
+  "recommendation": {
+    "default": "Aggregator-first behind a pluggable Publisher interface: Upload-Post as the default one-key adapter (Basic $16/mo annual or $24 monthly) for TikTok, Instagram, YouTube, Facebook, LinkedIn, X, Threads and Pinterest; Zernio (formerly Late; first 2 accounts free) as the free-tier and hot-standby adapter; Bluesky always direct via app password; YouTube optionally direct via the user's own Google Cloud Desktop OAuth client; TikTok videos default to draft (inbox) mode so the user can add a trending sound in-app, slideshows and finished edits go Direct Post; browser automation only as an assisted manual fallback.",
+    "why": "Solo devs cannot realistically pass TikTok's app review + audit (unaudited = SELF_ONLY, 5 users/24h, private accounts; photos need a verified domain) or Pinterest's Standard-access demo, and Meta/Threads APIs need public media URLs. Aggregators carry those approvals, own the HTTPS OAuth callback (then redirect to localhost), and schedule server-side so posts go out while the Mac sleeps. Upload-Post is the only checked aggregator that accepts the local file in the same multipart request, posts to many platforms per call, supports TikTok drafts + photo carousels + CML music, idempotency keys and status polling, at the lowest flat price for a one-brand setup. Zernio adds a $0 tier and Instagram trending audio. Bluesky direct is free and trivial; YouTube direct became much more viable in 2026 (own 100 uploads/day bucket; private-lock text removed from docs in Oct 2026, to be confirmed with a test upload).",
+    "setup_steps_for_user": [
+      "Shipreel > Settings > Posting > 'Connect with Upload-Post': sign up at app.upload-post.com (free, no card), copy the API key, paste it into Shipreel (stored in macOS Keychain).",
+      "Shipreel creates profile 'shipreel-default' (POST /api/uploadposts/users) and opens the hosted connect page (generate-jwt access_url); connect TikTok, an Instagram professional account, YouTube, X, LinkedIn, Threads, a Facebook Page and Pinterest.",
+      "Upgrade Upload-Post to Basic ($16/mo annual or $24 monthly) to enable TikTok (Free = 10 uploads/month, no TikTok).",
+      "Bluesky: create an App Password at bsky.app > Settings > App passwords, verify your account email (required for video), paste handle + app password into Shipreel.",
+      "TikTok: keep the TikTok app at 31.8 or newer; choose 'Draft (add sound in app)' or 'Direct post' per post; finish or delete drafts in the TikTok app (more than 5 pending drafts per 24h are blocked).",
+      "Optional free YouTube direct mode: create a Google Cloud project, enable YouTube Data API v3, configure the OAuth consent screen (External) and set it to 'In production' (avoids 7-day token expiry), create a Desktop app OAuth client, paste client ID/secret into Shipreel, sign in; Shipreel does one private test upload to confirm public uploads are not locked.",
+      "Optional $0 alternative: paste a Zernio API key instead (first 2 connected accounts free, e.g. TikTok + Instagram), keep Bluesky and YouTube direct.",
+      "Schedule posts in Shipreel: they are queued on the provider (scheduled_date / scheduledFor), so the Mac can sleep; Shipreel polls status and shows live links."
+    ]
+  },
+  "unverified": [
+    "YouTube private lock lifted for unverified projects (docs text changed between 2026-09-04 and 2026-10-08; no revision-history entry)",
+    "youtube.upload classified as a sensitive scope (affects unverified-app 100-user cap)",
+    "TikTok inbox drafts (video.upload) allowed for unaudited non-sandbox apps",
+    "TikTok draft expiry/slot behavior (Zernio: slot not freed by waiting; Postiz: discarded after 24h)",
+    "Instagram resumable rupload with Instagram Login (Meta docs: Facebook Login only)",
+    "Instagram publishing limit 100 vs 50 per 24h (doc conflict)",
+    "X Free tier closed to new developers Feb 2026 (third-party); 127.0.0.1 callback acceptance; native scheduling in v2",
+    "LinkedIn http://localhost redirect acceptance; /rest/videos with self-serve w_member_social (vendor reports yes)",
+    "Bluesky app.bsky.embed.gallery client rendering; exact aud for getUploadLimits",
+    "Pinterest native scheduling parameter in v5",
+    "Upload-Post tiktok_music_id absent from OpenAPI schema; hosted connect page on Basic plan; localhost redirect_url",
+    "Post for Me system TikTok app audited for public Direct Post; photo carousel limits; free tier",
+    "Buffer TikTok draft semantics; exact GraphQL status query",
+    "Instagram Terms quote (page not fetchable)",
+    "Request shapes for Outstand, PostProxy, bundle.social, PostZen",
+    "Caption limits for X (280), Threads (500), LinkedIn (3000), Instagram (2200) not re-verified this session"
+  ]
+}

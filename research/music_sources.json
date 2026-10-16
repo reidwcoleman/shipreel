@@ -1,0 +1,325 @@
+{
+  "royalty_free": [
+    {
+      "name": "TikTok Commercial Music Library (CML)",
+      "url": "https://ads.tiktok.com/help/article/commercial-music-library?lang=en",
+      "license": "Pre-cleared library of about 1M tracks that businesses can use free of charge in organic posts, ads and branded content, on TikTok only. CML user terms: 'Commercial Uses outside of TikTok are not permitted'; sounds can't be distributed or performed separately from the videos; TikTok may mute or remove videos if it loses rights to a track; Premium tracks can carry an ad-inventory fee; Business users indemnify TikTok for misuse.",
+      "api": "yes, via the TikTok API for Business with a Business-account token. GET https://business-api.tiktok.com/open_api/v1.3/discovery/cml/trending_list/?business_id=..&genre=ALL|POP|LO-FI|..&country_code=US&date_range=1DAY|7DAY|30DAY|90DAY returns up to 100 popular CML tracks (commercial_music_id, name, artist, duration, preview_url that never expires, rank_position, 30-day trending_history, song_clip_id). Pass song_clip_id as music_sound_info.music_sound_id to POST /open_api/v1.3/business/video/publish/ (with music_sound_volume 0-100, music_sound_start/music_sound_end in ms, video_original_sound_volume 0-100) or /business/photo/publish/ (which also takes auto_add_music). TikTok mixes the track server-side; you never download it.",
+      "notes": "The only fully automated, fully licensed way to put a trending-chart track on an auto-posted TikTok. Limits: 6 posts/min and 15/day per account (each for video and photo). The API exposes only the top-100 popular list; full CML search is in-app only. Not reusable on Reels or Shorts. The public Creative Center 'Songs' chart (with its 'approved for business use' filter) no longer loads logged-out; the URL redirects to Hashtags (checked 2026-10-15)."
+    },
+    {
+      "name": "Meta Sound Collection / Instagram business-available audio",
+      "url": "https://www.facebook.com/sound/collection/",
+      "license": "Royalty-free music and SFX from Meta, cleared for content on Facebook and Instagram, including business pages (secondary sources put the size at roughly 14K items). Meta's Music Guidelines say: 'Use of music for commercial or non-personal purposes in particular is prohibited' unless you've obtained appropriate licenses; unlicensed music can be blocked, muted or removed. Off-Meta use isn't covered (verify the Sound Collection terms).",
+      "api": "partial. Meta's IG User Media reference only documents audio_name (a one-time rename of a Reel's original audio) and says music tagging is only available for original audio. Vendors (Ayrshare 'audioConfiguration', bundle.social 'musicSoundInfo') describe an Instagram Audio API, available only with Facebook Login, that attaches Meta-authorized tracks (Sound Collection music plus some original sounds) by audio_id to Reels. It isn't in Meta's public reference, so treat it as unverified. Downloads from the Sound Collection are manual.",
+      "notes": "Instagram business accounts see a restricted library in-app. For API-published Reels, check copyright_check_status on the container before calling media_publish."
+    },
+    {
+      "name": "YouTube Audio Library",
+      "url": "https://support.google.com/youtube/answer/3376882",
+      "license": "Free. Audio Library music and SFX won't get Content ID claims on YouTube and can be monetized in YPP. Some tracks require credit in the video description (CC BY); filter on 'Attribution not required' to avoid that. The help page doesn't address use outside YouTube; YouTube only vouches for safety on YouTube.",
+      "api": "no. Manual MP3 download in YouTube Studio; no bulk or API access.",
+      "notes": "The safest bed for Shorts. For TikTok or Instagram, prefer its CC BY tracks (portable with credit) or check the Studio terms."
+    },
+    {
+      "name": "Pixabay Music",
+      "url": "https://pixabay.com/music/",
+      "license": "Pixabay Content License: free for commercial and non-commercial use, no attribution. Prohibited: selling or distributing content on a 'Standalone' basis (including as an audio file), trademark use, and misleading use. Pixabay doesn't warrant third-party consents. The terms don't mention Content ID.",
+      "api": "no for audio. The official API covers images and videos only (100 requests/60 s, 24 h caching required), and the ToS bans scraping and automated collection.",
+      "notes": "Good for baked-in beds. Keep download records in case a third party files a Content ID claim; the terms say to stop using content that's under a claim."
+    },
+    {
+      "name": "Uppbeat",
+      "url": "https://uppbeat.io/pricing",
+      "license": "Free account: 3 downloads for individual use on your own channels. Paid, billed yearly: Essentials $6.99/mo and Creator $8.99/mo (individuals publishing on their own channels); Pro $14.99/mo (freelancers, client projects, commercial digital use); Business $34.99/mo, yearly only (companies and teams). Plans include music and SFX plus YouTube channel safelisting (1-10 channels). Custom licensing for broadcast.",
+      "api": "no public API found (none on the pricing page); downloads are manual.",
+      "notes": "A brand or company account promoting an app needs Pro or Business for 'commercial digital use'."
+    },
+    {
+      "name": "Free Music Archive (FMA)",
+      "url": "https://freemusicarchive.org/License_Guide",
+      "license": "Per-track Creative Commons. Commercial use OK: CC BY, CC BY-SA, CC0. CC BY-ND can't be synced to video. NC variants forbid advertising and promotion. FMA doesn't license music commercially itself and points to Tribe of Noise PRO for 'all rights included' licensing.",
+      "api": "no current public API documented. The research 'FMA dataset' exists, but licenses vary per track.",
+      "notes": "Store license and credit per track, and filter out NC and ND for app promos."
+    },
+    {
+      "name": "Incompetech (Kevin MacLeod)",
+      "url": "https://incompetech.com/music/royalty-free/licenses/",
+      "license": "CC BY 4.0 free with credit. Required credit format: 'Title Kevin MacLeod (incompetech.com) / Licensed under Creative Commons: By Attribution 4.0 / https://creativecommons.org/licenses/by/4.0/'. A paid Standard License removes the attribution requirement (price isn't listed on the license page). YouTube monetization is explicitly allowed.",
+      "api": "no API; per-track downloads (an ISRC list is published).",
+      "notes": "Hosts TikTok-famous evergreens 'Monkeys Spinning Monkeys' (27.8M TikTok videos) and 'Sneaky Snitch'. These are recognizable sounds you can legally bake in anywhere; put the credit in the caption."
+    },
+    {
+      "name": "Mixkit (music)",
+      "url": "https://mixkit.co/free-stock-music/",
+      "license": "Mixkit Stock Music Free License (Envato): free, including commercial projects, with no attribution. The exact clauses sit behind 'View License' on mixkit.co/license; we couldn't read them this session, so verify the standalone-redistribution and Content ID clauses.",
+      "api": "no public API; downloads are manual.",
+      "notes": "Small, curated catalog."
+    },
+    {
+      "name": "Jamendo (Jamendo Music + Jamendo Licensing)",
+      "url": "https://developer.jamendo.com/v3.0",
+      "license": "Tracks carry various CC licenses. Commercial sync (ads, promos) needs a paid license through Jamendo Licensing (https://licensing.jamendo.com).",
+      "api": "yes: Jamendo API v3 (client_id; track search by tags, with stream and download URLs). Free non-commercial apps get up to 35K requests/month; commercial apps need an agreement.",
+      "notes": "Good for discovery. Buy licenses for any track used commercially."
+    },
+    {
+      "name": "Openverse (CC audio aggregator)",
+      "url": "https://api.openverse.org/v1/audio/",
+      "license": "Aggregates CC and public-domain audio (Freesound, Jamendo, Wikimedia). Each result includes license, license_version and a ready-made attribution string.",
+      "api": "yes: GET https://api.openverse.org/v1/audio/?q=whoosh&license_type=commercial (also category=music|sound_effect). Anonymous limits are 20/min burst and 200/day (from response headers); a registered app gets more.",
+      "notes": "A quick way to find CC0 SFX. Store the attribution string with every asset."
+    },
+    {
+      "name": "Epidemic Sound API",
+      "url": "https://developers.epidemicsound.com/",
+      "license": "Free API plan: prototyping only, no commercial license, up to 50 downloads. Scale plan (custom pricing by download volume): commercial license with sublicensing to end users, 'use anywhere: social, websites, ads'; safelisting is a paid add-on. Enterprise (over 1,000 downloads/month): custom license and full safelisting.",
+      "api": "yes: about 55K tracks and 250K+ SFX, with semantic search, Soundmatch (recommendations from video frames), Find similar, and Highlights (the best segment of a track for short-form).",
+      "notes": "The strongest licensed-library API for a product like Shipreel. Highlights solves 'pick the 15-second hook'."
+    },
+    {
+      "name": "Musopen and other public-domain classical recordings",
+      "url": "https://musopen.org/",
+      "license": "Public-domain compositions (Chopin, Satie, Debussy) in recordings released as public domain or CC by Musopen. Verify each recording; the composition being PD doesn't make every recording PD.",
+      "api": "no API known (unverified).",
+      "notes": "A bake-in-safe way to get the evergreen 'Chopin Nocturne' or 'Gymnopédie' feel. Not verified this session."
+    },
+    {
+      "name": "Soundstripe",
+      "url": "https://www.soundstripe.com/",
+      "license": "Subscription license covering social and commercial use on its business tiers (verify).",
+      "api": "advertises a partner API (not verified this session).",
+      "notes": "An alternative to Epidemic for an embedded catalog. Confirm the API terms before building on it."
+    }
+  ],
+  "ai_generation": [
+    {
+      "name": "ElevenLabs Eleven Music",
+      "url": "https://elevenlabs.io/docs/api-reference/music/compose",
+      "endpoint": "POST https://api.elevenlabs.io/v1/music (JSON: prompt OR composition_plan; music_length_ms 3,000-600,000; model_id music_v1 | music_v2 | music_v2_5; force_instrumental; seed only with composition_plan; finetune_id; sign_with_c2pa; output_format query). Returns audio bytes, with the song id in the response headers for inpainting or conditioning.",
+      "pricing": "API: $0.15 per minute of music on every tier (pricing page, Oct 2026). Plan bundles include e.g. Starter 40 min, Creator 147 min, Pro 660 min; finetunes $1.50.",
+      "license": "Eleven Music terms: commercial use on Free through Business, except film, TV, radio and 'Studio Games' (Enterprise Music removes that exclusion). Free needs attribution ('Created in collaboration with ElevenLabs'); Starter and up don't. Streaming-service distribution requires Creator or higher. Prompts can't name real artists, songs or labels or quote substantial lyrics. Resellers and 'pure-play music AI' companies must co-brand, and reselling music libraries is prohibited without written approval. Eligibility: Free to Pro is individuals only; Scale under 10 employees; Business under 50.",
+      "notes": "The best quality and licensing combination for custom beds and jingles. Have users connect their own ElevenLabs key (BYOK) so they are the licensee and Shipreel isn't a reseller. Prompt by genre, mood, BPM and instrumentation, never 'like <song>'."
+    },
+    {
+      "name": "ElevenLabs Sound Effects",
+      "url": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
+      "endpoint": "POST https://api.elevenlabs.io/v1/sound-generation (text; duration_seconds 0.5-30; prompt_influence 0-1, default 0.3; loop, v2 only; model_id eleven_text_to_sound_v2; output_format query). Returns MP3.",
+      "pricing": "Listed at $0.12/min on the API pricing page, which also says SFX are 'billed per generation', so verify. Plan bundles: Free 8, Starter 150, Creator 605, Pro 3,000 generations.",
+      "license": "Outputs described as royalty-free. Commercial rights follow the plan terms (paid plans; check the free tier).",
+      "notes": "Generate a branded SFX kit once (whoosh, pop, ding, riser) and cache it locally for a consistent sonic identity at near-zero marginal cost."
+    },
+    {
+      "name": "Stability AI Stable Audio 3.0 / 2.5",
+      "url": "https://platform.stability.ai/docs/api-reference",
+      "endpoint": "POST https://api.stability.ai/v2beta/audio/stable-audio/text-to-audio (model=stable-audio-3; duration 1-380 s, default 190; steps 4-8; cfg_scale 1-25; seed). Also /v2beta/audio/stable-audio/audio-to-audio and /inpaint. Stable Audio 2.5: /v2beta/audio/stable-audio-2/text-to-audio, /audio-to-audio, /inpaint. Async results at /v2beta/audio/results/{id}.",
+      "pricing": "8 credits ($0.08) per generation for both Stable Audio 3.0 (up to ~6 min) and 2.5 (up to 3 min). 1 credit = $0.01; 25 free credits to start.",
+      "license": "Stability: as between you and Stability, you own the outputs (subject to law and the AUP), and commercial use is allowed. Self-hosted Core Models fall under the Community License (free under $1M annual revenue; Enterprise license above that).",
+      "notes": "The cheapest per-track option. Instrumental beds, loops and SFX. Audio-to-audio can restyle a hummed motif into a jingle."
+    },
+    {
+      "name": "Stable Audio Open (self-hosted)",
+      "url": "https://huggingface.co/stabilityai/stable-audio-open-1.0",
+      "endpoint": "Local inference (stable-audio-tools / diffusers). No API cost.",
+      "pricing": "Free (runs on your own GPU or Mac).",
+      "license": "Stability AI Community License: free commercial use under $1M annual revenue (verify on the model card).",
+      "notes": "Short clips (about 47 s, from memory; verify). Best for SFX, textures and loops. Fits a local-first app. Not verified this session."
+    },
+    {
+      "name": "Google Lyria 3 / Lyria 3.5 (Gemini API)",
+      "url": "https://ai.google.dev/gemini-api/docs/music-generation",
+      "endpoint": "Interactions API: POST https://generativelanguage.googleapis.com/v1beta/interactions (or SDK interactions.create) with model lyria-3-clip-preview (30 s clips) or lyria-3.5 (full songs, about a couple of minutes). 44.1 kHz stereo; MP3 by default, WAV for 3.5 via response_format.",
+      "pricing": "Lyria 3 Clip: $0.04 per song; Lyria 3.5 and Lyria 3 Pro preview: $0.08 per song. No free tier.",
+      "license": "Gemini API terms (paid tier). Every output carries a SynthID audio watermark, and prompts naming specific artists or copyrighted lyrics are blocked. Check the Gemini API Additional Terms for ownership and commercial clauses.",
+      "notes": "Cheap and high quality for 30-second beds. Lyria RealTime (streaming, interactive) also exists but isn't priced on that page. Lyria 2 and 3 are also on Vertex AI."
+    },
+    {
+      "name": "MiniMax Music 2.0 (via fal.ai)",
+      "url": "https://fal.ai/models/fal-ai/minimax-music/v2",
+      "endpoint": "fal queue API, e.g. POST https://queue.fal.run/fal-ai/minimax-music/v2 (style prompt 10-300 chars plus lyrics 10-3,000 chars with [Verse]/[Chorus] tags). Returns MP3.",
+      "pricing": "$0.03 per generation.",
+      "license": "'Commercial use via fal partnership' per the model page. Read the fal and MiniMax terms.",
+      "notes": "The cheapest option for full songs with vocals: brand jingles and 'song about my app' gimmicks."
+    },
+    {
+      "name": "Suno",
+      "url": "https://suno.com/terms",
+      "endpoint": "No official public API (the terms mention none). Third-party 'Suno API' wrappers depend on automated access that the terms prohibit (robots, scraping, means not intentionally provided).",
+      "pricing": "Consumer subscriptions (Free, Pro, Premier); see suno.com.",
+      "license": "Terms revised 2026-08-10, effective 2026-09-03. Free/Basic: personal, non-commercial only. Pro/Premier: Suno assigns its rights in outputs, but commercial use applies only to permitted downloads within your tier's monthly allowance. Remixes are non-commercial. Suno may embed watermarks or metadata showing tier and download status.",
+      "notes": "Can't be automated in Shipreel. A Pro user can generate manually and import the downloaded file."
+    },
+    {
+      "name": "Udio",
+      "url": "https://www.udio.com/",
+      "endpoint": "No public API known.",
+      "pricing": "n/a",
+      "license": "UNCERTAIN as of 2026-10. After its late-2025 settlements with the major labels, Udio disabled downloads and announced a licensed 'walled garden' platform. Assume outputs can't be exported for commercial social posts unless current terms say otherwise.",
+      "notes": "Treat as unavailable for an auto-posting pipeline, and re-check the current terms."
+    },
+    {
+      "name": "Mubert API",
+      "url": "https://mubert.com/api",
+      "endpoint": "REST API: generate tracks from text, image, tags, BPM, mood or activity (15 s to 25 min); WebRTC live streams; a library of about 12K pre-generated tracks.",
+      "pricing": "Trial $49/mo (100 generations and streaming minutes); Startup $199/mo (5,000); Startup+ $499/mo (30,000); custom tiers.",
+      "license": "'Royalty-free', 'DMCA-free', 'cleared for monetization'; sub-licensing listed on plans. The site footer limits listening on Mubert's own domains to personal use, so confirm the API license.",
+      "notes": "Endless instrumental variety at volume."
+    },
+    {
+      "name": "Beatoven.ai (maestro API)",
+      "url": "https://www.beatoven.ai/api",
+      "endpoint": "Text-prompt music composition plus SFX generation (API key from the dashboard; see their API docs).",
+      "pricing": "Not published on the API page.",
+      "license": "Output 'always cleared for commercial use'. Fairly Trained certified.",
+      "notes": "The ethically sourced option."
+    },
+    {
+      "name": "SOUNDRAW API",
+      "url": "https://soundraw.io/api",
+      "endpoint": "Generation by genre, mood and theme, with stems and customization (docs after sign-up).",
+      "pricing": "API Starter $29.99/mo (up to 100 songs/mo, companies of 3 or fewer); API Pro $300/mo (up to 1,000 songs/mo, 6-month minimum); custom plans.",
+      "license": "'Safe for commercial use', 'no copyright strikes'. Each plan links its own license document.",
+      "notes": "Predictable flat pricing."
+    },
+    {
+      "name": "Loudly Music API",
+      "url": "https://www.loudly.com/music-api",
+      "endpoint": "Parameter generator (genre, energy, duration), text-to-music, a library of about 3.5K tracks, stems, WAV output.",
+      "pricing": "Custom and volume-based; a free track allowance on signup.",
+      "license": "Royalty-free, worldwide, perpetual, for 'any digital platform'. Confirm social-media specifics.",
+      "notes": ""
+    },
+    {
+      "name": "ACE-Step v1.5 (open source)",
+      "url": "https://github.com/ace-step/ACE-Step",
+      "endpoint": "Local inference (Python 3.10+, about 8 GB VRAM; runs on Apple Silicon, where an M2 Max takes about 26 s per minute of audio).",
+      "pricing": "Free (self-hosted).",
+      "license": "Apache-2.0 per the repo. Weights terms aren't stated separately, so verify.",
+      "notes": "v1.5 released 2026-01-28. Up to about 4-minute songs with lyrics. Fits Shipreel's local-first design as an offline fallback."
+    },
+    {
+      "name": "Meta MusicGen / AudioGen (AudioCraft)",
+      "url": "https://github.com/facebookresearch/audiocraft",
+      "endpoint": "Local inference.",
+      "pricing": "Free.",
+      "license": "Code is MIT; model weights are CC-BY-NC 4.0, which means non-commercial.",
+      "notes": "Don't use for marketing output."
+    }
+  ],
+  "sfx_sources": [
+    {
+      "name": "Freesound",
+      "url": "https://freesound.org",
+      "license": "Per sound: CC0, CC BY 4.0 or CC BY-NC 4.0 (filter to CC0 for no friction; avoid NC).",
+      "notes": "API: a token for search and previews, OAuth2 for original downloads. Limits are 60 req/min and 2,000/day (downloads 30/min, 500/day). The API terms say commercial use of the API is negotiated case by case with UPF, and you can't make full copies of the database. For a commercial app, curate a CC0 kit offline or have users fetch sounds with their own accounts."
+    },
+    {
+      "name": "Openverse (sound_effect category)",
+      "url": "https://api.openverse.org/v1/audio/?category=sound_effect&license_type=commercial",
+      "license": "Per item (mostly CC0 and CC BY from Freesound and Wikimedia), with an attribution string included.",
+      "notes": "Anonymous limits: 20/min, 200/day. Handy for building a starter palette."
+    },
+    {
+      "name": "Pixabay Sound Effects",
+      "url": "https://pixabay.com/sound-effects/",
+      "license": "Pixabay Content License: commercial use, no attribution, no standalone redistribution.",
+      "notes": "No audio API, and scraping is banned. Download manually."
+    },
+    {
+      "name": "Mixkit Sound Effects",
+      "url": "https://mixkit.co/free-sound-effects/",
+      "license": "Mixkit Sound Effects Free License: commercial use with no attribution (verify the exact clauses on mixkit.co/license).",
+      "notes": "Good transitions and UI categories."
+    },
+    {
+      "name": "ZapSplat",
+      "url": "https://www.zapsplat.com",
+      "license": "Free Standard license requires attribution; Premium removes attribution and adds WAV and more downloads. Our page fetch was blocked (403), so verify.",
+      "notes": "A very large SFX catalog."
+    },
+    {
+      "name": "Kenney audio packs (e.g. Interface Sounds)",
+      "url": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0 (public domain dedication).",
+      "notes": "100 UI clicks and button sounds: ideal for tap and click accents in screen recordings, with zero licensing friction."
+    },
+    {
+      "name": "Sonniss GDC Game Audio Bundles",
+      "url": "https://sonniss.com/gameaudiogdc",
+      "license": "Free, royalty-free, commercial use, no attribution, unlimited projects. You can't redistribute or resell the sounds as SFX, and AI/ML training is prohibited.",
+      "notes": "9-48 GB per year (2015-2024 plus a 2026 page). A professional-grade whoosh, impact and UI library to bundle into curated presets (the presets themselves can't be redistributed as raw SFX)."
+    },
+    {
+      "name": "YouTube Audio Library (SFX)",
+      "url": "https://support.google.com/youtube/answer/3376882",
+      "license": "Free, with no Content ID claims on YouTube. Off-YouTube use isn't addressed.",
+      "notes": "Safest for Shorts."
+    },
+    {
+      "name": "Uppbeat SFX",
+      "url": "https://uppbeat.io/pricing",
+      "license": "Included in paid plans; Pro and Business cover commercial digital use.",
+      "notes": ""
+    },
+    {
+      "name": "Epidemic Sound SFX (API)",
+      "url": "https://developers.epidemicsound.com/",
+      "license": "Commercial and sublicensable on the Scale and Enterprise API plans.",
+      "notes": "250K+ SFX available through the same API as the music."
+    },
+    {
+      "name": "ElevenLabs Sound Effects (generated)",
+      "url": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
+      "license": "Royalty-free outputs on paid plans.",
+      "notes": "Make bespoke brand SFX (a signature 'ding', the app's 'whoosh')."
+    },
+    {
+      "name": "Stable Audio 2.5/3.0 or Stable Audio Open (generated)",
+      "url": "https://platform.stability.ai/pricing",
+      "license": "You own the outputs (Stability terms). Open weights are free under the Community License below $1M revenue.",
+      "notes": "$0.08 per generation via the API, or free locally."
+    },
+    {
+      "name": "BBC Sound Effects (avoid for marketing)",
+      "url": "https://sound-effects.bbcrewind.co.uk",
+      "license": "RemArc licence: personal, educational and research use only. Commercial use needs a separate licence. From memory; the page couldn't be fetched this session.",
+      "notes": "Don't use in app promos."
+    },
+    {
+      "name": "Meme soundboards (Myinstants, 101soundboards, etc.)",
+      "url": "https://www.myinstants.com",
+      "license": "Unknown provenance. Many clips are ripped from TV, games, films and OS sounds.",
+      "notes": "Never bake these into auto-posted promos. Recreate the effect with your own or CC0 material instead (e.g. a deep 808 'boom' in place of the 'vine boom' clip). Also avoid brand sound marks and OS sounds (iPhone tri-tone, Windows startup, Netflix 'ta-dum', Discord ping)."
+    }
+  ],
+  "sfx_palette": [
+    {"id": "whoosh", "use": "Transition between scenes, text sliding in, hard cuts", "search_terms": "whoosh, swoosh, swish, air pass by, fast transition whoosh, short whoosh"},
+    {"id": "swipe", "use": "Swiping between app screens or cards in a screen recording", "search_terms": "ui swipe, card swipe, page swipe soft, flick"},
+    {"id": "pop", "use": "A caption, sticker or UI element appearing; bubble UI", "search_terms": "pop, bubble pop, ui pop, mouth pop, cork pop small"},
+    {"id": "tap-click", "use": "Button taps in phone screen recordings", "search_terms": "ui click, tap, button click, soft click, interface click, haptic tick"},
+    {"id": "mouse-click", "use": "Desktop or web app demos", "search_terms": "mouse click, trackpad click, double click"},
+    {"id": "keyboard-typing", "use": "Typing a prompt, code or search query on screen", "search_terms": "keyboard typing, mechanical keyboard, laptop typing, keystrokes, typing fast"},
+    {"id": "notification-ding", "use": "Hook at 0:00 ('new sale', 'new user', 'streak saved') and payoff moments; use a generic chime, never the iPhone tri-tone", "search_terms": "notification chime, ding, message received, ui notification, bell short"},
+    {"id": "phone-vibrate", "use": "Pattern-interrupt hook in the first second; incoming-notification setups", "search_terms": "phone vibrate, buzz, vibration on table"},
+    {"id": "cash-register", "use": "Revenue, MRR or first-sale reveals; pricing slides", "search_terms": "cash register, cha-ching, ka-ching, coins drop, money"},
+    {"id": "coin-collect", "use": "Points, streaks and gamification moments", "search_terms": "coin collect, pickup, 8-bit coin, reward"},
+    {"id": "level-up", "use": "Milestones, feature unlocks, 'v2 is live'", "search_terms": "level up, achievement unlocked, power up, success fanfare short"},
+    {"id": "success-chime", "use": "Task completed, checkmark, form submitted", "search_terms": "success, correct answer, positive notification, complete chime, confirm"},
+    {"id": "error-buzz", "use": "The 'before' pain point or failure state ('without the app')", "search_terms": "error, wrong buzzer, denied, fail buzz, negative beep"},
+    {"id": "record-scratch", "use": "Freeze-frame 'yep, that's me' or a plot twist mid-video", "search_terms": "record scratch, vinyl scratch, rewind stop"},
+    {"id": "boom-impact", "use": "Punchline, dramatic stare or stat reveal (a self-made stand-in for the 'vine boom' meme)", "search_terms": "deep boom, bass hit, sub drop, 808 boom, cinematic boom"},
+    {"id": "riser", "use": "Build tension in the 1-2 s before an app reveal or beat drop", "search_terms": "riser, uplifter, tension build, reverse cymbal, whoosh riser"},
+    {"id": "hit-impact", "use": "Logo or app reveal landing on the beat", "search_terms": "impact hit, cinematic hit, trailer hit, braam, punch"},
+    {"id": "glitch", "use": "Tech or AI transitions and 'system upgrade' moments", "search_terms": "digital glitch, data glitch, static burst, cyber transition"},
+    {"id": "camera-shutter", "use": "Screenshot or capture moments; 'save this' CTAs", "search_terms": "camera shutter, photo click, snapshot"},
+    {"id": "sparkle", "use": "AI 'magic' transformation, clean 'after' state, premium feature", "search_terms": "sparkle, shimmer, magic chime, twinkle, fairy dust"},
+    {"id": "typewriter", "use": "Headline or text-on-screen reveal letter by letter", "search_terms": "typewriter typing, typewriter bell, carriage return"},
+    {"id": "drumroll-tada", "use": "The big reveal or launch announcement", "search_terms": "drumroll, ta-da, reveal fanfare, snare roll"},
+    {"id": "crowd-gasp", "use": "'Wait, what?' moment after a surprising feature", "search_terms": "crowd gasp, audience ooh, surprised crowd"},
+    {"id": "applause-cheer", "use": "Launch day, milestone, '#1 on Product Hunt'", "search_terms": "applause, cheering crowd, small crowd celebration"},
+    {"id": "clock-tick", "use": "Time pressure or a slow manual process before the app", "search_terms": "clock ticking, stopwatch, timer tick"},
+    {"id": "scroll-tick", "use": "Scrolling feeds, picker wheels, list reveals", "search_terms": "scroll, ui scroll, wheel tick, picker tick, ratchet"},
+    {"id": "stamp", "use": "Approved, verified or 'App Store approved' moments", "search_terms": "rubber stamp, stamp approved, stamp hit"},
+    {"id": "heartbeat", "use": "Suspense pause before a price or stat reveal", "search_terms": "heartbeat, tension pulse, low thump"}
+  ]
+}

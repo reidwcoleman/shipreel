@@ -1,0 +1,2401 @@
+[
+  {
+    "id": "ai-reveal-slideshow",
+    "name": "Doubter Reveal Slideshow",
+    "tagline": "A 6-slide phone-photo story: someone doubts you, you show them the app's result, they change their mind",
+    "category": "slideshow",
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "status": "steady",
+    "why_it_works": "It's a tiny story with a villain (the landlord, mum or nan who says no) and a reveal, so curiosity carries viewers through every swipe. The product is the payoff, not the pitch, so it doesn't read as an ad. Imperfect images and family drama pull people into the comments, which pushes reach.",
+    "structure": [
+      {
+        "beat": "Hook / conflict",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Slide 1: realistic phone photo of the 'before' (dated room) with the hook split over 3–4 short lines: 'My landlord said / I can't change anything'."
+      },
+      {
+        "beat": "Turn",
+        "start_sec": 3,
+        "end_sec": 6,
+        "what": "Slide 2: same room, next line of the sentence: 'So I showed her what AI thinks it could look like'."
+      },
+      {
+        "beat": "Reveal 1",
+        "start_sec": 6,
+        "end_sec": 9,
+        "what": "Slide 3: the app's 'after' with identical room geometry; reaction text, not a label ('She was like... wait that's actually nice')."
+      },
+      {
+        "beat": "Reveal 2",
+        "start_sec": 9,
+        "end_sec": 12,
+        "what": "Slide 4: second style; another reaction line."
+      },
+      {
+        "beat": "Reveal 3",
+        "start_sec": 12,
+        "end_sec": 15,
+        "what": "Slide 5: third style or the doubter's verdict."
+      },
+      {
+        "beat": "Named CTA",
+        "start_sec": 15,
+        "end_sec": 18,
+        "what": "Slide 6: 'The Snugly app helped me convince her to finally get our kitchen done' / 'the app is called Snugly and my nan wants it on her phone immediately'."
+      }
+    ],
+    "length_sec": [
+      12,
+      24
+    ],
+    "hook_examples": [
+      "My landlord said I can't change anything (so I showed her what AI thinks it could look like)",
+      "my nan said my flat looks like a prison cell",
+      "My sister said my bathroom looks like a hospital so I showed her what AI could do",
+      "my nan has had the same kitchen since 1997 and she thinks its fine"
+    ],
+    "design": {
+      "text_style": "Bold white text with a black outline (outline ≈15% of font size), 4–6 words per line, 3–4 lines, no emoji, reactions not labels",
+      "font": "Bold Arial in Larry's spec (TikTok Classic looks equivalent); size 7.5% of image width for ≤5 words, 6.5% for 6–12, 5% for longer",
+      "text_position": "Centered about 28% from the top, max 75% of width; nothing in the top 10% or bottom 20%",
+      "colors": "Photo colors only; white/black text; no brand colors",
+      "visuals": "Portrait 1024×1536 'iPhone photo' look, realistic lighting, the same room layout locked across all slides; no people (AI faces read fake); no landscape images (black bars)",
+      "pacing": "6 slides (19 of Snugly's top 20 posts); ~3 s per slide if auto-advancing",
+      "sfx": "None; a popular song added in-app (Sienna Spiro, Sam Fender & Olivia Dean, Kate Bush on Snugly's hits)"
+    },
+    "audio": "A popular track added by hand in the TikTok app at publish time; the slideshow is uploaded via API as a private draft, then finished on the phone",
+    "cta_style": "Last slide names the app and the outcome in first person; long story caption that repeats the hook and names the app; ≤5 hashtags",
+    "examples": [
+      {
+        "who": "@snugly.app (Oliver Henry's Larry agent)",
+        "url": "https://www.tiktok.com/@snugly.app/video/7605358179316157718",
+        "views": "482.5K (verified)",
+        "date": "2026-02",
+        "note": "Best post; text sat near the top and the AI image dropped the hob, so older viewers flooded the comments to point it out"
+      },
+      {
+        "who": "@snugly.app",
+        "url": "https://www.tiktok.com/@snugly.app/video/7612206325409352982",
+        "views": "304.1K (verified)",
+        "date": "2026-03",
+        "note": "'nan' variant after the landlord hook fatigued; slide 6 names the app"
+      },
+      {
+        "who": "@snugly.app (anti-example)",
+        "url": "https://www.tiktok.com/@snugly.app/video/7604251859989040406",
+        "views": "170.1K (verified)",
+        "date": "2026-02",
+        "note": "CTA slide just said 'She's redecorating now / Snugly' and nobody downloaded"
+      },
+      {
+        "who": "Greg Isenberg × Oliver Henry (Startup Ideas Podcast)",
+        "url": "https://www.youtube.com/watch?v=OV5eK91YY68",
+        "views": "81.7K (verified)",
+        "date": "2026-03",
+        "note": "The 'Larry Loop': TikTok analytics + app revenue fed back into hook generation"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screenshots"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools"
+    ],
+    "pitfalls": "Story slideshows get likes (~0.35%) but few saves (0.06%), and views convert thinly: Oliver saw 200K views → 2 paying subscribers. Snugly's monthly views fell from 2.09M (Feb) to 60K (Apr) as hooks wore out, and the account stopped in June. Thousands of people now run the same Larry skill, so copies of this exact hook are everywhere."
+  },
+  {
+    "id": "listicle-slideshow",
+    "name": "Useful List Slideshow",
+    "tagline": "A 6–14-slide list of genuinely useful tips or ideas for a niche, with the app as one item or the last slide",
+    "category": "slideshow",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "linkedin"
+    ],
+    "status": "hot",
+    "why_it_works": "Lists are easy to swipe and worth saving, and saves and shares are strong ranking signals: utility lists earned 4–7% likes and 1–4% saves versus ~0.35%/0.06% for story slideshows. Each slide is a small reward, so viewers reach the last slide where the app sits. TikTok and Instagram both pushed carousels in 2025–2026.",
+    "structure": [
+      {
+        "beat": "Numbered hook",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Slide 1: '12 Golf Tips For Beginners' / 'We got SO MANY compliments for what we did at our wedding..' over an aesthetic or real photo."
+      },
+      {
+        "beat": "Value items",
+        "start_sec": 3,
+        "end_sec": 18,
+        "what": "Slides 2–N: one tip/idea per slide, short headline + 1–2 lines, real or Pinterest-style photos."
+      },
+      {
+        "beat": "App as an item",
+        "start_sec": 18,
+        "end_sec": 21,
+        "what": "The app appears as one of the items (Lense put it at #6 of 7) with a real phone photo of it in use."
+      },
+      {
+        "beat": "App slide",
+        "start_sec": 21,
+        "end_sec": 24,
+        "what": "Last slide: App Store screenshot or app screen + 'This is the app, more info in bio' / 'Download \"Scratch AI\" from the App Store'."
+      }
+    ],
+    "length_sec": [
+      15,
+      45
+    ],
+    "hook_examples": [
+      "12 Golf Tips For Beginners",
+      "We got SO MANY compliments for what we did at our wedding..",
+      "people with this diet... aren't on a diet",
+      "7 Golf Cheat Codes"
+    ],
+    "design": {
+      "text_style": "TikTok native text with a white label background, or small lowercase text over aesthetic images; headline + 1–2 lines per slide",
+      "font": "TikTok Classic typed in TikTok's editor (not baked into images) so each repost can vary",
+      "text_position": "Upper third or centered inside the 900×1600 safe area of a 1080×1920 slide",
+      "colors": "Consistent account aesthetic (for slideshows, 'the aesthetic of the account matters more than anything else' — Clover Labs)",
+      "visuals": "Real phone photos, Pinterest-style images or a 2×2 photo grid; App Store screenshot on the last slide",
+      "pacing": "6–14 slides; ~2–3 s each",
+      "sfx": "None; a soft trending or piano track"
+    },
+    "audio": "Trending or mood-matched track added in-app ('original sound' also works for list accounts)",
+    "cta_style": "Last slide: App Store page screenshot + 'This is the app, more info in bio' / 'I linked it in my bio if you're curious!'",
+    "examples": [
+      {
+        "who": "@lense.app (wedding camera app)",
+        "url": "https://www.tiktok.com/@lense.app/video/7587759380997672225",
+        "views": "1.2M (verified)",
+        "date": "2025-12",
+        "note": "Wedding-ideas list with the app as item 6; the same hook and images were reused in Aug 2026 for 236.6K"
+      },
+      {
+        "who": "@scratch.ai (golf AI caddie)",
+        "url": "https://www.tiktok.com/@scratch.ai/video/7659912621218352397",
+        "views": "578.5K (verified)",
+        "date": "2026-07",
+        "note": "14-slide tips list; last slide 'Pro golfers have caddies. With Scratch AI, so do you.' + App Store badge. Its automated network collapsed to 0–5 views/post in Sep 2026"
+      },
+      {
+        "who": "@doof.app (Jack Friks)",
+        "url": "https://www.tiktok.com/@doof.app/video/7485847107870493958",
+        "views": "749.8K (verified)",
+        "date": "2025-03",
+        "note": "5-second still: white header bar over a Pinterest-style food grid; the 2×2-grid format he found after ~100s of tries"
+      },
+      {
+        "who": "Noise ('eggs theory')",
+        "url": "https://www.youtube.com/watch?v=_aNVPMvd8WU",
+        "views": "n/a",
+        "date": "2026-01",
+        "note": "Healthy-eating slideshows with eggs in the hook image kept winning; mass-posted with randomized images, captions, order and hashtags"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screenshots"
+    ],
+    "best_for": [
+      "consumer apps",
+      "B2B SaaS",
+      "AI tools"
+    ],
+    "pitfalls": "Views convert thinly (one founder: 4.1M slideshow views → 1,238 customers → $1,007); SideShift calls view-only slideshow programs near-zero converters, so pair them with a clear app slide. Automated networks are getting throttled (Scratch AI fell to 0–5 views/post in Sep 2026). Instagram stopped recommending accounts that mostly repost carousels (Apr 30, 2026), so reposted Pinterest images are now risky."
+  },
+  {
+    "id": "question-slideshow",
+    "name": "Question Prompt Slideshow",
+    "tagline": "Slides of questions to ask someone ('5 questions to ask your girlfriend'), quiz prompts or 'rate X/10', sourced from the app",
+    "category": "slideshow",
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "status": "saturated",
+    "why_it_works": "Viewers save it to use later and send it to the person it's about, so saves and shares are high (Cray Cray: 87.5K saves on 2.1M views). When the questions come from the app, the content is the product. 'Rate X/10' prompts invite comments.",
+    "structure": [
+      {
+        "beat": "Prompt hook",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Slide 1: '5 cute questions you have to ask them' over a soft couple/aesthetic photo."
+      },
+      {
+        "beat": "Questions",
+        "start_sec": 3,
+        "end_sec": 15,
+        "what": "Slides 2–5: one question per slide, styled like the app's own question cards."
+      },
+      {
+        "beat": "Source slide",
+        "start_sec": 15,
+        "end_sec": 18,
+        "what": "Slide 6: 'I found the questions on this free app ↓' + app screen."
+      }
+    ],
+    "length_sec": [
+      12,
+      24
+    ],
+    "hook_examples": [
+      "5 cute questions you have to ask them",
+      "5 questions you should ask your girlfriend",
+      "How well do you know your girlfriend",
+      "5 uncomfortable questions for your boyfriend"
+    ],
+    "design": {
+      "text_style": "Question on an app-style card, sentence case",
+      "font": "TikTok Classic or the app's card font",
+      "text_position": "Centered",
+      "colors": "Soft pastel or the app's card color",
+      "visuals": "Couple/aesthetic photos or plain card backgrounds",
+      "pacing": "6–7 slides",
+      "sfx": "None; soft piano/indie track ('where is my mind' piano)"
+    },
+    "audio": "Soft trending instrumental",
+    "cta_style": "'I found the questions on this free app ↓' on the last slide",
+    "examples": [
+      {
+        "who": "Cray Cray (@craycrayquestions71)",
+        "url": "https://www.tiktok.com/@craycrayquestions71/video/7479574833571892522",
+        "views": "2.1M (verified), 87.5K saves",
+        "date": "2025-03",
+        "note": "The app's own question cards are the content; 7 accounts × 2 posts/day via ReelFarm. Two of six handles are now empty and all stopped by Nov 2025"
+      },
+      {
+        "who": "Cray Cray",
+        "url": "https://www.tiktok.com/@craycrayquestions71/video/7500658119253527851",
+        "views": "728.4K (verified)",
+        "date": "2025-05",
+        "note": "Same template"
+      },
+      {
+        "who": "Flamme (question slideshows)",
+        "url": "https://x.com/JosephKChoi/article/2024201897322709065",
+        "views": "part of 50M+ views (self-reported)",
+        "date": "2026-02",
+        "note": "Question slideshows converted 0.2–0.5% of views to installs; produced by a 'viral TikTok question-slideshow copy engine' prompt"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screenshots"
+    ],
+    "best_for": [
+      "consumer apps"
+    ],
+    "pitfalls": "A reposter running 50–100 accounts a week said in May 2026 that viewers are now 'blind to this format' for couples questions. Mass-produced accounts in this niche have died. Works only when the questions really come from your app."
+  },
+  {
+    "id": "faceless-screen-demo",
+    "name": "Faceless Screen Demo",
+    "tagline": "Text hook over the app's most visual moment, then a real-time screen recording of the core action and the result",
+    "category": "demo",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "status": "steady",
+    "why_it_works": "It answers 'what is this?' directly, which is why straight demos convert best (0.5–1% of views to installs in Flamme's data). A satisfying, visual result (a scan becoming macros, a heat map lighting up) is the hook. No face or creator is needed, so it's the easiest format for solo devs.",
+    "structure": [
+      {
+        "beat": "Result-first hook",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "The finished result on screen with a text line ('The fastest way to count calories 🏎️📸')."
+      },
+      {
+        "beat": "Do it",
+        "start_sec": 2,
+        "end_sec": 10,
+        "what": "Screen recording of the core action in real time; taps visible; zoom on the key moment."
+      },
+      {
+        "beat": "Payoff",
+        "start_sec": 10,
+        "end_sec": 15,
+        "what": "The number/result held for 2 s; app name in UI or a final text line."
+      }
+    ],
+    "length_sec": [
+      7,
+      20
+    ],
+    "hook_examples": [
+      "The fastest way to count calories 🏎️📸",
+      "You'll feel amazing.",
+      "Hey, I just found this site. This is crazy. What is our attention span coming to?",
+      "A website called I have an essay due at midnight and chatgpt won't stop giving me fake citations.com"
+    ],
+    "design": {
+      "text_style": "One native text line, lowercase or sentence case, plus optional step labels",
+      "font": "TikTok Classic",
+      "text_position": "Top third so the UI stays visible",
+      "colors": "App's own UI; design a screen that looks great as a screenshot (oversized numbers, huge logo on the loading screen)",
+      "visuals": "Native screen recording with touch indicators; for web apps, a desktop capture with a memorable long URL typed on screen",
+      "pacing": "Real time or 1.5× for the action; hold the result 2 s",
+      "sfx": "Shutter/scan sound, soft ding on result"
+    },
+    "audio": "Trending sound at low volume; no voiceover needed",
+    "cta_style": "App name visible on screen (Halo shows a giant logo loading screen for 2 s as the only CTA); 'put a shorter link in the comments'",
+    "examples": [
+      {
+        "who": "@calai.app",
+        "url": "https://www.tiktok.com/@calai.app/video/7475920092623047979",
+        "views": "260.3K (verified)",
+        "date": "2025-02",
+        "note": "15-second scan demo with music only; Cal AI's official account median is ~3.7K, so most demos don't travel without creators"
+      },
+      {
+        "who": "@cal_ai_ faceless page (now @officialguttok)",
+        "url": "https://www.tiktok.com/@cal_ai_/photo/7458853443835301126",
+        "views": "5.3M (verified)",
+        "date": "2025-01",
+        "note": "19-second faceless post 'You'll feel amazing.' with a 12.3% like rate"
+      },
+      {
+        "who": "Coconote",
+        "url": "https://www.youtube.com/watch?v=E_4gRy4O03w",
+        "views": "n/a",
+        "date": "2026-04",
+        "note": "Engineers built 'eye-catchy' screens just for creators: a giant waveform with 'Coconote.ai' in huge text"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools",
+      "dev tools",
+      "B2B SaaS"
+    ],
+    "pitfalls": "If it looks like an ad, 'the algorithm is going to give it 20 views' (Jack Friks). Brand-account demos have low medians (Opal ~1.2K, PhotoRoom ~1.1K, Cal AI ~3.7K); volume across accounts or creators is what makes them hit. Needs an inherently visual 'magic moment' in the product."
+  },
+  {
+    "id": "how-to-tutorial",
+    "name": "How-To Shortcut Demo",
+    "tagline": "A searchable how-to that promises a concrete result, shows the slow way, then the app as the shortcut",
+    "category": "demo",
+    "platforms": [
+      "tiktok",
+      "shorts",
+      "reels",
+      "linkedin"
+    ],
+    "status": "steady",
+    "why_it_works": "It's useful on its own, so it gets saved and found through TikTok/YouTube search long after posting. A dollar or time promise up front qualifies the viewer, and the 'easier way' reveal makes the app the obvious next step. Payout's hit earned downloads for 500+ days.",
+    "structure": [
+      {
+        "beat": "Promise",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "'Watch me make up to $900 in just 30 seconds' / 'How to fix X on iPhone' with the result visible."
+      },
+      {
+        "beat": "Slow way",
+        "start_sec": 3,
+        "end_sec": 12,
+        "what": "The manual route (Google search, settings menus) shown quickly."
+      },
+      {
+        "beat": "Easier way",
+        "start_sec": 12,
+        "end_sec": 25,
+        "what": "'There's an easier way… an app' — screen recording of the app doing it in a few taps."
+      },
+      {
+        "beat": "Proof list",
+        "start_sec": 25,
+        "end_sec": 35,
+        "what": "Three concrete examples/payouts/results on screen."
+      },
+      {
+        "beat": "Keyword CTA",
+        "start_sec": 35,
+        "end_sec": 40,
+        "what": "'Comment CLAIM and I'll send you the app' (auto-DM), pinned comment names the app."
+      }
+    ],
+    "length_sec": [
+      20,
+      60
+    ],
+    "hook_examples": [
+      "Watch me make up to $900 in just 30 seconds.",
+      "Amazon will hate me for exposing this secret.",
+      "This common mistake kills your tomatoes",
+      "¿Cómo mejorar la batería del iPhone? (How do you improve iPhone battery?)"
+    ],
+    "design": {
+      "text_style": "Searchable keyword title on screen ('How to…') + numbered steps",
+      "font": "TikTok Classic / bold sans",
+      "text_position": "Title at top; steps centered over screen recordings",
+      "colors": "Neutral; green money figures",
+      "visuals": "Face intro, then phone screen recordings with tap highlights",
+      "pacing": "Cut every 2–3 s; screen recordings sped up",
+      "sfx": "Cash register / ding on results"
+    },
+    "audio": "Voiceover; no trending sound needed (search-led)",
+    "cta_style": "Keyword comment → auto-DM (ManyChat: ~50% of DM'd people clicked for Payout); pinned comment: 'the one I use in the video is called Payout'",
+    "examples": [
+      {
+        "who": "Payout (Casper, @CapitalCasper)",
+        "url": "https://www.youtube.com/watch?v=I10xtUiXfeY",
+        "views": "17M on one video; $217K in 5 months (self-reported)",
+        "date": "2026-03",
+        "note": "Week 1 2.9M, month 1 7.5M, still 30–50 views/hour after 500+ days; 6.7% of downloads paid"
+      },
+      {
+        "who": "@soyenriquebarron",
+        "url": "https://www.tiktok.com/@soyenriquebarron/video/7582405283146632455",
+        "views": "6.5M (verified)",
+        "date": "2025-12",
+        "note": "iPhone battery how-to answering a comment; tips accounts are the template for app how-tos"
+      },
+      {
+        "who": "Epic Gardening",
+        "url": "https://www.tiktok.com/@epicgardening",
+        "views": "500M+ total (Tiny Empires, unverified)",
+        "date": "2025-11",
+        "note": "'This common mistake kills your tomatoes' — mistake-led how-tos"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "screen recording",
+      "face cam"
+    ],
+    "best_for": [
+      "consumer apps",
+      "B2B SaaS",
+      "dev tools",
+      "AI tools"
+    ],
+    "pitfalls": "Explaining the topic instead of the viewer's payoff gets views without signups (Payout's lawsuit explainers). A single how-to format dries up after a few months. Keyword-DM automation needs Instagram/TikTok tools that comply with platform rules."
+  },
+  {
+    "id": "comment-reply-demo",
+    "name": "Comment Reply Demo",
+    "tagline": "Answer a real comment (objection, question or doubt) on camera, then prove it with the app",
+    "category": "demo",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "steady",
+    "why_it_works": "The comment sticker turns an ad into a conversation, and objections ('90% accuracy isn't good enough') are exactly what silent viewers were thinking. Replying rewards commenters, which brings more comments. It also signals that real people are using the app.",
+    "structure": [
+      {
+        "beat": "Read the comment",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "TikTok 'Reply to @user' sticker on screen; creator reads it aloud or reacts to it."
+      },
+      {
+        "beat": "Reframe",
+        "start_sec": 2,
+        "end_sec": 11,
+        "what": "What the app is in one sentence ('track your calories by simply taking a picture')."
+      },
+      {
+        "beat": "Proof",
+        "start_sec": 11,
+        "end_sec": 23,
+        "what": "A live test on screen or a stat ('nutritional labels can be up to 20% inaccurate')."
+      },
+      {
+        "beat": "Concede + CTA",
+        "start_sec": 23,
+        "end_sec": 34,
+        "what": "Admit the limit, show the workaround feature (barcode scanner, database), tell them what to search."
+      }
+    ],
+    "length_sec": [
+      15,
+      45
+    ],
+    "hook_examples": [
+      "90% accuracy is not good enough. Sorry bro.",
+      "Replying to @vi.leah Cal AI is the most affordable calorie tracking app on the market",
+      "Respuesta a @hector_nf1 la funda que todos me preguntaron (the case everyone asked me about)",
+      "I bench pressed 220 pounds for five reps. What is that? → that's 500 bowling balls"
+    ],
+    "design": {
+      "text_style": "Native TikTok reply sticker (white card with the commenter's avatar and text) plus auto-captions",
+      "font": "TikTok Classic / auto-caption default",
+      "text_position": "Reply sticker upper-left or center-top; captions lower-middle above the UI zone",
+      "colors": "Native white sticker; no branding",
+      "visuals": "Face cam for objections; screen recording or phone held to camera for the proof",
+      "pacing": "Single take with 2–4 jump cuts; a cut to the screen at the proof",
+      "sfx": "None"
+    },
+    "audio": "Original voice; no music or very low music",
+    "cta_style": "Spoken: 'search {app} on the App Store' or 'it's in my bio'; pinned comment with the app name",
+    "examples": [
+      {
+        "who": "Cal AI (@calai.app)",
+        "url": "https://www.tiktok.com/@calai.app/video/7482898906242633006",
+        "views": "230.6K (verified; 0.7% like rate suggests a boost)",
+        "date": "2025-03",
+        "note": "Objection-handling script: read comment, define app, cite FDA label error, concede and upsell"
+      },
+      {
+        "who": "@soyenriquebarron (iPhone accessories/tips)",
+        "url": "https://www.tiktok.com/@soyenriquebarron/video/7595393080967089415",
+        "views": "5.9M (verified)",
+        "date": "2026-01",
+        "note": "'The case everyone asked me about' — answering the 'what is that?' comment is the product reveal"
+      },
+      {
+        "who": "@learnwithdat × Praktika",
+        "url": "https://www.tiktok.com/@learnwithdat/video/7693024368682601735",
+        "views": "544.4K (verified, reply post)",
+        "date": "2026-10",
+        "note": "Reply-to-comment episode of a human vs. AI-tutor banter series"
+      },
+      {
+        "who": "Stronger (founder reply loop)",
+        "url": "https://www.youtube.com/watch?v=si3HzkBTPl4",
+        "views": "15K followers pre-launch (self-reported)",
+        "date": "2025-08",
+        "note": "Commenters post their lifts; the founder types them into the app on camera ('that's 500 bowling balls')"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "B2B SaaS",
+      "dev tools",
+      "AI tools"
+    ],
+    "pitfalls": "Only works once you have real comments; most replies on brand accounts flop (Cal AI's official account median is ~3.7K). Arguing with critics can look defensive; concede something. Don't fake the comment."
+  },
+  {
+    "id": "x-demo-post",
+    "name": "Odd-Premise Demo Post",
+    "tagline": "A 10–40 s silent screen capture on X with one line stating a strange premise or a clear outcome",
+    "category": "demo",
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "status": "hot",
+    "why_it_works": "X autoplays silently, so a self-explaining screen capture plus one surprising line ('turn web analytics into a Severance episode') is the fastest path to 'wait, what?'. Riding a live conversation gives it a story. Developers and founders on X share builds they want to have made.",
+    "structure": [
+      {
+        "beat": "Premise line",
+        "start_sec": 0,
+        "end_sec": 1,
+        "what": "Post text: one sentence, the odd idea or the outcome ('I made an app to…'); video starts on the most visual frame."
+      },
+      {
+        "beat": "Demo",
+        "start_sec": 1,
+        "end_sec": 20,
+        "what": "Real screen capture of the thing working, zoomed to the action, no intro."
+      },
+      {
+        "beat": "Payoff frame",
+        "start_sec": 20,
+        "end_sec": 29,
+        "what": "The funniest/most impressive state held for 2–3 s; loops."
+      }
+    ],
+    "length_sec": [
+      10,
+      40
+    ],
+    "hook_examples": [
+      "I made an app to turn web analytics into a Severance episode.",
+      "✨ Today I thought what if I ask Cursor to build a flight simulator",
+      "IT WORKS!!!!! A FULL multiplayer…",
+      "Bye Bye fake MRR screenshots"
+    ],
+    "design": {
+      "text_style": "No overlay or a tiny label; the post text carries the hook",
+      "font": "System UI of the app being shown",
+      "text_position": "n/a (post text above the video)",
+      "colors": "The app's own UI; dark mode reads well in feeds",
+      "visuals": "Screen Studio-style capture with auto-zoom and smooth cursor",
+      "pacing": "One continuous capture, sped up 1.5–2×",
+      "sfx": "None (autoplay is muted)"
+    },
+    "audio": "None needed",
+    "cta_style": "Link in the first reply (link posts are deboosted); 'comment SEND & I'll DM you a free month'",
+    "examples": [
+      {
+        "who": "Marc Lou",
+        "url": "https://x.com/marclou/status/2023739768807584186",
+        "views": "1.11M (verified)",
+        "date": "2026-02",
+        "note": "19-second capture + one line; his TrustMRR launch 'only worked because I built it in response to Pieter's tweet; it gave people a story'"
+      },
+      {
+        "who": "Pieter Levels / fly.pieter.com",
+        "url": "https://x.com/levelsio/status/1894429987006288259",
+        "views": "13.5M (verified)",
+        "date": "2025-02",
+        "note": "Built live on X in public; reported $1M ARR in 17 days, later back to ~$0 (unverified)"
+      },
+      {
+        "who": "Origami SEND",
+        "url": "https://x.com/fin465/status/2059311920700887210",
+        "views": "263.6K (verified)",
+        "date": "2026-05",
+        "note": "'Comment \"SEND\" & ill dm you a free month of the paid plan'"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screen recording"
+    ],
+    "best_for": [
+      "dev tools",
+      "AI tools",
+      "B2B SaaS",
+      "games"
+    ],
+    "pitfalls": "Novelty fades fast; a viral toy can go from $87K MRR to $0 (fly.pieter.com). Without an existing audience or a live conversation to ride, most demo posts get a few hundred views. Put links in replies, not the post."
+  },
+  {
+    "id": "reaction-hook-demo",
+    "name": "Reaction Hook + Demo",
+    "tagline": "1–3 s of a real person reacting (shock, relief, disbelief) under a one-line text hook, hard cut to a phone screen recording of the app",
+    "category": "reaction",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "steady",
+    "why_it_works": "A human face showing a strong emotion stops the scroll, and the text hook tells you why they feel that way, so the demo answers a question the viewer now has. It's modular: hooks, faces and demos can be recombined into hundreds of variants. It shows the actual app, which is why it converts better than memes.",
+    "structure": [
+      {
+        "beat": "Reaction + hook",
+        "start_sec": 0,
+        "end_sec": 2.5,
+        "what": "Candid selfie-cam face (hand over mouth, slow head shake, eyes wide) with one line: 'my hostel roommate just showed me this and all my solo travel anxiety is gone 🤯'."
+      },
+      {
+        "beat": "Hard cut to demo",
+        "start_sec": 2.5,
+        "end_sec": 10,
+        "what": "Full-screen phone screen recording of the single magic moment (scan, result, match), taps visible."
+      },
+      {
+        "beat": "Detail line",
+        "start_sec": 10,
+        "end_sec": 14,
+        "what": "A closing text line that adds realism or the result ('and it's free??'); app name visible in the UI or caption."
+      }
+    ],
+    "length_sec": [
+      6,
+      15
+    ],
+    "hook_examples": [
+      "my hostel roommate just showed me this and all my solo travel anxiety is gone 🤯🤯",
+      "I've been solo traveling for 2 years and now I find out about this 🤦",
+      "someone made strava but for the gym??",
+      "Imagine being scared of solo traveling when this literally exists."
+    ],
+    "design": {
+      "text_style": "Snapchat-style translucent caption bar or TikTok Classic white text with black outline; lowercase, 1–2 lines, emoji allowed",
+      "font": "TikTok Classic / Snapchat caption font",
+      "text_position": "Middle of the frame over the face (Snapchat bar) or upper third",
+      "colors": "White on translucent black bar",
+      "visuals": "Real face in a real place (hostel bunk, car, gym), then native screen recording; AI faces are spotted and flop",
+      "pacing": "One hard cut at ~2–3 s; demo sped up slightly",
+      "sfx": "None or a trending sound at low volume"
+    },
+    "audio": "Trending sound or silence; no voiceover",
+    "cta_style": "Caption: 'app is called Stronger!' / app name in the UI; comment seeding or pinned comment",
+    "examples": [
+      {
+        "who": "@nomadtable (Nomad Table, solo founder Jay)",
+        "url": "https://www.tiktok.com/@nomadtable/video/7505063333310008607",
+        "views": "1.0M (verified)",
+        "date": "2025-05",
+        "note": "Same template also did 627K and 322K; the app grew to $65K MRR with 60–70 creators remaking winners (30–44M views/month)"
+      },
+      {
+        "who": "@strongerapp",
+        "url": "https://www.tiktok.com/@strongerapp/video/7611280708153150733",
+        "views": "2.7M (verified; 4.2K likes suggests a paid boost)",
+        "date": "2026-02",
+        "note": "11-second shocked face; sibling post captioned 'app is called Stronger!' did 851K"
+      },
+      {
+        "who": "Flamme (conversion data)",
+        "url": "https://mobileuseracquisitionshow.com/episode/how-to-produce-200-tiktoks-a-day-ankit-nayal/",
+        "views": "50M+ total across the farm (self-reported)",
+        "date": "2026-06",
+        "note": "Reaction clips converted ~0.3–0.5% of views to installs vs ~0.1% for memes"
+      },
+      {
+        "who": "Oliver Henry (earlier app)",
+        "url": "https://www.youtube.com/watch?v=OV5eK91YY68",
+        "views": "n/a",
+        "date": "2026-03",
+        "note": "Scripted every hook × face × demo combination: ~400 videos per batch, bulk-scheduled"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools"
+    ],
+    "pitfalls": "Viewers are now used to hook-and-demo; the first videos in a format go most viral, so rotate hooks and faces. Clickbait that the demo doesn't pay off gets views and no likes (a hostel hook got 300K views and 174 likes). AI-generated reaction faces read as fake. Measure % of viewers past 3 s: 70–80% means keep going, under 50% means drop it."
+  },
+  {
+    "id": "green-screen-reaction",
+    "name": "Green-Screen Reaction",
+    "tagline": "Creator over a screenshot, headline, founder clip or viral video, reacting and explaining why it matters",
+    "category": "reaction",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "hot",
+    "why_it_works": "Borrowed context (a headline, a viral clip, a founder's claim) gives an instant reason to care, and the creator's face adds trust and emotion. It's cheap to make many variants, and Instagram counts commentary and green screen as 'original'. Practitioners called it the most viral format of late 2026.",
+    "structure": [
+      {
+        "beat": "Wild hook",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Creator in front of the background (founder clip, tweet, App Store page, news headline) says the most surprising line; hands busy, pointing at the background."
+      },
+      {
+        "beat": "Context",
+        "start_sec": 3,
+        "end_sec": 12,
+        "what": "What happened / the claim, with the screenshot zoomed."
+      },
+      {
+        "beat": "Proof / demo",
+        "start_sec": 12,
+        "end_sec": 30,
+        "what": "Background switches to the app or a live test ('scanning my water bottle should say zero calories')."
+      },
+      {
+        "beat": "Question CTA",
+        "start_sec": 30,
+        "end_sec": 36,
+        "what": "A rhetorical question or 'would you use this?' to pull comments; app name in caption."
+      }
+    ],
+    "length_sec": [
+      15,
+      70
+    ],
+    "hook_examples": [
+      "First of all, we didn't offer him 20K. We offered him 100K.",
+      "Hi, I'm Zach, the founder and CEO of Cal AI. And the truth is, you guys are stupid.",
+      "he's living in 2099",
+      "This guy needs to slowwww down"
+    ],
+    "design": {
+      "text_style": "Minimal: one caption line or the background's own headline; auto-captions",
+      "font": "TikTok Classic or none",
+      "text_position": "Top 25% if any, so the background stays readable",
+      "colors": "Background content provides color; creator in neutral clothes",
+      "visuals": "TikTok green-screen effect with the creator in the lower half and the source image/video behind; stitches show the original clip first",
+      "pacing": "Background swaps every 3–6 s; jump cuts on the creator",
+      "sfx": "Optional whoosh on background swaps"
+    },
+    "audio": "Original voice",
+    "cta_style": "Ends with a question; app named in caption or by the founder; for considered purchases, a founder green screen builds trust",
+    "examples": [
+      {
+        "who": "Cal AI (@calai.app)",
+        "url": "https://www.tiktok.com/@calai.app/video/7516324544035065134",
+        "views": "443.1K (verified; 0.65% like rate, likely boosted)",
+        "date": "2025-06",
+        "note": "Rebuts a creator's claim, then demos a live scan; ends with a rhetorical question"
+      },
+      {
+        "who": "Cal AI founder Zach Yadegari",
+        "url": "https://www.tiktok.com/@calai.app/video/7515106146567343402",
+        "views": "294.2K (verified)",
+        "date": "2025-06",
+        "note": "Founder rage-bait: insult, objection, accuracy stat, proof, ask for support"
+      },
+      {
+        "who": "SMB Market via EVO Marketing",
+        "url": "https://www.youtube.com/watch?v=VGJWRjz6nq8",
+        "views": "40M views / $1.2M program (self-reported)",
+        "date": "2026-10",
+        "note": "Green screens of the founder by 35–40-year-old creators cut 45% churn caused by get-rich-quick creators"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "face cam",
+      "screenshots"
+    ],
+    "best_for": [
+      "consumer apps",
+      "B2B SaaS",
+      "AI tools",
+      "dev tools"
+    ],
+    "pitfalls": "Needs a real hook source (news, a critic, a viral clip); without one it's just a talking head. Rage-bait gets views from people who'll never pay. Big brand examples are often boosted (likes under 1% of views)."
+  },
+  {
+    "id": "creator-talking-head",
+    "name": "Talking-Head Story",
+    "tagline": "A real person talks to camera about a pain they had (or a credential they hold) and how the app fixed it",
+    "category": "ugc",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "linkedin"
+    ],
+    "status": "hot",
+    "why_it_works": "A face talking for 3+ seconds builds more trust than any text, and a specific story ('I graduated from Yale and I can't even get an interview') makes viewers see themselves. Credible proxies ('my mom's an interior designer', 'I've been a flight attendant for 3 years') borrow authority. Practitioners rank talking to camera as the best-converting UGC style.",
+    "structure": [
+      {
+        "beat": "Hook line",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Creator mid-sentence, close framing, strong first frame; a pain or credential line, repeated as on-screen text."
+      },
+      {
+        "beat": "Story",
+        "start_sec": 3,
+        "end_sec": 15,
+        "what": "Specific situation with numbers and names ('Denied from a cashier's job, I have a master's degree')."
+      },
+      {
+        "beat": "The find",
+        "start_sec": 15,
+        "end_sec": 25,
+        "what": "'My mom showed me this app' / 'then I found…' with a cut to the screen recording or phone held to camera."
+      },
+      {
+        "beat": "Result + CTA",
+        "start_sec": 25,
+        "end_sec": 40,
+        "what": "Concrete outcome, app name said once ('but I'm making money with Sideshift'), pointer to bio or comments."
+      }
+    ],
+    "length_sec": [
+      15,
+      75
+    ],
+    "hook_examples": [
+      "I graduated from Yale and I can't even get an interview",
+      "Denied from a cashier's job, I have a master's degree",
+      "My mom just changed my college life forever.",
+      "I've been a flight attendant for 3 years now"
+    ],
+    "design": {
+      "text_style": "Hook repeated as on-screen text (1–2 lines), then auto-captions",
+      "font": "TikTok Classic; auto-captions in default style",
+      "text_position": "Hook text upper third above the face; captions mid-lower, above the UI zone",
+      "colors": "Natural light; no brand colors",
+      "visuals": "Phone front camera, eye-level, real room; busy hands or a visual action in the first frame (fixing a ponytail, slicing a cucumber) to stop the scroll",
+      "pacing": "Jump cuts every 2–4 s; cut to screen at the find",
+      "sfx": "None"
+    },
+    "audio": "Original voice; no music or very low",
+    "cta_style": "Say the app name once naturally, pinned comment with the name, or a memorable redirect domain typed on screen (flightcheatcode.com, dupe.com)",
+    "examples": [
+      {
+        "who": "Sideshift (job-market story)",
+        "url": "https://www.youtube.com/watch?v=qnDdabj8Fok",
+        "views": "9.6M, 16% engagement (self-reported)",
+        "date": "2026-06",
+        "note": "v1 was silent gestures with big text; v2 a 1-minute talking head ending 'but I'm making money with Sideshift'"
+      },
+      {
+        "who": "Coconote (lecture note-taker)",
+        "url": "https://www.youtube.com/watch?v=E_4gRy4O03w",
+        "views": "18M, 99% organic (self-reported)",
+        "date": "2026-04",
+        "note": "'My mom just changed my college life forever' + phone demo; brand-page problem-solver videos converted far better than its 100–200M-view 'PDF to Brainrot' toy"
+      },
+      {
+        "who": "JetBack via EVO Marketing",
+        "url": "https://www.youtube.com/watch?v=VGJWRjz6nq8",
+        "views": "n/a (EVO cites ~200M views for its Cal AI work)",
+        "date": "2026-10",
+        "note": "Expert creators (flight attendants) for a considered purchase; tip 1 generic, tip 2 is the app; memorable redirect domain as CTA"
+      },
+      {
+        "who": "Sideshift creator (single photogenic creator)",
+        "url": "https://www.youtube.com/watch?v=_a4ch3pk_U0",
+        "views": "35M over 46 posts (self-reported)",
+        "date": "2025-07",
+        "note": "Downloads up 10×; App Store page conversion rose from 5–10% to >50%"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "B2B SaaS",
+      "AI tools"
+    ],
+    "pitfalls": "The creator must match the buyer: SMB Market's 20-something get-rich-quick creators drove 45% churn until it switched to 35–40-year-olds. Camera charisma matters more than follower count. Exact clones of a winning script can flop; the same script by the same creator 3 days apart varied 2,000×. AI avatars here 'don't convert' (SideShift)."
+  },
+  {
+    "id": "lifestyle-integration",
+    "name": "Lifestyle Integration",
+    "tagline": "The app's 'golden moment' slipped into a creator's normal vlog (what I eat in a day, morning routine, trip prep) within 15 seconds",
+    "category": "ugc",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "hot",
+    "why_it_works": "Viewers are watching for the creator, so the product rides on existing trust without triggering ad-blindness. Showing the single satisfying action (photograph food → calories appear) teaches the product in one beat. When the app isn't even named, viewers go hunting for it, which is a stronger signal than being told.",
+    "structure": [
+      {
+        "beat": "Normal content",
+        "start_sec": 0,
+        "end_sec": 5,
+        "what": "Creator's usual opener ('what I eat in a day as a mom of 4')."
+      },
+      {
+        "beat": "Golden moment",
+        "start_sec": 5,
+        "end_sec": 15,
+        "what": "Phone out, the app's signature action on screen (scan breakfast → macros appear), no pitch."
+      },
+      {
+        "beat": "Content continues",
+        "start_sec": 15,
+        "end_sec": 45,
+        "what": "Routine carries on; app may reappear once."
+      },
+      {
+        "beat": "Soft CTA",
+        "start_sec": 45,
+        "end_sec": 60,
+        "what": "Promo code or app name in caption only; viewers ask 'what app is that?' in comments."
+      }
+    ],
+    "length_sec": [
+      20,
+      90
+    ],
+    "hook_examples": [
+      "Gonna have seriously the smallest breakfast",
+      "here's realistic what I eat in a day!!",
+      "My appointment is about 20 minutes away…",
+      "GRWM para corte de listón…"
+    ],
+    "design": {
+      "text_style": "Creator's normal vlog captions; app gets no special text treatment",
+      "font": "Creator's usual (TikTok Classic / CapCut defaults)",
+      "text_position": "Creator's usual",
+      "colors": "Creator's usual aesthetic",
+      "visuals": "Vlog b-roll; the app screen shown full-frame for 2–4 s",
+      "pacing": "Vlog pacing, a cut every 1–3 s",
+      "sfx": "Creator's usual; a shutter click on the scan"
+    },
+    "audio": "Creator voiceover or trending sound",
+    "cta_style": "Promo code in caption, app name in a pinned comment, or none (viewers ask)",
+    "examples": [
+      {
+        "who": "@taaaaylerr × Cal AI",
+        "url": "https://www.tiktok.com/@taaaaylerr/video/7633980082628988173",
+        "views": "6.2M (verified)",
+        "date": "2026-04",
+        "note": "141-second mom vlog; calorie talk at ~0:43; app named only in the caption ('use code TAYLER'). By Sep–Oct 2026 she was promoting a rival's code"
+      },
+      {
+        "who": "@destineeroseofficial × Cal AI",
+        "url": "https://www.tiktok.com/@destineeroseofficial/video/7650359249490562318",
+        "views": "1.6M (verified)",
+        "date": "2026-06",
+        "note": "Hairstylist day-in-the-life; the calorie check happens at 0:18–0:29 and the app is never said aloud"
+      },
+      {
+        "who": "@sashalusslover × Cal AI",
+        "url": "https://www.tiktok.com/@sashalusslover/video/7574905429969374486",
+        "views": "1.2M (verified)",
+        "date": "2025-11",
+        "note": "21-second 'what I eat in a day' on a trending sound; she tagged Cal AI in 49 of her last 400 posts (median 440K)"
+      },
+      {
+        "who": "Cal AI influencer program (Alfie Dickens)",
+        "url": "https://www.youtube.com/watch?v=l0vswWcGmMs",
+        "views": "Cal AI peaked ~$60M/yr; 200+ creators at once (self-reported)",
+        "date": "2026-08",
+        "note": "Golden moment on screen within 15 s, no script, don't say the name, pin a comment; $350–450 for 4 posts; mom creators profitable at ~$10 CPM; mukbang/recipe never converted"
+      }
+    ],
+    "effort": "high",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps"
+    ],
+    "pitfalls": "Requires paying creators: Cal AI's team emailed ~220K creators to sign ~2K, priced each on the average of their 5 worst recent videos, and used 700–800K minimum-view clauses. Results vary wildly between creators in the same niche (one ~$20K/month creator returned ~$120K, another flopped). Influencer prices rose through 2026, and creators switch to rivals once a niche gets crowded."
+  },
+  {
+    "id": "ai-avatar-ugc",
+    "name": "AI Avatar Testimonial",
+    "tagline": "A synthetic person (Arcads/HeyGen-style avatar) reads a UGC-style script recommending the app",
+    "category": "ugc",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "saturated",
+    "why_it_works": "It looks like UGC at near-zero marginal cost, so teams can test hundreds of hooks quickly, which is why it persists in paid ads. Organically, it mainly wins when the artificiality is the joke or the proof rather than hidden.",
+    "structure": [
+      {
+        "beat": "Hook",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Avatar delivers a scripted hook to camera ('I don't recommend many apps, but…')."
+      },
+      {
+        "beat": "Problem",
+        "start_sec": 3,
+        "end_sec": 10,
+        "what": "Avatar describes the pain."
+      },
+      {
+        "beat": "Demo insert",
+        "start_sec": 10,
+        "end_sec": 20,
+        "what": "Screen recording B-roll of the app."
+      },
+      {
+        "beat": "CTA",
+        "start_sec": 20,
+        "end_sec": 25,
+        "what": "'Link in bio' / app name."
+      }
+    ],
+    "length_sec": [
+      15,
+      30
+    ],
+    "hook_examples": [
+      "If you love God but you're trying to work on your health, you need to see this.",
+      "Watch this AI create content in seconds.",
+      "100% AI"
+    ],
+    "design": {
+      "text_style": "Word-by-word captions",
+      "font": "Bold sans captions (CapCut defaults)",
+      "text_position": "Lower-middle above the UI zone",
+      "colors": "Neutral",
+      "visuals": "AI avatar in a bedroom/car set; screen-recording inserts",
+      "pacing": "Cut every 2–3 s",
+      "sfx": "None"
+    },
+    "audio": "Synthetic voice",
+    "cta_style": "Hard CTA; must carry an AI label",
+    "examples": [
+      {
+        "who": "FaithFull (faith + fitness app)",
+        "url": "https://gtmsauce.com/topics/ad-creative",
+        "views": "n/a (paid ads)",
+        "date": "2026-05",
+        "note": "Its best ad was an Arcads AI character walking in a park ('If you love God but…'); a real creator reshot the same script and beat it on iOS and Android (Starter Story, May 31 2026)"
+      },
+      {
+        "who": "SideShift co-founder Nick Lawton",
+        "url": "https://www.youtube.com/watch?v=F2dVvzvwtBY",
+        "views": "n/a",
+        "date": "2026-08",
+        "note": "'AI UGC, great for vanity views, terrible for conversions… I've not seen it convert'"
+      },
+      {
+        "who": "@aiwithflorence / Face AI (Lightreel weekly review)",
+        "url": "https://lightreel.ai/blogs/ai-generated-ugc-videos",
+        "views": "minimal reach",
+        "date": "2026-10",
+        "note": "Self-disclosed '100% AI' skincare testimonial and a polished AI talking head both had very low engagement in Oct 2026"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "none"
+    ],
+    "best_for": [
+      "AI tools"
+    ],
+    "pitfalls": "Audiences and comment sections call it out, and conversion is reportedly poor. TikTok labels realistic AI and lets users dial AI content down; the FTC's 2024 rule bans testimonials from people who don't exist, and the EU AI Act requires disclosure of synthetic people from Aug 2, 2026. Use AI for scripts, B-roll or an openly fictional character instead."
+  },
+  {
+    "id": "founder-origin-story",
+    "name": "Founder Origin Story",
+    "tagline": "The founder on camera (or in one post) telling the specific, slightly absurd reason the app exists",
+    "category": "founder-led",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x",
+      "linkedin",
+      "shorts"
+    ],
+    "status": "steady",
+    "why_it_works": "A specific personal reason ('my girlfriend couldn't prompt ChatGPT to redecorate') is more believable than any feature list, and people root for a maker. Unexpected twists ('it's getting used as a grocery list') make it shareable. It also answers 'who's behind this?' for paying users.",
+    "structure": [
+      {
+        "beat": "Confession / claim",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "Face to camera, one sentence spoken and on screen: 'I made an app to…' / 'I studied for one day and got a 98%'."
+      },
+      {
+        "beat": "Stakes",
+        "start_sec": 2,
+        "end_sec": 8,
+        "what": "The specific problem with a number or a person ('my fiancée', '$115 a month')."
+      },
+      {
+        "beat": "The app",
+        "start_sec": 8,
+        "end_sec": 20,
+        "what": "Screen recording or phone-in-hand at ~0:10; show the one thing it does."
+      },
+      {
+        "beat": "Twist / proof",
+        "start_sec": 20,
+        "end_sec": 35,
+        "what": "Unexpected use, early traction, or a user reaction."
+      },
+      {
+        "beat": "CTA",
+        "start_sec": 35,
+        "end_sec": 40,
+        "what": "'Search \"{app}\" on your App Store' or 'follow for part 2'."
+      }
+    ],
+    "length_sec": [
+      15,
+      60
+    ],
+    "hook_examples": [
+      "i made an app to send love notes to your partner and its getting used as a grocery list reminder",
+      "I studied for one day and got a 98% on my exam.",
+      "I just quit my job to build a cooking app that will be better than Uber Eats by end of 2025",
+      "Hey I'm Shayna, this is my app"
+    ],
+    "design": {
+      "text_style": "Hook as on-screen text (lowercase works), then captions",
+      "font": "TikTok Classic",
+      "text_position": "Upper third over the face",
+      "colors": "Natural",
+      "visuals": "Selfie camera in a real room; cut to screen recording by ~10 s",
+      "pacing": "Jump cuts every 2–4 s; median founder video ~53 s",
+      "sfx": "None"
+    },
+    "audio": "Original voice",
+    "cta_style": "'search \"lovelee couples\" on your app store'; on X, link in the first reply",
+    "examples": [
+      {
+        "who": "Jack Friks / Lovelee (X)",
+        "url": "https://x.com/jackfriks/status/1984257818804019676",
+        "views": "~14.3M (SuperX, unverified); 314K likes (verified)",
+        "date": "2025-10",
+        "note": "Text quote-tweet riding a meme; the same story as a TikTok got 5.7K views"
+      },
+      {
+        "who": "Adam Huda / Palmy",
+        "url": "https://www.tiktok.com/@theadamhuda/video/7464620023945039137",
+        "views": "2.8M (verified)",
+        "date": "2025-01",
+        "note": "Founder posing as a user with a result-first hook; demo at 0:10; 280K+ users reported"
+      },
+      {
+        "who": "Mindful Nicole / Free Time (flop)",
+        "url": "https://www.tiktok.com/@mindfulnicole/video/7604871254956461325",
+        "views": "5.2K (verified)",
+        "date": "2026-02",
+        "note": "'Tired of mindless scrolling? I build an app called Free Time…' — a problem with no stakes or payoff"
+      },
+      {
+        "who": "Oliver Henry / Snugly",
+        "url": "https://www.youtube.com/watch?v=OV5eK91YY68",
+        "views": "n/a",
+        "date": "2026-03",
+        "note": "Started with founder face videos ('helping my girlfriend build an app') before switching to slideshows that scaled"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "dev tools",
+      "AI tools",
+      "B2B SaaS"
+    ],
+    "pitfalls": "'Be like me' founder content attracts other founders, not buyers (Copia's founder videos: 95K views in 4 months vs 1.4M in 30 days for relatable hooks). The same story can do 14M on X and 5.7K on TikTok, so match the platform to the audience. A problem statement without stakes or a twist flops."
+  },
+  {
+    "id": "launch-video",
+    "name": "Founder Launch Film",
+    "tagline": "A 45–145 s 'Introducing X' video for launch day on X/LinkedIn/Product Hunt, ideally with the founder on camera in the first 5 s",
+    "category": "founder-led",
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "status": "steady",
+    "why_it_works": "Launch day concentrates attention, and a film signals ambition and legitimacy to investors, press and early adopters. A founder face early makes it personal; a staged skit (Cluely) or a provocative line makes it debatable. Bookmarks signal intent.",
+    "structure": [
+      {
+        "beat": "Cold open",
+        "start_sec": 0,
+        "end_sec": 5,
+        "what": "Founder on camera or a staged scene that shows the problem in one shot ('Cluely is out. cheat on everything.')."
+      },
+      {
+        "beat": "Problem",
+        "start_sec": 5,
+        "end_sec": 20,
+        "what": "The pain dramatized in 2–3 quick shots."
+      },
+      {
+        "beat": "Product reveal",
+        "start_sec": 20,
+        "end_sec": 60,
+        "what": "Real UI in motion (not only 3D renders), 3 capabilities max."
+      },
+      {
+        "beat": "Proof / promise",
+        "start_sec": 60,
+        "end_sec": 80,
+        "what": "Who it's for, one result, price or availability."
+      },
+      {
+        "beat": "Call",
+        "start_sec": 80,
+        "end_sec": 90,
+        "what": "'Available today' + where; offer for engagers ('comment SEND')."
+      }
+    ],
+    "length_sec": [
+      20,
+      145
+    ],
+    "hook_examples": [
+      "Cluely is out. cheat on everything.",
+      "Today we're introducing you to the future of video.",
+      "introducing @cluely. today is the start of a world where you never have to think again.",
+      "introducing SEND"
+    ],
+    "design": {
+      "text_style": "Big kinetic type for 3–5 key phrases; minimal subtitles",
+      "font": "Clean grotesk (Inter, SF Pro Display, Satoshi)",
+      "text_position": "Centered title cards between UI shots",
+      "colors": "Brand palette, usually dark background with one accent",
+      "visuals": "Founder footage + real product UI; staged skits outperform pure 3D motion graphics",
+      "pacing": "Cut every 1–2 s in the reveal; music-driven",
+      "sfx": "Swooshes and risers (overused in 2025 YC films, per agencies)"
+    },
+    "audio": "Licensed music bed + founder VO; must work muted on X (captions)",
+    "cta_style": "'Available today', link in reply, plus an engagement offer (comment keyword for a free month)",
+    "examples": [
+      {
+        "who": "Cluely (Roy Lee)",
+        "url": "https://x.com/im_roy_lee/status/1914061483149001132",
+        "views": "13.3M (verified)",
+        "date": "2025-04",
+        "note": "99-second staged skit (founder uses the product to lie on a date); Lee later said a 49M-view video drove under 100 downloads and admitted inflating ARR"
+      },
+      {
+        "who": "HeyGen Video Agent",
+        "url": "https://x.com/joshua_xu_/status/1938252187941122091",
+        "views": "7.4M (verified)",
+        "date": "2025-06",
+        "note": "126-second agency-made film"
+      },
+      {
+        "who": "Flowjam launch-video tracker (vendor data)",
+        "url": "https://www.flowjam.com/blog/state-of-launch-videos-2026",
+        "views": "median 28,258; top 10% ≥762,640; 7.9% reach 1M",
+        "date": "2026-06",
+        "note": "1,173 launches: founder-led narratives are 48% overall but ~80% of the top decile; bookmark/view ≥0.6% tends to drive launch-day signups (median 0.36%)"
+      }
+    ],
+    "effort": "high",
+    "needs": [
+      "face cam",
+      "screen recording"
+    ],
+    "best_for": [
+      "B2B SaaS",
+      "AI tools",
+      "dev tools",
+      "consumer apps"
+    ],
+    "pitfalls": "Look-alike 3D/motion-graphics films ('sleek 3D animations, minimalist sans-serif, swooshing sound') blur together, and agent tools like /brag (16K GitHub stars) now generate 20-second launch videos from a repo, so polish alone no longer stands out. Views on launch day rarely equal installs; the median launch gets ~28K views."
+  },
+  {
+    "id": "stakes-devlog",
+    "name": "Stakes Devlog Short",
+    "tagline": "A dev/game devlog Short that opens on a problem or accusation ('He BROKE my game launch') and shows the fix",
+    "category": "build-in-public",
+    "platforms": [
+      "shorts",
+      "tiktok",
+      "reels"
+    ],
+    "status": "hot",
+    "why_it_works": "Conflict in the first second ('my game is in TROUBLE') gives a reason to watch that progress logs lack. Viewers see the maker solve a real problem, which builds attachment before launch. Titles with stakes words drive clicks on YouTube Shorts.",
+    "structure": [
+      {
+        "beat": "Accusation / trouble",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "A player clip or comment saying the game/app is broken; title text with a caps stakes word."
+      },
+      {
+        "beat": "Explain",
+        "start_sec": 3,
+        "end_sec": 15,
+        "what": "'Okay, listen. Let me explain.' Founder VO over gameplay/screen."
+      },
+      {
+        "beat": "Fix / reveal",
+        "start_sec": 15,
+        "end_sec": 35,
+        "what": "Before/after of the change; the satisfying result."
+      },
+      {
+        "beat": "CTA",
+        "start_sec": 35,
+        "end_sec": 42,
+        "what": "'Try the free demo on Steam right now' / 'wishlist' / 'download'."
+      }
+    ],
+    "length_sec": [
+      15,
+      60
+    ],
+    "hook_examples": [
+      "He BROKE my Game Launch in 1 day...",
+      "My game is in TROUBLE!",
+      "Did I make my game TOO FAST?!",
+      "Why did you add this to your game? Okay, listen. Let me explain."
+    ],
+    "design": {
+      "text_style": "Title-style caps words on screen ('TROUBLE', 'BROKE'); captions for the VO",
+      "font": "Bold display (Impact-like or the game's own font)",
+      "text_position": "Upper third",
+      "colors": "The game's palette; red for problems, green for fixes",
+      "visuals": "Gameplay/screen capture, occasional dev face cam; recognizable retro game music",
+      "pacing": "Cut every 1–2 s",
+      "sfx": "Game SFX, record scratch on the problem"
+    },
+    "audio": "Founder VO + game music",
+    "cta_style": "'Try the free demo on Steam right now' / App Store name at the end",
+    "examples": [
+      {
+        "who": "Megabonk (solo dev vedinad)",
+        "url": "https://www.youtube.com/shorts/G8cOKBacyKU",
+        "views": "5.25M (verified)",
+        "date": "2025-09",
+        "note": "Stakes-first devlogs (4.5M 'My game is in TROUBLE!', 3.5M 'TOO FAST?!'); the game sold 1M+ copies in two weeks"
+      },
+      {
+        "who": "Chris Raroque (app dev 'MISTAKE NO. N/10')",
+        "url": "https://www.tiktok.com/@chris.raroque/video/7676940301310725407",
+        "views": "179.9K (verified)",
+        "date": "2026-08",
+        "note": "Same stakes logic for app devs: open on the mistake"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "screen recording"
+    ],
+    "best_for": [
+      "games",
+      "dev tools",
+      "consumer apps"
+    ],
+    "pitfalls": "Most devlog videos get under 1,000 views (presskit.gg); stakes must be real or viewers punish it. Works best for products with visible, satisfying changes."
+  },
+  {
+    "id": "build-in-public-series",
+    "name": "Day-N Build Series",
+    "tagline": "Numbered progress updates ('day 18/30', 'mistake 3/10') with real stats, building toward a public goal",
+    "category": "build-in-public",
+    "platforms": [
+      "x",
+      "tiktok",
+      "shorts",
+      "linkedin"
+    ],
+    "status": "saturated",
+    "why_it_works": "A public goal with a deadline creates a story people follow to see the ending, and real numbers (707 downloads, $74) are rare and credible. Numbered episodes build a return habit. On X, the builder audience rewards transparency with reposts.",
+    "structure": [
+      {
+        "beat": "Counter + stat",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "'day 18/30 making a mobile app from 0 — 707 downloads — $74 revenue' as the first line/on-screen text."
+      },
+      {
+        "beat": "What changed",
+        "start_sec": 3,
+        "end_sec": 15,
+        "what": "One decision, mistake or experiment today, with the screen or dashboard."
+      },
+      {
+        "beat": "Result",
+        "start_sec": 15,
+        "end_sec": 25,
+        "what": "What happened to the numbers (chart, RevenueCat/App Store Connect screenshot)."
+      },
+      {
+        "beat": "Cliffhanger",
+        "start_sec": 25,
+        "end_sec": 30,
+        "what": "'The next one is how my AI app was wasting $500 a month… follow along'."
+      }
+    ],
+    "length_sec": [
+      20,
+      90
+    ],
+    "hook_examples": [
+      "day 18/30 making a mobile app from 0 - 707 downloads - $74 revenue",
+      "I chose the wrong database for my app.",
+      "Day 228 – Vibe Coding an App Until I Make $1,000,000 | ARR: $231,260",
+      "i bet you i can build an app and get its first 1000 downloads all within 30 days from 0"
+    ],
+    "design": {
+      "text_style": "Counter badge ('DAY 18/30', 'MISTAKE NO. 3/10') + stat line",
+      "font": "Mono or bold sans for numbers (SF Mono / Inter Bold)",
+      "text_position": "Counter top-left; stats centered",
+      "colors": "Dark dashboard screenshots; green for revenue",
+      "visuals": "Face cam + screen recordings of code, dashboards, App Store Connect",
+      "pacing": "Cut every 2–3 s; 20–30 s on X",
+      "sfx": "Keyboard clicks, cash ding on revenue"
+    },
+    "audio": "Original voice; on X, silent-friendly captions",
+    "cta_style": "'follow along' / 'follow for day 19'; on X the link goes in the first reply",
+    "examples": [
+      {
+        "who": "Jack Friks / Doof (X)",
+        "url": "https://x.com/jackfriks/status/1901982076057817341",
+        "views": "154K (verified)",
+        "date": "2025-03",
+        "note": "Day 18 of a 30-day challenge; day 3 had 5.6K, day 13 33K. The TikTok version of his daily updates got ~1.4K and he stopped"
+      },
+      {
+        "who": "Starter Story Build (YouTube)",
+        "url": "https://www.youtube.com/watch?v=YMi5Maeqtxs",
+        "views": "343.1K (verified)",
+        "date": "2025-04",
+        "note": "'Vibe coding until I make $100K | Day 1' — a 26-minute episode from a channel that sells a course; early entrants to the genre got the views"
+      },
+      {
+        "who": "BridgeMind (YouTube)",
+        "url": "https://www.youtube.com/watch?v=ufmw2YoqBM8",
+        "views": "64.5K (verified)",
+        "date": "2026-09",
+        "note": "Day 228 of a livestream series; works because the buyers are builders"
+      },
+      {
+        "who": "Copycat 'Day 1 – Vibe Coding an App Until I Make $1,000,000'",
+        "url": "https://www.youtube.com/watch?v=1tUnospOrto",
+        "views": "3.3K (verified)",
+        "date": "2026-04",
+        "note": "2026 entrants to the 'until I make $X' genre get ~100–3,300 views"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "face cam",
+      "screen recording",
+      "screenshots"
+    ],
+    "best_for": [
+      "dev tools",
+      "B2B SaaS",
+      "AI tools",
+      "games"
+    ],
+    "pitfalls": "The audience is other builders, not buyers, unless you sell to builders. 'Day N until $X MRR' and MRR-screenshot posts are saturated and distrusted after public fake-MRR scandals; 2026 entrants get ~100–3,300 views. 'I built X in N minutes with AI' lands in a flooded App Store (Apple reportedly blocked Vibecode and Replit app updates in March 2026). TikTok build-in-public accounts rarely pass a few thousand views; X and YouTube work better."
+  },
+  {
+    "id": "mascot-character-skit",
+    "name": "Mascot Character Skit",
+    "tagline": "A recurring character (mascot, AI persona or AI tutor) stars in short skits; the app is the world, not the pitch",
+    "category": "skit",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "hot",
+    "why_it_works": "A recognizable character builds a parasocial habit: people come back for the character and absorb the product by repetition. When the character is openly AI, the artificiality becomes the joke or the proof, which is the one kind of AI content audiences currently reward. Short, loopable bits get rewatched.",
+    "structure": [
+      {
+        "beat": "Cold open",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "Character on screen immediately, mid-situation; one-line caption that is a joke or a provocation ('clean my litter box or do your lesson')."
+      },
+      {
+        "beat": "Bit",
+        "start_sec": 2,
+        "end_sec": 9,
+        "what": "One escalating gag or one piece of advice delivered in character; the product is the setting (the lesson, the scan, the score)."
+      },
+      {
+        "beat": "Button",
+        "start_sec": 9,
+        "end_sec": 12,
+        "what": "Punchline, glitch or cliffhanger that invites a reply or a rewatch; no hard CTA."
+      },
+      {
+        "beat": "Soft CTA (optional)",
+        "start_sec": 12,
+        "end_sec": 15,
+        "what": "Character name-drops the app or shows the in-app screen for a second; for advice formats, product appears about two-thirds through after useful tips."
+      }
+    ],
+    "length_sec": [
+      7,
+      40
+    ],
+    "hook_examples": [
+      "are my abs distracting you from your lesson today",
+      "clean my litter box or do your lesson",
+      "Señales que eres más atractiva que tus amigas (Signs you're more attractive than your friends)",
+      "tôi bảo bạn đếm đi mà? (I told you to count?)"
+    ],
+    "design": {
+      "text_style": "Short lowercase caption-style line on screen or none at all; speech carries it",
+      "font": "TikTok Classic in-app text or none",
+      "text_position": "Top third so the character's face stays clear",
+      "colors": "The character's signature color (Duolingo green, Luna's orange) repeated in every post",
+      "visuals": "Same character, same framing and setting every time (costumed mascot, 3D/AI-generated persona, or an AI tutor on a phone screen next to a human)",
+      "pacing": "Fast: a cut every 1–2 s for live-action mascots; AI personas hold one shot for advice formats",
+      "sfx": "Meme stingers, record scratches, notification dings used as punctuation"
+    },
+    "audio": "Original audio (character voice or TTS); trending sounds for mascot dances",
+    "cta_style": "Mostly none; the account name and bio do the selling. Advice-style characters mention the app once, late",
+    "examples": [
+      {
+        "who": "@duolingo",
+        "url": "https://www.tiktok.com/@duolingo/video/7673613020710456590",
+        "views": "18M (verified)",
+        "date": "2026-08",
+        "note": "Mascot thirst-trap bit with a K-pop tie-in; the account's last 60 posts have a 718K median, 12 s median length"
+      },
+      {
+        "who": "@lunaglowup__ (Depuff AI's AI character 'Luna')",
+        "url": "https://www.tiktok.com/@lunaglowup__/video/7693642025723383062",
+        "views": "1.1M (verified)",
+        "date": "2026-10",
+        "note": "Recurring AI cat-girl gives Spanish-language glow-up advice; 153.8K median over 40 posts; product enters after the tips"
+      },
+      {
+        "who": "@learnwithdat (Praktika AI tutor)",
+        "url": "https://www.tiktok.com/@learnwithdat/video/7693441670112677138",
+        "views": "2.5M (verified)",
+        "date": "2026-10",
+        "note": "Human vs. AI-tutor banter: the avatar gets frustrated over a counting task and hangs up; no hard CTA"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "none"
+    ],
+    "best_for": [
+      "consumer apps",
+      "games",
+      "AI tools"
+    ],
+    "pitfalls": "Needs consistency over dozens of posts before it compounds. A polished but bland AI talking head ('100% AI' testimonials, Face AI) gets almost no reach. TikTok requires labels on realistic AI people, and users can now dial AI content down. Brand accounts that post plain product content instead of a character sit around 5–12K median views (Finch, Locket, ReciMe)."
+  },
+  {
+    "id": "pov-skit",
+    "name": "POV Sitcom Skit",
+    "tagline": "Scripted POV or 'Ep N' sitcom bits with recurring characters, where the app is the setting or the punchline",
+    "category": "skit",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "steady",
+    "why_it_works": "Comedy earns shares and follows that ads never get, and numbered episodes with recurring characters bring viewers back. The 'Hey [Company]' variant turns the brand into a character, then pivots into a how-to, so the joke carries the pitch.",
+    "structure": [
+      {
+        "beat": "Cold open",
+        "start_sec": 0,
+        "end_sec": 4,
+        "what": "Mid-scene line, on-screen 'Ep 9: coworkers dating' or 'POV: …' caption."
+      },
+      {
+        "beat": "Set-up",
+        "start_sec": 4,
+        "end_sec": 15,
+        "what": "Mockumentary talking head or the premise ('Hey Temu, is it true I can make $1,000 from your lawsuit?')."
+      },
+      {
+        "beat": "Escalation",
+        "start_sec": 15,
+        "end_sec": 45,
+        "what": "Scene escalates; in the 'Hey [Company]' version, the premise ends ~30–40% in and becomes a how-to with the app."
+      },
+      {
+        "beat": "Punchline",
+        "start_sec": 45,
+        "end_sec": 55,
+        "what": "Button joke or reveal; app shown or named if it's core to the joke."
+      }
+    ],
+    "length_sec": [
+      15,
+      60
+    ],
+    "hook_examples": [
+      "Ep 9: coworkers dating",
+      "POV: trying to socialize with Ling Long",
+      "Hey Temu, is it true that I can make a thousand dollars from your lawsuit?",
+      "POV: we just found out a girl recorded the entire Bible and made it sound like tea."
+    ],
+    "design": {
+      "text_style": "One caption line: 'Ep N:' or 'POV:' in lowercase or sentence case",
+      "font": "TikTok Classic",
+      "text_position": "Top third",
+      "colors": "Natural; recurring outfits/sets act as branding",
+      "visuals": "Two-person or one-person-two-roles phone footage; office/dorm/kitchen sets",
+      "pacing": "Cut every 1–3 s; mockumentary confessional cutaways",
+      "sfx": "Record scratch, 'The Office'-style awkward pauses, meme stingers"
+    },
+    "audio": "Original dialogue; occasionally a trending sound under the punchline",
+    "cta_style": "None in sitcom series (account bio does the work); 'Hey [Company]' skits end with 'comment CLAIM and I'll send you the app'",
+    "examples": [
+      {
+        "who": "Cluely ('Ep N' sitcom)",
+        "url": "https://www.tiktok.com/@cluely/video/7569736211493850376",
+        "views": "4.3M (verified)",
+        "date": "2025-11",
+        "note": "Numbered episodes with recurring characters; product never shown; account median rose to ~311K in 2026-H2"
+      },
+      {
+        "who": "Cluely",
+        "url": "https://www.tiktok.com/@cluely/video/7691753289259437325",
+        "views": "938.9K (verified)",
+        "date": "2026-10",
+        "note": "Still working in Oct 2026, but backed by 60+ paid creators and 700 clippers"
+      },
+      {
+        "who": "Payout (Casper, @CapitalCasper)",
+        "url": "https://www.youtube.com/watch?v=I10xtUiXfeY",
+        "views": "Temu skit ≈ $10K revenue (self-reported)",
+        "date": "2026-03",
+        "note": "'Hey [Company]' format: creator plays the brand and themselves, then turns it into a how-to"
+      }
+    ],
+    "effort": "high",
+    "needs": [
+      "face cam"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools",
+      "B2B SaaS"
+    ],
+    "pitfalls": "Skits and personas don't scale across many accounts (Yannis), and a product that never appears converts poorly. Stereotype humor backfires (Cluely). Needs actual comedic talent and consistency."
+  },
+  {
+    "id": "meme-remix",
+    "name": "Trend Meme Remix",
+    "tagline": "Jump on a trending meme, sound or brainrot template with an app-specific twist",
+    "category": "skit",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "status": "steady",
+    "why_it_works": "Trending templates come with built-in distribution: the sound or meme is already being pushed, and viewers instantly understand the joke. A brand that's fluent in the meme earns follows and shares. It's fast to make while the trend is live.",
+    "structure": [
+      {
+        "beat": "Template",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "Recognizable meme set-up or sound starts immediately."
+      },
+      {
+        "beat": "Twist",
+        "start_sec": 2,
+        "end_sec": 7,
+        "what": "App-specific substitution (mascot, app screen or user situation) in the template's slot."
+      },
+      {
+        "beat": "Punchline",
+        "start_sec": 7,
+        "end_sec": 12,
+        "what": "Template's beat drop lands on the app joke."
+      }
+    ],
+    "length_sec": [
+      5,
+      20
+    ],
+    "hook_examples": [
+      "can you speak @MrBeast rizz",
+      "67 on a merry rizzmas",
+      "the friend who sent you this thinks you're slacking rn",
+      "Propaganda I'm falling for"
+    ],
+    "design": {
+      "text_style": "Lowercase, meme-native caption",
+      "font": "TikTok Classic",
+      "text_position": "Top third",
+      "colors": "Template's own look",
+      "visuals": "Template footage/format reproduced with the app's character or screen",
+      "pacing": "Matches the sound's beat",
+      "sfx": "The trend's sound is the whole audio"
+    },
+    "audio": "The trending sound itself (personal accounts only; business accounts are limited to the Commercial Music Library)",
+    "cta_style": "None; send/share prompts work better ('the friend who sent you this…')",
+    "examples": [
+      {
+        "who": "@duolingo",
+        "url": "https://www.tiktok.com/@duolingo/video/7595611395048131853",
+        "views": "3.2M (verified), 539.5K reposts",
+        "date": "2026-01",
+        "note": "'the friend who sent you this thinks you're slacking rn' — reposts outnumbered likes 2.5:1"
+      },
+      {
+        "who": "@duolingo (brainrot meme)",
+        "url": "https://www.tiktok.com/@duolingo/video/7581902907260423437",
+        "views": "7.2M (verified)",
+        "date": "2025-12",
+        "note": "'67 on a merry rizzmas' — meme-jacking at trend speed; an Italian-brainrot riff did 631.6K (Oct 2025)"
+      },
+      {
+        "who": "Flamme (conversion data)",
+        "url": "https://x.com/JosephKChoi/article/2024201897322709065",
+        "views": "memes passed 1M views (self-reported)",
+        "date": "2026-02",
+        "note": "Pure memes converted 0.05–0.2% of views to installs vs 0.5–1% for straight demos"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "none"
+    ],
+    "best_for": [
+      "consumer apps",
+      "games"
+    ],
+    "pitfalls": "Lowest conversion of any format (~0.1% even at 1M+ views). Trends die in days. Business accounts can't use most trending sounds. Brainrot characters carry IP and taste risk (Tung Tung Tung Sahur lawsuit, Tralalero blasphemy complaints)."
+  },
+  {
+    "id": "fake-text-story",
+    "name": "Fake Text Story",
+    "tagline": "A scripted iMessage/DM drama (or Reddit-style story) read by AI voices over gameplay; the app is the 'assist' at the turning point",
+    "category": "story",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "saturated",
+    "why_it_works": "It opens mid-conflict and raises the stakes every few seconds, so viewers stay to see how it ends. Everyone can read a chat screen instantly, and the gameplay underneath keeps eyes busy during long reads. The app shows up as the plot twist that saves the conversation, so it feels like story rather than an ad.",
+    "structure": [
+      {
+        "beat": "Cold open",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "First bubbles drop mid-argument ('Ready for our wedding?' / 'Our wedding?'); contact name and avatar at the top; gameplay running underneath."
+      },
+      {
+        "beat": "Escalation",
+        "start_sec": 3,
+        "end_sec": 45,
+        "what": "A new bubble every 1.5–3 s with typing dots; each line read by a distinct AI voice; stakes rise every few lines."
+      },
+      {
+        "beat": "The assist",
+        "start_sec": 45,
+        "end_sec": 60,
+        "what": "The texter switches to the app (screen recording or app-styled panel) which writes the perfect reply; the app name is visible for 1–2 s."
+      },
+      {
+        "beat": "Payoff",
+        "start_sec": 60,
+        "end_sec": 85,
+        "what": "The reply lands; twist ending; reaction bubbles."
+      },
+      {
+        "beat": "End card",
+        "start_sec": 85,
+        "end_sec": 90,
+        "what": "'The End 💀' or a part-2 tease; caption tags the app."
+      }
+    ],
+    "length_sec": [
+      60,
+      380
+    ],
+    "hook_examples": [
+      "Ready for our wedding? Our wedding? You're getting married to my sister.",
+      "Never. Guess what song just came on.",
+      "@RIZZ APP clutched up",
+      "Pranking my dad I cooked his koi fish (he Asian AF)",
+      "Underrated iPhone app. The Bloom app lets you buy stock while also holding your hand through the process."
+    ],
+    "design": {
+      "text_style": "iOS chat bubbles exactly as the phone renders them (blue sent / gray received, timestamps, typing indicator), dark mode common",
+      "font": "SF Pro (iOS system font) inside bubbles; no overlay text except the end card",
+      "text_position": "Chat panel fills the top half; gameplay fills the bottom half",
+      "colors": "iMessage blue (#0A84FF) and gray bubbles on black; app color only in the assist panel",
+      "visuals": "Generated chat screen over Minecraft parkour / Subway Surfers footage; optional AI image in Halo's prank variant",
+      "pacing": "One new bubble every 1.5–3 s; total 1.5–6 minutes",
+      "sfx": "Send/receive swoosh, typing ticks, a vine-boom or bass hit on the twist"
+    },
+    "audio": "AI text-to-speech voices per character over 'original sound'; gameplay audio muted",
+    "cta_style": "Caption: '@APP always comes in clutch. Link in bio'; the app appears as the plot device, never a hard sell",
+    "examples": [
+      {
+        "who": "@textcube → Rizz app",
+        "url": "https://www.tiktok.com/@textcube/video/7363859568079785248",
+        "views": "8.5M (verified)",
+        "date": "2024-05",
+        "note": "300-second story; 7.3% like rate. Rizz pages totaled 550M+ views across 15+ rented pages (Shortimize) while Rizz's own account had 7 posts"
+      },
+      {
+        "who": "@textiify → Rizz app",
+        "url": "https://www.tiktok.com/@textiify/video/7676293032320208158",
+        "views": "1.7M (verified)",
+        "date": "2026-08",
+        "note": "380 s; page median 192.6K over its last 60 posts, so established pages still work in 2026"
+      },
+      {
+        "who": "@golden_textes → Rizz app",
+        "url": "https://www.tiktok.com/@golden_textes/video/7605595090408525078",
+        "views": "1.9M (verified)",
+        "date": "2026-02",
+        "note": "Same page fell to 1.5–7.4K views per post by May–June 2026 after switching sponsors"
+      },
+      {
+        "who": "Halo AI (Dillion Verma)",
+        "url": "https://www.youtube.com/watch?v=PFfo4JySptw",
+        "views": "600M views in 60 days across the program (self-reported)",
+        "date": "2026-03",
+        "note": "Variant: absurd AI image made in the app + prank caption, 2 s of a giant 'Halo AI' loading screen as the only CTA, then a text-thread twist"
+      },
+      {
+        "who": "Bloom (Reddit-story variant)",
+        "url": "https://www.youtube.com/watch?v=AtYlYzw40vo",
+        "views": "~$2M/yr app (self-reported)",
+        "date": "2025-07",
+        "note": "TTS 'underrated app' story over gameplay with a tiny 'download Bloom' at the end; the paid version adds ~15 s of app screens"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "none"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools"
+    ],
+    "pitfalls": "Oversupplied: clipping marketplaces pay $0.50–1.50 per 1K views, and page medians have fallen (textfun 156K → 52K; sentimental.texting 4.3K → 1.6K). New pages rarely break through; renting established pages is the realistic route. The app must be the plot device or conversions are near zero: Coconote's 'PDF to brainrot' gameplay videos drew 100–200M views but only ~3,000 trials. Reused gameplay footage trips 'unoriginal content' filters on TikTok, Instagram (Apr 2026) and YouTube. Don't imitate real people's chats or real brands."
+  },
+  {
+    "id": "wall-of-text-loop",
+    "name": "Long-Text Loop",
+    "tagline": "A 5-second clip (expressive face or mundane chore) under a paragraph that takes 15 seconds to read, so it loops",
+    "category": "text-on-screen",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "status": "steady",
+    "why_it_works": "The text takes longer to read than the clip runs, so each view counts 2–3 loops, which looks like great retention to the algorithm. A relatable rant or confession ending in a question pulls replies. It's the cheapest format to mass-produce.",
+    "structure": [
+      {
+        "beat": "Clip starts",
+        "start_sec": 0,
+        "end_sec": 1,
+        "what": "Expressive face (eye-roll, stare) or a chore (washing dishes); the full paragraph is already on screen."
+      },
+      {
+        "beat": "Read",
+        "start_sec": 1,
+        "end_sec": 5,
+        "what": "Viewer reads a 40–80-word rant/confession; the app is named inside the text (often in a list) or saved for the caption."
+      },
+      {
+        "beat": "Loop",
+        "start_sec": 5,
+        "end_sec": 6,
+        "what": "Seamless loop so the read continues through 2–3 plays."
+      }
+    ],
+    "length_sec": [
+      4,
+      10
+    ],
+    "hook_examples": [
+      "just seen a girl in the library writing an essay. no notes, no open tabs, no chatgpt, no Jenni AI, no textbooks, no music, just her and her own thoughts against the world like a psychopath",
+      "Don't get a second job. Instead, download the Noise app. I make Noise posts every night for $20…",
+      "i want to have 10k saved by may. give me your most unhinged side hustles",
+      "My job has a mandatory secret Santa and the requirement is $60… What are we doing for extra funds this year?"
+    ],
+    "design": {
+      "text_style": "Paragraph of lowercase, Gen-Z-voiced text in a white box or white with black outline",
+      "font": "TikTok Classic",
+      "text_position": "Centered in the middle third, max ~10 lines, away from the right-side buttons",
+      "colors": "White text/box; muted, slightly dim footage so text pops",
+      "visuals": "One continuous shot: face with strong expression or a chore (dishes worked; vacuuming and pouring coffee failed for Noise)",
+      "pacing": "No cuts",
+      "sfx": "None"
+    },
+    "audio": "Trending sound at low volume",
+    "cta_style": "App named inside the text or only in the description, with seeded comments ('my work has this too, I use the Noise app')",
+    "examples": [
+      {
+        "who": "Jenni AI (Matt Gittleson's creator program)",
+        "url": "https://www.youtube.com/watch?v=Ca_VnMTosRo",
+        "views": "30M on X (self-reported)",
+        "date": "2025-11",
+        "note": "5-second expressive face; text takes ~15 s, so viewers loop ~3 times; written to split commenters"
+      },
+      {
+        "who": "Noise",
+        "url": "https://www.youtube.com/watch?v=_aNVPMvd8WU",
+        "views": "2.5B platform views/yr (self-reported)",
+        "date": "2026-01",
+        "note": "Text over washing dishes; seeded comment 'My work has this too…' got 1,686 likes"
+      },
+      {
+        "who": "Yannis (reposter accounts)",
+        "url": "https://www.youtube.com/watch?v=eh1SDHX84vQ",
+        "views": "10M (self-reported)",
+        "date": "2026-05",
+        "note": "'give me your most unhinged side hustles' — huge reach, app never mentioned"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "none"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools"
+    ],
+    "pitfalls": "Converts the worst of the face formats (EVO's ladder: 5-second text loops < reaction→demo < talking to camera). Easy to get millions of views and no installs if the app isn't in the text. Comment seeding from fake accounts is a platform-rules risk."
+  },
+  {
+    "id": "fade-in-reveal",
+    "name": "Fade-In Screenshot Loop",
+    "tagline": "A ~6-second clip that fades from black into one striking app screenshot under a short text hook, reposted with micro-variants",
+    "category": "text-on-screen",
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "status": "saturated",
+    "why_it_works": "The fade creates a tiny suspense beat, and the screenshot is a self-contained result viewers study and replay; Stronger's average watch time exceeded twice the length. One brand sound reused every time becomes recognizable. It's trivially cheap to vary and repost.",
+    "structure": [
+      {
+        "beat": "Black + hook",
+        "start_sec": 0,
+        "end_sec": 1.5,
+        "what": "Black screen with the text hook ('am I strong? male 75kg edition')."
+      },
+      {
+        "beat": "Fade",
+        "start_sec": 1.5,
+        "end_sec": 4.5,
+        "what": "Slow fade into one app screenshot (muscle heat map, stats, badge like 'you lifted a Boeing 747')."
+      },
+      {
+        "beat": "Hold + loop",
+        "start_sec": 4.5,
+        "end_sec": 6,
+        "what": "Hold the screenshot; seamless loop back to black."
+      }
+    ],
+    "length_sec": [
+      5,
+      9
+    ],
+    "hook_examples": [
+      "am I strong? male 75kg edition",
+      "you deadlifted 10 Donald Trumps"
+    ],
+    "design": {
+      "text_style": "Short white text, lowercase, no box",
+      "font": "TikTok Classic",
+      "text_position": "Upper-middle, above the screenshot's focal point",
+      "colors": "Black background into the app's dark UI; one accent color in the screenshot",
+      "visuals": "A real, unpolished app screenshot ('it should look a little bit rough'); micro-variants of background, legend placement and hook wording per repost",
+      "pacing": "One continuous fade; ~6 s total",
+      "sfx": "None; the same song every time as a brand sound"
+    },
+    "audio": "One recurring song as a brand sound (Stronger reportedly used Future's 'Let Me Know')",
+    "cta_style": "Caption: 'got these from the stronger app…' / 'app is called Stronger!'",
+    "examples": [
+      {
+        "who": "@strongerapp",
+        "url": "https://www.tiktok.com/@strongerapp/video/7505459642022186286",
+        "views": "6.9M (verified)",
+        "date": "2025-05",
+        "note": "Text over a dark still, likely a fade-in variant; Stronger reports 150–300M views across ~300 reposts of the format"
+      },
+      {
+        "who": "Stronger (Superwall case study)",
+        "url": "https://superwall.com/blog/how-stronger-built-a-usd600k-app-using-viral-on-demand-tiktok-strategy",
+        "views": "200–300M estimated (self-reported)",
+        "date": "2025-10",
+        "note": "$600K ARR, 1.2M users; same video replicated ~300 times with AI/Figma micro-variants to avoid spam flags"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screenshots"
+    ],
+    "best_for": [
+      "consumer apps",
+      "games"
+    ],
+    "pitfalls": "The founder says it converts poorly and is 'getting faded out' after 5–6 months; ~20 copycat apps diluted it, and a competitor running it on ~10 accounts beat their 1–2. Reposting near-identical clips is exactly what originality filters target in 2026."
+  },
+  {
+    "id": "apps-listicle-video",
+    "name": "Apps That Feel Illegal",
+    "tagline": "A creator runs through N hidden-gem apps or sites with quick screen demos; your app is one slot",
+    "category": "listicle",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "status": "saturated",
+    "why_it_works": "It promises insider knowledge and a list, so people save it and watch to the end for the last item. Tech-tip creators' audiences already trust their picks. The numbered series format ('day one of 50') creates a habit of returning.",
+    "structure": [
+      {
+        "beat": "Series hook",
+        "start_sec": 0,
+        "end_sec": 2,
+        "what": "'50 apps you need on your iPhone, day one' or 'apps that feel illegal to know', creator face or app icon grid."
+      },
+      {
+        "beat": "Name",
+        "start_sec": 2,
+        "end_sec": 4,
+        "what": "App name and icon big on screen."
+      },
+      {
+        "beat": "The job",
+        "start_sec": 4,
+        "end_sec": 8,
+        "what": "What it does in one sentence."
+      },
+      {
+        "beat": "Tap path",
+        "start_sec": 8,
+        "end_sec": 25,
+        "what": "Screen recording of the exact taps to the 'wow' result."
+      },
+      {
+        "beat": "Extras + CTA",
+        "start_sec": 25,
+        "end_sec": 43,
+        "what": "Two more features, then 'comment the word X and I'll send the link' or 'it's free on the App Store'."
+      }
+    ],
+    "length_sec": [
+      20,
+      60
+    ],
+    "hook_examples": [
+      "cincuenta aplicaciones que necesitas en tu iPhone, día uno (50 apps you need on your iPhone, day one)",
+      "Guys, you have to check out this app.",
+      "10 open source tools that feel illegal to know",
+      "This Website Feels Illegal To Know"
+    ],
+    "design": {
+      "text_style": "Bold app name title card + numbered list counter ('#3')",
+      "font": "Bold sans (TikTok Classic, Montserrat/Inter Bold); YouTube versions use thumbnail-style type",
+      "text_position": "App name upper third; screen recording centered",
+      "colors": "App icon colors; dark UI",
+      "visuals": "Face cam intro, then full-screen phone recordings with tap indicators",
+      "pacing": "New visual every 1–2 s; each app 8–15 s in multi-app versions",
+      "sfx": "Pop or click on each new item"
+    },
+    "audio": "Voiceover by the creator, sometimes over a low trending beat",
+    "cta_style": "'Comment the word ORION and I'll send a link straight to your inbox' (ManyChat-style DM) or 'link in bio'",
+    "examples": [
+      {
+        "who": "@soyenriquebarron featuring HiNoter (tagged, likely paid)",
+        "url": "https://www.tiktok.com/@soyenriquebarron/video/7600508866534755592",
+        "views": "1.1M (verified)",
+        "date": "2026-01",
+        "note": "Series format 'day one of 50'; 43 s with a full tap-path demo; ~7% like rate"
+      },
+      {
+        "who": "@sam_beckman (Hidden Android Gems)",
+        "url": "https://www.tiktok.com/@sam_beckman/video/7690163755241737524",
+        "views": "290.1K (verified)",
+        "date": "2026-09",
+        "note": "'Comment the word Orion' CTA drew 962 comments vs ~70 on a similar-view 2023 post"
+      },
+      {
+        "who": "Fireship (YouTube)",
+        "url": "https://www.youtube.com/watch?v=Ukt2gVz25PQ",
+        "views": "1.56M (verified)",
+        "date": "2026-02",
+        "note": "'Feel illegal' still works on YouTube for dev tools; sponsor slot inside"
+      },
+      {
+        "who": "Matty McTech (YouTube)",
+        "url": "https://www.youtube.com/watch?v=Gq2SEmd2Nfs",
+        "views": "241.9K (verified)",
+        "date": "2026-09",
+        "note": "Single-website 'feels illegal' video"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "screen recording",
+      "face cam"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools",
+      "dev tools"
+    ],
+    "pitfalls": "The 'feels illegal' phrase is worn out on TikTok, and listicle viewers have low intent for any single app. Indie apps mostly get in by paying established tech-tip creators (rates quoted around $10–50 per 1K views) or by running their own numbered series. TikTok discover-page view totals are unreliable."
+  },
+  {
+    "id": "before-after-reveal",
+    "name": "Before/After Reveal",
+    "tagline": "Show the 'before' (face, room, photo, screen time, body) and let the app's 'after' land as the payoff, often with a score",
+    "category": "comparison",
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "status": "steady",
+    "why_it_works": "Transformation is the oldest persuasion device: the gap between before and after is the product's value, made visible in seconds. Adding a number ('rate his glow-up out of 10', a focus score) invites people to argue in the comments. Split-screen proof was the strongest promo pattern in an October 2026 review of AI-tool content.",
+    "structure": [
+      {
+        "beat": "Before",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "The unflattering or messy 'before' with the set-up line ('My bro needed to glow up, so I gave him the ultimate method')."
+      },
+      {
+        "beat": "Process",
+        "start_sec": 3,
+        "end_sec": 10,
+        "what": "Quick montage or the app working ('He went to work'); score or timer on screen."
+      },
+      {
+        "beat": "After",
+        "start_sec": 10,
+        "end_sec": 15,
+        "what": "'Final results' reveal, side-by-side or swipe; score shown."
+      },
+      {
+        "beat": "Rate it",
+        "start_sec": 15,
+        "end_sec": 17,
+        "what": "'Rate it out of 10' prompt to drive comments."
+      }
+    ],
+    "length_sec": [
+      8,
+      30
+    ],
+    "hook_examples": [
+      "Ratw his glow up out of 10",
+      "Let's not even talk the opal focus report",
+      "My face before peptides… my face still before peptides cuz I still don't know what they are",
+      "I showed my mum what AI thinks our living room could be"
+    ],
+    "design": {
+      "text_style": "'Before' / 'After' labels + one caption line; score badge",
+      "font": "TikTok Classic",
+      "text_position": "Labels top-left of each panel; caption upper third",
+      "colors": "Desaturated 'before', vivid 'after'",
+      "visuals": "Same angle and framing for both states; split top/bottom or swipe transition",
+      "pacing": "Before 2–3 s, process 4–7 s, reveal held 3+ s",
+      "sfx": "Whoosh or beat drop on the reveal"
+    },
+    "audio": "Trending sound with a drop timed to the reveal",
+    "cta_style": "Rate-it prompt; app score UI visible; 'download now in my bio'",
+    "examples": [
+      {
+        "who": "@umax.app",
+        "url": "https://www.tiktok.com/@umax.app/video/7326971975946063146",
+        "views": "1.2M (verified)",
+        "date": "2024-01",
+        "note": "17-second glow-up with a score reveal; the rate-it ask drew 1,406 comments; founder says the score is what makes glow-ups work"
+      },
+      {
+        "who": "@opal",
+        "url": "https://www.tiktok.com/@opal/video/7473550803891014934",
+        "views": "1.0M (verified)",
+        "date": "2025-02",
+        "note": "Screen-time/focus report reveal; the account's typical post is ~1.2K"
+      },
+      {
+        "who": "@mr.ai104 (AI video before/after)",
+        "url": "https://www.tiktok.com/@mr.ai104/video/7694691560558038285",
+        "views": "65.8K (verified)",
+        "date": "2026-10",
+        "note": "Raw clip bottom, AI version top"
+      }
+    ],
+    "effort": "low",
+    "needs": [
+      "screenshots",
+      "screen recording"
+    ],
+    "best_for": [
+      "consumer apps",
+      "AI tools"
+    ],
+    "pitfalls": "The biggest before/after numbers are paid (Remini's 138.8M-view post had a 0.06% like rate). Exaggerated or AI-faked 'afters' violate ad rules and get called out. Body-image and looksmaxxing content draws mental-health criticism (Fortune on Umax)."
+  },
+  {
+    "id": "old-vs-new-comparison",
+    "name": "Side-by-Side Showdown",
+    "tagline": "Split-screen or back-to-back test: the old way (or a rival) vs. your app on the same task, with a visible winner",
+    "category": "comparison",
+    "platforms": [
+      "tiktok",
+      "shorts",
+      "x",
+      "linkedin",
+      "reels"
+    ],
+    "status": "steady",
+    "why_it_works": "A contest creates a question the viewer wants answered ('which one wins?'), and side-by-side proof is more believable than claims. Viewers pick sides in the comments. AI-model and tool comparisons ride existing curiosity about the big names.",
+    "structure": [
+      {
+        "beat": "The matchup",
+        "start_sec": 0,
+        "end_sec": 3,
+        "what": "Split screen with both labels ('Claude vs ChatGPT', 'the old way vs {app}') and the task as text ('build Flappy Bird')."
+      },
+      {
+        "beat": "Race",
+        "start_sec": 3,
+        "end_sec": 25,
+        "what": "Both sides run in parallel or back-to-back with a timer; speed ramps on the slow side."
+      },
+      {
+        "beat": "Verdict",
+        "start_sec": 25,
+        "end_sec": 35,
+        "what": "Result side by side; winner highlighted; one honest caveat."
+      },
+      {
+        "beat": "Vote",
+        "start_sec": 35,
+        "end_sec": 40,
+        "what": "'Which would you use?' or 'Day 2 tomorrow: you pick the next test'."
+      }
+    ],
+    "length_sec": [
+      15,
+      60
+    ],
+    "hook_examples": [
+      "Vibe coding challenge. Which one builds flappy bird the best? Claude or ChatGPT?",
+      "Weighted dress > weighted vest",
+      "£500 room makeover vs £5000 room makeover",
+      "the difference between $500 and $5,000 taste"
+    ],
+    "design": {
+      "text_style": "Two labels (one per side) + task line; timer or score counter",
+      "font": "Bold sans (TikTok Classic / Inter Bold)",
+      "text_position": "Labels at the top of each half; verdict centered",
+      "colors": "Each side gets one accent color; winner in green",
+      "visuals": "Vertical split (top/bottom) or left/right screen recordings; outputs shown full-frame at the verdict",
+      "pacing": "Speed-ramped; cut every 1–2 s",
+      "sfx": "Ticking timer, ding on the winner"
+    },
+    "audio": "Voiceover or trending sound; silent-autoplay-proof labels on X",
+    "cta_style": "Ask viewers to vote or pick the next test; app named on its side's label",
+    "examples": [
+      {
+        "who": "@adamlyttleapps (indie app dev)",
+        "url": "https://www.tiktok.com/@adamlyttleapps/video/7611352589250153735",
+        "views": "98.5K (verified), 1,056 saves",
+        "date": "2026-02",
+        "note": "'Day 1 of the 100-day vibecoding school': Claude vs ChatGPT building Flappy Bird; ~100× his account's 1K median"
+      },
+      {
+        "who": "@joinladder (Hilary Duff partnership)",
+        "url": "https://www.tiktok.com/@joinladder/video/7673987790429768974",
+        "views": "11.2M (verified)",
+        "date": "2026-08",
+        "note": "'Weighted dress > weighted vest' — an A-vs-B claim as the entire hook; a celebrity deal, not indie scale"
+      },
+      {
+        "who": "Jack Friks (food diary app idea)",
+        "url": "https://www.youtube.com/watch?v=9tOmppsiO2w",
+        "views": "n/a",
+        "date": "2025-06",
+        "note": "'This vs that' energy-level swipe comparison suggested as a low-effort format for a food app"
+      }
+    ],
+    "effort": "medium",
+    "needs": [
+      "screen recording"
+    ],
+    "best_for": [
+      "AI tools",
+      "dev tools",
+      "B2B SaaS",
+      "consumer apps"
+    ],
+    "pitfalls": "Rigged-looking tests destroy trust; show the prompt and settings. A price-tier comparison without a story flopped for Snugly ('£500 room makeover vs £5000 room makeover', ~1.4K views). Naming competitors invites their fans and, in ads, legal review. Results go stale as models update."
+  }
+]

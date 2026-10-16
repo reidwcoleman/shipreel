@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1179" height="2556" viewBox="0 0 1179 2556">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1d17"/>
+      <stop offset="1" stop-color="#0c0d0a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1179" height="2556" fill="url(#g)"/>
+  <rect x="140" y="1020" width="899" height="420" rx="48" fill="none" stroke="#D7FF3A" stroke-opacity="0.55" stroke-width="6" stroke-dasharray="26 22"/>
+  <text x="589.5" y="1210" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#F2F2EE">Your app goes here</text>
+  <text x="589.5" y="1300" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="44" fill="#9A9C92">Add a screen recording in Media</text>
+</svg>

@@ -1,0 +1,2159 @@
+[
+  {
+    "text": "POV: you finally found an app that {outcome}",
+    "category": "pov",
+    "format_ids": [
+      "reaction-hook-demo",
+      "pov-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "POV: you finally convince your husband to {outcome}",
+    "category": "pov",
+    "format_ids": [
+      "ai-reveal-slideshow",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app slideshow 'POV: you finally convince your husband to pay to decorate the living room', 63K views, 2026",
+    "strength": 3
+  },
+  {
+    "text": "POV: we just found out a girl recorded the entire Bible and made it sound like tea",
+    "category": "pov",
+    "format_ids": [
+      "pov-skit",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Bible BFF creator video via EVO Marketing (Superwall podcast, Oct 2026)",
+    "strength": 4
+  },
+  {
+    "text": "POV: trying to socialize with {audience}",
+    "category": "pov",
+    "format_ids": [
+      "pov-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@cluely sitcom 'POV: trying to socialize with Ling Long', 938.9K views, Oct 2026",
+    "strength": 3
+  },
+  {
+    "text": "POV: you put disposable cameras all over your wedding but the flower girls got ALL of them",
+    "category": "pov",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@brooke_hassett photo-dump slideshow, 738.9K views, Aug 2025 (non-app; template the wedding-camera apps copy)",
+    "strength": 4
+  },
+  {
+    "text": "POV: you're the friend who always knows the app for it",
+    "category": "pov",
+    "format_ids": [
+      "pov-skit",
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "POV: you told your boss {feature} would take a week",
+    "category": "pov",
+    "format_ids": [
+      "pov-skit",
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "linkedin"
+    ],
+    "source": "common pattern (B2B skit)",
+    "strength": 3
+  },
+  {
+    "text": "POV: your mom discovers {app}",
+    "category": "pov",
+    "format_ids": [
+      "pov-skit",
+      "fake-text-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Want to know who your boyfriend just followed on Instagram?",
+    "category": "curiosity",
+    "format_ids": [
+      "reaction-hook-demo",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Playkit UGC campaign for a follower-tracking app (The Playbook by Suzanna, Jun 2025)",
+    "strength": 4
+  },
+  {
+    "text": "someone made {competitor} but for {feature}??",
+    "category": "curiosity",
+    "format_ids": [
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@strongerapp 'someone made strava but for the gym??', 2.7M views, Feb 2026 (low like rate; likely boosted)",
+    "strength": 4
+  },
+  {
+    "text": "Hey, I just found this site. This is crazy. What is our attention span coming to?",
+    "category": "curiosity",
+    "format_ids": [
+      "faceless-screen-demo",
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Coconote creator video (Superwall podcast, Apr 2026)",
+    "strength": 3
+  },
+  {
+    "text": "A website called {pain}.com",
+    "category": "curiosity",
+    "format_ids": [
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "source": "Jenni AI 'A website called I have an essay due at midnight and chatgpt won't stop giving me fake citations.com' (Superwall, Nov 2025)",
+    "strength": 4
+  },
+  {
+    "text": "Wait… is this actually the same {feature}??",
+    "category": "curiosity",
+    "format_ids": [
+      "ai-reveal-slideshow",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Larry skill example hook (ClawHub, 2026)",
+    "strength": 3
+  },
+  {
+    "text": "Oh my.. this shouldn't be possible",
+    "category": "curiosity",
+    "format_ids": [
+      "x-demo-post",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "x",
+      "shorts"
+    ],
+    "source": "@rileybrown.ai Vibecode demo, 1.0M views, Feb 2026",
+    "strength": 4
+  },
+  {
+    "text": "I made an app to turn {feature} into {outcome}",
+    "category": "curiosity",
+    "format_ids": [
+      "x-demo-post",
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "x",
+      "tiktok"
+    ],
+    "source": "Marc Lou 'I made an app to turn web analytics into a Severance episode.', 1.11M views on X, Feb 2026",
+    "strength": 4
+  },
+  {
+    "text": "Today I thought: what if I ask AI to build {feature}?",
+    "category": "curiosity",
+    "format_ids": [
+      "x-demo-post",
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "x"
+    ],
+    "source": "Pieter Levels flight-sim thread opener, 1.59M views on X, Feb 2025",
+    "strength": 4
+  },
+  {
+    "text": "IT WORKS!!!!! A FULL {feature}…",
+    "category": "curiosity",
+    "format_ids": [
+      "x-demo-post"
+    ],
+    "platforms": [
+      "x"
+    ],
+    "source": "Pieter Levels 'IT WORKS!!!!! A FULL multiplayer…', 13.5M views on X, Feb 2025",
+    "strength": 5
+  },
+  {
+    "text": "I'm selling my body.",
+    "category": "curiosity",
+    "format_ids": [
+      "x-demo-post"
+    ],
+    "platforms": [
+      "x"
+    ],
+    "source": "Marc Lou stunt post, 5.0M views on X, Sep 2026",
+    "strength": 4
+  },
+  {
+    "text": "This app rated my {feature} and I'm not okay",
+    "category": "curiosity",
+    "format_ids": [
+      "reaction-hook-demo",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Umax-style score reveal pattern (Umax: 1B+ impressions per Fortune, 2024)",
+    "strength": 4
+  },
+  {
+    "text": "am I {outcome}? {audience} edition",
+    "category": "curiosity",
+    "format_ids": [
+      "fade-in-reveal",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@strongerapp 'am I strong? male 75kg edition', 6.9M views, May 2025",
+    "strength": 5
+  },
+  {
+    "text": "you deadlifted 10 Donald Trumps",
+    "category": "curiosity",
+    "format_ids": [
+      "comment-reply-demo",
+      "fade-in-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Stronger founder reply loop (Superwall, Aug 2025)",
+    "strength": 3
+  },
+  {
+    "text": "he's living in 2099",
+    "category": "curiosity",
+    "format_ids": [
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Text over a founder green screen, 214K views (EVO Marketing, Superwall Oct 2026)",
+    "strength": 4
+  },
+  {
+    "text": "I hope she wins a million dollars in the next 24 hours because of what she just did for me",
+    "category": "curiosity",
+    "format_ids": [
+      "creator-talking-head",
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "EVO Marketing creator hook (Superwall, Oct 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Underrated iPhone app: {app} lets you {outcome} while {feature}",
+    "category": "curiosity",
+    "format_ids": [
+      "fake-text-story",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "shorts"
+    ],
+    "source": "Bloom 'Underrated iPhone app. The Bloom app lets you buy stock while also holding your hand through the process.' (Superwall, Jul 2025)",
+    "strength": 3
+  },
+  {
+    "text": "Guys, you have to check out this app.",
+    "category": "curiosity",
+    "format_ids": [
+      "apps-listicle-video"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "@sam_beckman Hidden Android Gems, 290.1K views, Sep 2026",
+    "strength": 3
+  },
+  {
+    "text": "{app}'s the fastest way to {outcome} if you know, you know",
+    "category": "curiosity",
+    "format_ids": [
+      "wall-of-text-loop",
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Noise creator line 'Playbite's the fastest way to get gems if you know, you know' (Superwall, Jan 2026)",
+    "strength": 3
+  },
+  {
+    "text": "Why did nobody tell me about this app sooner",
+    "category": "curiosity",
+    "format_ids": [
+      "reaction-hook-demo",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern (reaction-hook text)",
+    "strength": 3
+  },
+  {
+    "text": "I can't believe this is free",
+    "category": "curiosity",
+    "format_ids": [
+      "reaction-hook-demo",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "I found the app {audience} have been gatekeeping",
+    "category": "curiosity",
+    "format_ids": [
+      "creator-talking-head",
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Why is nobody talking about {feature}?",
+    "category": "curiosity",
+    "format_ids": [
+      "green-screen-reaction",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "I'm hiring {number} {audience} for {app}. {price}/hr.",
+    "category": "curiosity",
+    "format_ids": [
+      "launch-video",
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "source": "Roy Lee 'im hiring 50 interns in san francisco for @trycluely. $50/hr.', 5.0M views on X, 2025",
+    "strength": 4
+  },
+  {
+    "text": "The difference between $500 and $5,000 taste",
+    "category": "curiosity",
+    "format_ids": [
+      "ai-reveal-slideshow",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Oliver Henry's first hand-made Canva slideshow, 6K views (Startup Ideas Pod, Mar 2026)",
+    "strength": 3
+  },
+  {
+    "text": "I graduated from Yale and I can't even get an interview",
+    "category": "pain",
+    "format_ids": [
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "linkedin"
+    ],
+    "source": "SideShift job-market creator video, 9.6M views at 16% engagement (Superwall, Jun 2026)",
+    "strength": 5
+  },
+  {
+    "text": "Denied from a cashier's job, I have a master's degree",
+    "category": "pain",
+    "format_ids": [
+      "creator-talking-head",
+      "wall-of-text-loop"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "linkedin"
+    ],
+    "source": "SideShift creator video (Superwall, Jun 2026)",
+    "strength": 4
+  },
+  {
+    "text": "My job has a mandatory secret Santa and the requirement is $60… what are we doing for extra funds this year?",
+    "category": "pain",
+    "format_ids": [
+      "wall-of-text-loop"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Noise comment-bait post; seeded reply got 1,686 likes (Superwall, Jan 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Our professor just said, 'If I even think ChatGPT wrote your essay, you get a zero.' Whole class goes silent.",
+    "category": "pain",
+    "format_ids": [
+      "wall-of-text-loop",
+      "pov-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "source": "Jenni AI creator hook (Superwall, Nov 2025)",
+    "strength": 4
+  },
+  {
+    "text": "If you love {feature} but you're trying to {outcome}, you need to see this",
+    "category": "pain",
+    "format_ids": [
+      "creator-talking-head",
+      "ai-avatar-ugc"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "FaithFull's best ad 'If you love God but you're trying to work on your health, you need to see this.' (Starter Story, May 2026)",
+    "strength": 4
+  },
+  {
+    "text": "I couldn't keep track of {pain}... until a friend showed me this",
+    "category": "pain",
+    "format_ids": [
+      "reaction-hook-demo",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Playkit hook + demo format (Jun 2025)",
+    "strength": 3
+  },
+  {
+    "text": "Tired of losing {pain}?",
+    "category": "pain",
+    "format_ids": [
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "ReciMe 'Tired of losing viral recipes?' (Tiny Empires, Nov 2025)",
+    "strength": 3
+  },
+  {
+    "text": "If you {pain}, stop scrolling",
+    "category": "pain",
+    "format_ids": [
+      "creator-talking-head",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "You're not lazy, you just {pain}",
+    "category": "pain",
+    "format_ids": [
+      "creator-talking-head",
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern (ADHD/productivity niche)",
+    "strength": 3
+  },
+  {
+    "text": "Things that are weirdly hard when you {pain}",
+    "category": "relatable",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Imagine being scared of {pain} when this literally exists",
+    "category": "pain",
+    "format_ids": [
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Nomad Table 'Imagine being scared of solo traveling when this literally exists.' (Superwall, Feb 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Where was this when I {pain}?",
+    "category": "pain",
+    "format_ids": [
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Nomad Table 'Where was this when I had the most unsocial hostel in Thailand?' (Superwall, Feb 2026)",
+    "strength": 3
+  },
+  {
+    "text": "Tired of {pain}? I built an app called {app}",
+    "category": "pain",
+    "format_ids": [
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "FLOP: 'Tired of mindless scrolling? I build an app called Free Time…', 5.2K views, Feb 2026 (no stakes, no payoff)",
+    "strength": 1
+  },
+  {
+    "text": "Stop using {competitor} to {outcome}",
+    "category": "contrarian",
+    "format_ids": [
+      "creator-talking-head",
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "source": "SideShift creator 'Stop using LinkedIn to apply to jobs.' (2026)",
+    "strength": 4
+  },
+  {
+    "text": "Don't get a second job. Instead, download {app}",
+    "category": "contrarian",
+    "format_ids": [
+      "wall-of-text-loop",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Noise winner; 'Everybody needs a side hustle' flopped (Superwall, Jan 2026)",
+    "strength": 4
+  },
+  {
+    "text": "{competitor} will hate me for exposing this",
+    "category": "contrarian",
+    "format_ids": [
+      "how-to-tutorial"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "Payout 'Amazon will hate me for exposing this secret.' (Superwall, Mar 2026)",
+    "strength": 4
+  },
+  {
+    "text": "people with this diet... aren't on a diet",
+    "category": "contrarian",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@doof.app food-grid post, 749.8K views, Mar 2025",
+    "strength": 4
+  },
+  {
+    "text": "Replying to the person who said {app} is a scam",
+    "category": "contrarian",
+    "format_ids": [
+      "comment-reply-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 4
+  },
+  {
+    "text": "'{metric} accuracy is not good enough.' Sorry bro, watch this",
+    "category": "contrarian",
+    "format_ids": [
+      "comment-reply-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Cal AI reply '90% accuracy is not good enough. Sorry bro.', 230.6K views, Mar 2025",
+    "strength": 3
+  },
+  {
+    "text": "First of all, we didn't offer him {price}. We offered him {price}.",
+    "category": "contrarian",
+    "format_ids": [
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Cal AI green screen 'we didn't offer him 20K. We offered him 100K.', 443.1K views, Jun 2025 (likely boosted)",
+    "strength": 3
+  },
+  {
+    "text": "Hi, I'm the founder of {app}, and honestly? You're all wrong about {feature}",
+    "category": "contrarian",
+    "format_ids": [
+      "green-screen-reaction",
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Cal AI founder rage-bait ('you guys are stupid'), 294.2K views, Jun 2025; brand risk",
+    "strength": 3
+  },
+  {
+    "text": "You don't need {competitor}. You need this",
+    "category": "contrarian",
+    "format_ids": [
+      "old-vs-new-comparison",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Everyone's doing {pain} wrong",
+    "category": "contrarian",
+    "format_ids": [
+      "how-to-tutorial",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "linkedin"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Unpopular opinion: {competitor} is overrated",
+    "category": "contrarian",
+    "format_ids": [
+      "green-screen-reaction",
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "We got SO MANY compliments for what we did at our {feature}..",
+    "category": "social-proof",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lense.app 'We got SO MANY compliments for what we did at our wedding..', 1.2M views, Dec 2025; reused Aug 2026 for 236.6K",
+    "strength": 5
+  },
+  {
+    "text": "Our {audience} were SHOCKED by what we did",
+    "category": "social-proof",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lense.app 'Our wedding guests were SHOCKED by what we did', 679.5K views, Mar 2025",
+    "strength": 4
+  },
+  {
+    "text": "I've tried every {feature} app. This is the only one I kept",
+    "category": "social-proof",
+    "format_ids": [
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "I wasn't going to post this, but {app} actually {outcome}",
+    "category": "social-proof",
+    "format_ids": [
+      "creator-talking-head",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "{number} people downloaded {app} yesterday. Here's why",
+    "category": "social-proof",
+    "format_ids": [
+      "green-screen-reaction",
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "tiktok",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "This app has {metric} reviews and nobody I know has heard of it",
+    "category": "social-proof",
+    "format_ids": [
+      "apps-listicle-video",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "My landlord said I can't change anything, so I showed her what AI thinks it could look like",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app (Larry agent), 482.5K views, Feb 2026",
+    "strength": 5
+  },
+  {
+    "text": "my nan said my flat looks like a prison cell",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app, 304.1K views, Mar 2026",
+    "strength": 5
+  },
+  {
+    "text": "My sister said my {feature} looks like a hospital, so I showed her what AI could do",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app (bathroom), 175.1K views, Feb 2026",
+    "strength": 4
+  },
+  {
+    "text": "I showed my mum what AI thinks our {feature} could be",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app (living room), 170.1K views, Feb 2026 — got views but no installs until the CTA named the app",
+    "strength": 4
+  },
+  {
+    "text": "My mum hasn't changed her {feature} in {number} years",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app 'My mum hasn't changed her bedroom in 15 years', 76K views, 2026",
+    "strength": 4
+  },
+  {
+    "text": "my nan has had the same {feature} since 1997 and she thinks it's fine",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@snugly.app (kitchen), 72K views, 2026",
+    "strength": 4
+  },
+  {
+    "text": "My roommate said AI can't help with real decisions, so I showed them this",
+    "category": "story",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Larry hook formula example (stack-junkie / r/openclaw_agent, 2026)",
+    "strength": 3
+  },
+  {
+    "text": "My mom just changed my college life forever",
+    "category": "story",
+    "format_ids": [
+      "creator-talking-head",
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Coconote shock hook + demo, 18M views, 99% organic (Superwall, Apr 2026)",
+    "strength": 5
+  },
+  {
+    "text": "She showed me this app, and all I do is {feature}",
+    "category": "story",
+    "format_ids": [
+      "creator-talking-head",
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Coconote 'She showed me this app, and all I do is hit record.' (Superwall, Apr 2026)",
+    "strength": 4
+  },
+  {
+    "text": "my {audience} just showed me this and all my {pain} is gone 🤯🤯",
+    "category": "story",
+    "format_ids": [
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@nomadtable 'my hostel roommate just showed me this and all my solo travel anxiety is gone', 1.0M views, May 2025",
+    "strength": 5
+  },
+  {
+    "text": "My mom's an interior designer…",
+    "category": "story",
+    "format_ids": [
+      "creator-talking-head",
+      "lifestyle-integration"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Dupe.com creator hook via EVO Marketing (Superwall, Oct 2026) — swap in the profession your buyer trusts",
+    "strength": 4
+  },
+  {
+    "text": "i made an app to {outcome} and people are using it to {feature}",
+    "category": "story",
+    "format_ids": [
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "x",
+      "tiktok"
+    ],
+    "source": "Jack Friks 'i made an app to send love notes to your partner and its getting used as a grocery list reminder', 314K likes on X, Oct 2025",
+    "strength": 5
+  },
+  {
+    "text": "I studied for one day and got a 98% on my exam",
+    "category": "story",
+    "format_ids": [
+      "founder-origin-story",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@theadamhuda (Palmy founder posing as a user), 2.8M views, Jan 2025",
+    "strength": 5
+  },
+  {
+    "text": "I just quit my job to build {app}. It'll beat {competitor} by {timeframe}",
+    "category": "story",
+    "format_ids": [
+      "build-in-public-series",
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "x"
+    ],
+    "source": "Sizzle founder 'I just quit my job to build a cooking app that will be better than Uber Eats by end of 2025', 2.7M views (reported), Apr 2025",
+    "strength": 4
+  },
+  {
+    "text": "Pranking my dad I cooked his koi fish (he Asian AF)",
+    "category": "story",
+    "format_ids": [
+      "fake-text-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Halo AI prank + text-thread format (Superwall, Mar 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Ready for our wedding? Our wedding? You're getting married to my sister.",
+    "category": "story",
+    "format_ids": [
+      "fake-text-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "@textiify → Rizz app, 1.7M views, Aug 2026",
+    "strength": 4
+  },
+  {
+    "text": "Oh, I was with your boyfriend last night",
+    "category": "story",
+    "format_ids": [
+      "fake-text-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "NGL hook (Hunter Isaacson, Superwall Jul 2025)",
+    "strength": 4
+  },
+  {
+    "text": "Hey {competitor}, is it true that I can {outcome}?",
+    "category": "story",
+    "format_ids": [
+      "pov-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "Payout 'Hey Temu, is it true that I can make a thousand dollars from your lawsuit?' (Superwall, Mar 2026)",
+    "strength": 4
+  },
+  {
+    "text": "You downloaded {app} as a freshman and now you're a junior with {outcome}",
+    "category": "story",
+    "format_ids": [
+      "pov-skit",
+      "fake-text-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Bloom 'You downloaded Bloom when you were a freshman and now you're a junior with the only Tesla in the parking lot.' (Superwall, Jul 2025)",
+    "strength": 3
+  },
+  {
+    "text": "my sister called me CRYING the day after our {feature}.. here's why:",
+    "category": "story",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lense.app (wedding), 253.1K views, Jan 2026",
+    "strength": 4
+  },
+  {
+    "text": "He BROKE my {app} launch in 1 day...",
+    "category": "story",
+    "format_ids": [
+      "stakes-devlog"
+    ],
+    "platforms": [
+      "shorts",
+      "tiktok"
+    ],
+    "source": "Megabonk devlog 'He BROKE my Game Launch in 1 day...', 5.25M views on YouTube Shorts, Sep 2025",
+    "strength": 5
+  },
+  {
+    "text": "My {app} is in TROUBLE!",
+    "category": "story",
+    "format_ids": [
+      "stakes-devlog"
+    ],
+    "platforms": [
+      "shorts",
+      "tiktok"
+    ],
+    "source": "Megabonk 'My game is in TROUBLE!', 4.5M views, Aug 2025",
+    "strength": 5
+  },
+  {
+    "text": "Why did you add this to your {feature}? Okay, listen. Let me explain.",
+    "category": "story",
+    "format_ids": [
+      "stakes-devlog",
+      "comment-reply-demo"
+    ],
+    "platforms": [
+      "shorts",
+      "tiktok"
+    ],
+    "source": "Megabonk devlog spoken opener (2025)",
+    "strength": 4
+  },
+  {
+    "text": "I chose the wrong {feature} for my app",
+    "category": "story",
+    "format_ids": [
+      "stakes-devlog",
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "tiktok",
+      "x",
+      "shorts"
+    ],
+    "source": "@chris.raroque 'MISTAKE NO. 3/10: I chose the wrong database for my app', 179.9K views, Aug 2026",
+    "strength": 4
+  },
+  {
+    "text": "Story time… I tried to build {feature} {timeframe} ago and gave up 🥲",
+    "category": "story",
+    "format_ids": [
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "tiktok",
+      "x"
+    ],
+    "source": "@chris.raroque 'Story time… I remember trying to build an Apple Watch app 3 years ago and giving up' (2026)",
+    "strength": 3
+  },
+  {
+    "text": "{number} cute questions you have to ask them",
+    "category": "listicle",
+    "format_ids": [
+      "question-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Cray Cray '5 cute questions you have to ask them', 2.1M views, 87.5K saves, Mar 2025 (format now saturated)",
+    "strength": 3
+  },
+  {
+    "text": "{number} questions you should ask your girlfriend",
+    "category": "listicle",
+    "format_ids": [
+      "question-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Cray Cray, 728.4K views, May 2025",
+    "strength": 3
+  },
+  {
+    "text": "{number} uncomfortable questions for your boyfriend",
+    "category": "listicle",
+    "format_ids": [
+      "question-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Reposter Yannis says viewers are now 'blind to this format' (Superwall, May 2026)",
+    "strength": 2
+  },
+  {
+    "text": "{number} {feature} tips for beginners",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "linkedin"
+    ],
+    "source": "@scratch.ai '12 Golf Tips For Beginners', 578.5K views, Jul 2026",
+    "strength": 4
+  },
+  {
+    "text": "{number} {feature} cheat codes",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@scratchaiapp '7 Golf Cheat Codes', 546.7K views, Apr 2026",
+    "strength": 4
+  },
+  {
+    "text": "Signs you're more {outcome} than your friends",
+    "category": "listicle",
+    "format_ids": [
+      "mascot-character-skit",
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lunaglowup__ (Depuff AI character) 'Señales que eres más atractiva que tus amigas', 914.6K views, Sep 2026",
+    "strength": 5
+  },
+  {
+    "text": "{number} signs you have {outcome}",
+    "category": "listicle",
+    "format_ids": [
+      "mascot-character-skit",
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lunaglowup__ '3 señales de que tienes una genética atractiva', 550.5K views, Sep 2026",
+    "strength": 4
+  },
+  {
+    "text": "Want to stand out and look more {outcome} than everyone else? Follow these {number} steps",
+    "category": "listicle",
+    "format_ids": [
+      "mascot-character-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@lunaglowup__ '¿Quieres destacar y verte más atractiva que las demás?', 1.1M views, Oct 2026",
+    "strength": 5
+  },
+  {
+    "text": "{number} apps you need on your iPhone, day one",
+    "category": "listicle",
+    "format_ids": [
+      "apps-listicle-video"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "@soyenriquebarron x HiNoter 'cincuenta aplicaciones que necesitas en tu iPhone, día uno', 1.1M views, Jan 2026",
+    "strength": 4
+  },
+  {
+    "text": "{number} apps that feel illegal to know",
+    "category": "listicle",
+    "format_ids": [
+      "apps-listicle-video",
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "Common since 2023; still works on YouTube (Fireship 1.56M, Feb 2026), worn out on TikTok",
+    "strength": 2
+  },
+  {
+    "text": "{number} iPhone apps you didn't know you needed",
+    "category": "listicle",
+    "format_ids": [
+      "apps-listicle-video",
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Hobbies that make you {outcome}",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "source": "Jack Friks / Curiosity Quench 2x2 grids: 'hobbies' angle went from <1K to 10K to 100K (Greg Isenberg pod, Jun 2025)",
+    "strength": 3
+  },
+  {
+    "text": "{number} ways I cut my {pain} down",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow",
+      "lifestyle-integration"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Stronger '5 ways I cut my calories down' (Superwall, Aug 2025)",
+    "strength": 3
+  },
+  {
+    "text": "{number} {audience} essentials, {app} edition",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Clover Labs clone format '10 trucker essentials, Amazon edition' (Superwall, Sep 2026)",
+    "strength": 3
+  },
+  {
+    "text": "Here are {number} controversial rules we had at our wedding",
+    "category": "listicle",
+    "format_ids": [
+      "listicle-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "POV app slideshow opener (Sub Club, Nov 2024)",
+    "strength": 3
+  },
+  {
+    "text": "Rating {audience} with {app}, part {number}",
+    "category": "listicle",
+    "format_ids": [
+      "comment-reply-demo",
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@umax.app 'RATING CELEBRITIES PART 2', 217K views, 2024",
+    "strength": 3
+  },
+  {
+    "text": "Rating viral apps so you don't have to",
+    "category": "listicle",
+    "format_ids": [
+      "apps-listicle-video",
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Vibe coding challenge: which one builds {feature} best, {competitor} or {app}?",
+    "category": "challenge",
+    "format_ids": [
+      "old-vs-new-comparison",
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "tiktok",
+      "shorts",
+      "x"
+    ],
+    "source": "@adamlyttleapps 'Which one builds flappy bird the best? Claude or ChatGPT?', 98.5K views, 1,056 saves, Feb 2026",
+    "strength": 4
+  },
+  {
+    "text": "Watch me make up to {price} in just 30 seconds",
+    "category": "challenge",
+    "format_ids": [
+      "how-to-tutorial"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "Payout (Casper): one video hit 17M; still earning 500+ days later (Superwall, Mar 2026)",
+    "strength": 5
+  },
+  {
+    "text": "i bet you i can build an app and get its first {number} downloads in {timeframe}",
+    "category": "challenge",
+    "format_ids": [
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "x",
+      "tiktok"
+    ],
+    "source": "Jack Friks 30-day challenge opener (2025)",
+    "strength": 3
+  },
+  {
+    "text": "I tried every {feature} so you don't have to",
+    "category": "challenge",
+    "format_ids": [
+      "before-after-reveal",
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@liply.app 'I tried every amount of lip filler on my face so you don't have to', 55.4K views, Feb 2026",
+    "strength": 3
+  },
+  {
+    "text": "I let AI {outcome} for {timeframe}. Here's what happened",
+    "category": "challenge",
+    "format_ids": [
+      "build-in-public-series",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "I asked {number} AI apps to {feature}. Only one got it right",
+    "category": "challenge",
+    "format_ids": [
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "shorts",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Someone asked if {app} works for {audience}. Let's test it live",
+    "category": "challenge",
+    "format_ids": [
+      "comment-reply-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "{competitor} vs {app}: same {feature}, {number} seconds",
+    "category": "challenge",
+    "format_ids": [
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "shorts",
+      "x",
+      "linkedin"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Rate his glow up out of 10",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@umax.app 'Ratw his glow up out of 10' (sic), 1.2M views, 1,406 comments, Jan 2024",
+    "strength": 5
+  },
+  {
+    "text": "Let's not even talk about my {app} report",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@opal 'Let's not even talk the opal focus report', 1.0M views, Feb 2025",
+    "strength": 4
+  },
+  {
+    "text": "My face before {feature}… my face still before {feature} cuz I still don't know what it is",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal",
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Peptide-app joke before/after (SideShift, Superwall Aug 2026)",
+    "strength": 3
+  },
+  {
+    "text": "My screen time before vs after {app}",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern (screen-time apps)",
+    "strength": 3
+  },
+  {
+    "text": "I was spending {number} hours a week on {pain}. Now it takes {timeframe}",
+    "category": "before-after",
+    "format_ids": [
+      "old-vs-new-comparison",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "linkedin",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Doing {pain} the old way vs with {app}",
+    "category": "before-after",
+    "format_ids": [
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts",
+      "linkedin"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Same photo, {number} seconds in {app}",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "never saw myself with the right {feature} 😭😭",
+    "category": "before-after",
+    "format_ids": [
+      "before-after-reveal",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "UGC hook for a makeup-preview app (UGC research, 2026)",
+    "strength": 3
+  },
+  {
+    "text": "I've been a {audience} for {number} years now, and this is my #1 hack",
+    "category": "authority",
+    "format_ids": [
+      "creator-talking-head",
+      "how-to-tutorial"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "JetBack flight-attendant creators: 'I've been a flight attendant for 3 years now' + '#1 flight hack' (EVO, Superwall Oct 2026)",
+    "strength": 4
+  },
+  {
+    "text": "This common mistake is ruining your {outcome}",
+    "category": "authority",
+    "format_ids": [
+      "how-to-tutorial",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "Epic Gardening 'This common mistake kills your tomatoes' (Tiny Empires, Nov 2025)",
+    "strength": 4
+  },
+  {
+    "text": "I'm a {audience} and I'm begging you to stop {pain}",
+    "category": "authority",
+    "format_ids": [
+      "creator-talking-head",
+      "green-screen-reaction"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "The app my therapist told me about",
+    "category": "authority",
+    "format_ids": [
+      "creator-talking-head",
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "{number} years as a developer and this is the tool I wish I'd had",
+    "category": "authority",
+    "format_ids": [
+      "x-demo-post",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "x",
+      "linkedin",
+      "shorts"
+    ],
+    "source": "common pattern (dev tools)",
+    "strength": 3
+  },
+  {
+    "text": "the difference between an app that gets a thousand views and a million is sometimes just one design change 👀",
+    "category": "authority",
+    "format_ids": [
+      "build-in-public-series",
+      "x-demo-post"
+    ],
+    "platforms": [
+      "tiktok",
+      "x"
+    ],
+    "source": "@chris.raroque (2026)",
+    "strength": 3
+  },
+  {
+    "text": "{competitor} just raised prices again. Here's the free alternative",
+    "category": "urgency",
+    "format_ids": [
+      "green-screen-reaction",
+      "old-vs-new-comparison"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "If you have an iPhone, do this right now",
+    "category": "urgency",
+    "format_ids": [
+      "how-to-tutorial",
+      "faceless-screen-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern (iPhone-tips accounts)",
+    "strength": 3
+  },
+  {
+    "text": "Do this before your next {pain}",
+    "category": "urgency",
+    "format_ids": [
+      "how-to-tutorial"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Just comment CLAIM and I'll send you the app",
+    "category": "urgency",
+    "format_ids": [
+      "how-to-tutorial",
+      "apps-listicle-video"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Payout keyword CTA; ~50% of auto-DM'd viewers clicked (Superwall, Mar 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Share this with three friends who want to {outcome}",
+    "category": "urgency",
+    "format_ids": [
+      "how-to-tutorial",
+      "creator-talking-head"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "JetBack caption 'Share this with three friends that want to save on flights.' (EVO, Oct 2026)",
+    "strength": 3
+  },
+  {
+    "text": "just seen a girl in the library writing an essay. no notes, no open tabs, no chatgpt… just her and her own thoughts like a psychopath",
+    "category": "relatable",
+    "format_ids": [
+      "wall-of-text-loop"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels",
+      "x"
+    ],
+    "source": "Jenni AI creator text loop, ~30M views on X (Superwall, Nov 2025)",
+    "strength": 5
+  },
+  {
+    "text": "the friend who sent you this thinks you're slacking rn",
+    "category": "relatable",
+    "format_ids": [
+      "meme-remix",
+      "mascot-character-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@duolingo, 3.2M views, 539.5K reposts, Jan 2026",
+    "strength": 5
+  },
+  {
+    "text": "are my abs distracting you from your {feature} today 😏",
+    "category": "relatable",
+    "format_ids": [
+      "mascot-character-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@duolingo 'are my abs distracting you from your lesson today', 18M views, Aug 2026",
+    "strength": 4
+  },
+  {
+    "text": "clean my litter box or do your {feature}",
+    "category": "relatable",
+    "format_ids": [
+      "mascot-character-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@duolingo 'clean my litter box or do your lesson', 2.1M views, Oct 2026",
+    "strength": 4
+  },
+  {
+    "text": "can you speak {feature}",
+    "category": "relatable",
+    "format_ids": [
+      "mascot-character-skit",
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@duolingo 'can you speak @MrBeast rizz', 29.3M views, Jul 2026",
+    "strength": 4
+  },
+  {
+    "text": "Propaganda I'm falling for",
+    "category": "relatable",
+    "format_ids": [
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@opal trend riff, 954K views, Oct 2025 (0.4% like rate; likely boosted)",
+    "strength": 3
+  },
+  {
+    "text": "i want to {outcome} by {timeframe}. give me your most unhinged {feature}",
+    "category": "relatable",
+    "format_ids": [
+      "wall-of-text-loop"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Reposter account 'i want to have 10k saved by may. give me your most unhinged side hustles', 10M views (Superwall, May 2026) — huge reach, app never mentioned",
+    "strength": 4
+  },
+  {
+    "text": "Gonna have seriously the smallest breakfast",
+    "category": "relatable",
+    "format_ids": [
+      "lifestyle-integration"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@taaaaylerr x Cal AI, 6.2M views, Apr 2026",
+    "strength": 4
+  },
+  {
+    "text": "here's realistic what I eat in a day!!",
+    "category": "relatable",
+    "format_ids": [
+      "lifestyle-integration"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@sashalusslover x Cal AI, 1.2M views, Nov 2025",
+    "strength": 4
+  },
+  {
+    "text": "I've been {feature} for {number} years and now I find out about this 🤦",
+    "category": "relatable",
+    "format_ids": [
+      "reaction-hook-demo"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "Nomad Table 'I've been solo traveling for 2 years and now I find out about this' (Superwall, Feb 2026)",
+    "strength": 4
+  },
+  {
+    "text": "Me at 2am opening {app} instead of sleeping",
+    "category": "relatable",
+    "format_ids": [
+      "pov-skit",
+      "meme-remix"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Ep {number}: {pain}",
+    "category": "relatable",
+    "format_ids": [
+      "pov-skit"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "@cluely 'Ep 9: coworkers dating', 4.3M views, Nov 2025",
+    "strength": 4
+  },
+  {
+    "text": "day {number}/30 making a mobile app from 0 — {metric} downloads — {price} revenue",
+    "category": "build-in-public",
+    "format_ids": [
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "x",
+      "tiktok"
+    ],
+    "source": "Jack Friks 'day 18/30 … 707 downloads - $74 revenue', 154K views on X, Mar 2025",
+    "strength": 4
+  },
+  {
+    "text": "Day {number} – vibe coding an app until I make {price} | MRR: {metric}",
+    "category": "build-in-public",
+    "format_ids": [
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "shorts",
+      "tiktok",
+      "x"
+    ],
+    "source": "BridgeMind Day 228 (64.5K) works for a builder audience; 2026 copycats get ~100–3,300 views",
+    "strength": 2
+  },
+  {
+    "text": "new app is live!!! will attempt to grow this to {price}/month by end of year :)",
+    "category": "build-in-public",
+    "format_ids": [
+      "build-in-public-series",
+      "founder-origin-story"
+    ],
+    "platforms": [
+      "x"
+    ],
+    "source": "Jack Friks (2025)",
+    "strength": 3
+  },
+  {
+    "text": "My app made {price} today. Here's the one video that did it",
+    "category": "build-in-public",
+    "format_ids": [
+      "build-in-public-series"
+    ],
+    "platforms": [
+      "x",
+      "tiktok",
+      "shorts"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "Bye bye {pain}",
+    "category": "build-in-public",
+    "format_ids": [
+      "x-demo-post",
+      "launch-video"
+    ],
+    "platforms": [
+      "x"
+    ],
+    "source": "Marc Lou TrustMRR launch 'Bye Bye fake MRR screenshots', reported 2M+ views and $20,378 next day, Oct 2025",
+    "strength": 4
+  },
+  {
+    "text": "Sooo new app? 👀 I built this in {timeframe}",
+    "category": "build-in-public",
+    "format_ids": [
+      "founder-origin-story",
+      "x-demo-post"
+    ],
+    "platforms": [
+      "tiktok",
+      "x"
+    ],
+    "source": "@chris.raroque '…built this on my New York trip in 72 hours', 26.5K views, 2026",
+    "strength": 3
+  },
+  {
+    "text": "I vibe coded {app} in {timeframe}. Here's what happened when I launched it",
+    "category": "build-in-public",
+    "format_ids": [
+      "build-in-public-series",
+      "x-demo-post"
+    ],
+    "platforms": [
+      "tiktok",
+      "x",
+      "shorts"
+    ],
+    "source": "common pattern (saturated by 2026: copycat 'I built X with AI' videos get a few hundred to a few thousand views)",
+    "strength": 2
+  },
+  {
+    "text": "{app} is out. {outcome}.",
+    "category": "curiosity",
+    "format_ids": [
+      "launch-video"
+    ],
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "source": "Roy Lee 'Cluely is out. cheat on everything.', 13.3M views on X, Apr 2025",
+    "strength": 5
+  },
+  {
+    "text": "Today we're introducing you to the future of {feature}",
+    "category": "authority",
+    "format_ids": [
+      "launch-video"
+    ],
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "source": "HeyGen Video Agent launch film, 7.4M views on X, Jun 2025",
+    "strength": 3
+  },
+  {
+    "text": "Introducing {app}: {outcome} without {pain}",
+    "category": "curiosity",
+    "format_ids": [
+      "launch-video",
+      "x-demo-post"
+    ],
+    "platforms": [
+      "x",
+      "linkedin"
+    ],
+    "source": "common pattern",
+    "strength": 3
+  },
+  {
+    "text": "why does my flat look like a student loan",
+    "category": "relatable",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "FLOP: @snugly.app, ~1.2K views (joke with no person/conflict)",
+    "strength": 1
+  },
+  {
+    "text": "stuck choosing a {feature}? see {number}+ options before you decide",
+    "category": "pain",
+    "format_ids": [
+      "ai-reveal-slideshow"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "FLOP: @snugly.app feature-first hook, ~1.2K views",
+    "strength": 1
+  },
+  {
+    "text": "How do I make a million dollars in 5 minutes",
+    "category": "curiosity",
+    "format_ids": [
+      "wall-of-text-loop"
+    ],
+    "platforms": [
+      "tiktok",
+      "reels"
+    ],
+    "source": "ANTI-PATTERN for finance apps per reposter Yannis (Superwall, May 2026)",
+    "strength": 1
+  }
+]

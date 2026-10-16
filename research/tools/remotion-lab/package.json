@@ -1,0 +1,34 @@
+{
+  "name": "shipreel-remotion-lab",
+  "private": true,
+  "type": "module",
+  "description": "Throwaway lab: proves the techniques in research/motion/remotion.md compile and render against Remotion 4.0.535. Delete node_modules when done.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "bench": "node bench.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.535",
+    "@remotion/effects": "4.0.535",
+    "@remotion/google-fonts": "4.0.535",
+    "@remotion/layout-utils": "4.0.535",
+    "@remotion/media": "4.0.535",
+    "@remotion/motion-blur": "4.0.535",
+    "@remotion/noise": "4.0.535",
+    "@remotion/paths": "4.0.535",
+    "@remotion/renderer": "4.0.535",
+    "@remotion/shapes": "4.0.535",
+    "@remotion/three": "4.0.535",
+    "@remotion/transitions": "4.0.535",
+    "@react-three/fiber": "9.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.535",
+    "three": "0.178.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/three": "0.178.1",
+    "typescript": "5.9.3"
+  }
+}

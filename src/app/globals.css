@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/*
+  Shipreel design tokens. Dark-only by design (a video studio lives in the dark, like CapCut/Final Cut).
+  Neutrals are tinted a hair toward the accent hue; one accent (signal lime) marks the primary action,
+  the active item and progress. Status colours are semantic only.
+*/
+@theme {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  --color-bg: oklch(0.145 0.004 120);
+  --color-panel: oklch(0.178 0.005 120);
+  --color-raised: oklch(0.215 0.006 120);
+  --color-hover: oklch(0.25 0.007 120);
+  --color-press: oklch(0.285 0.008 120);
+  --color-line: oklch(0.27 0.006 120);
+  --color-line-strong: oklch(0.35 0.008 120);
+
+  --color-fg: oklch(0.95 0.006 120);
+  --color-fg-2: oklch(0.75 0.008 120);
+  /* fg-3 is the 11–12px metadata colour: tuned to pass WCAG AA (4.5:1) on bg, panel, raised and hover. */
+  --color-fg-3: oklch(0.64 0.008 120);
+
+  --color-accent: oklch(0.93 0.2 122);
+  --color-accent-hover: oklch(0.96 0.17 122);
+  --color-accent-press: oklch(0.87 0.2 122);
+  --color-accent-ink: oklch(0.2 0.04 122);
+  --color-accent-soft: oklch(0.93 0.2 122 / 0.12);
+
+  --color-ok: oklch(0.78 0.14 165);
+  --color-ok-soft: oklch(0.78 0.14 165 / 0.14);
+  --color-warn: oklch(0.83 0.15 78);
+  --color-warn-soft: oklch(0.83 0.15 78 / 0.14);
+  --color-bad: oklch(0.68 0.2 25);
+  --color-bad-soft: oklch(0.68 0.2 25 / 0.14);
+  --color-info: oklch(0.74 0.12 245);
+  --color-info-soft: oklch(0.74 0.12 245 / 0.14);
+
+  /*
+    Full radius scale (Tailwind's own 2xl/3xl would otherwise leave 2xl smaller than xl).
+    Nested surfaces stay concentric: inner radius = outer radius − padding.
+  */
+  --radius-xs: 4px; /* kbd, tiny chips */
+  --radius-sm: 6px; /* badges */
+  --radius-md: 8px; /* buttons, inputs, menu items, segmented */
+  --radius-lg: 12px; /* menus, popovers, tooltips, list containers */
+  --radius-xl: 16px; /* cards, panels, calendar grid, dock */
+  --radius-2xl: 20px; /* dialogs, sheets, ⌘K */
+  --radius-3xl: 28px; /* hero surfaces only */
+  --radius-reel: 14px; /* every 9:16 reel frame */
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-rise: rise 0.35s var(--ease-out) both;
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  /* Exits: everything that rises in also leaves (quicker than it came). */
+  @keyframes fade-out {
+    to { opacity: 0; }
+  }
+  @keyframes sink {
+    to { opacity: 0; transform: translateY(4px) scale(0.98); }
+  }
+  @keyframes dialog-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes dialog-out {
+    to { opacity: 0; transform: translateY(4px) scale(0.98); }
+  }
+  /* Menus/popovers scale from their trigger (transform-origin comes from Radix). */
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes pop-out {
+    to { opacity: 0; transform: scale(0.97); }
+  }
+  /* Right-docked sheets slide from the right edge they live on. */
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes slide-out-right {
+    to { opacity: 0; transform: translateX(24px); }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow: hidden;
+}
+
+::selection {
+  background: oklch(0.93 0.2 122 / 0.3);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* In the base layer so utilities like focus:outline-none can override it (unlayered CSS beats any layer). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  /* Dense lists and nav: keep the ring inside the row so it doesn't collide with neighbours. */
+  nav :focus-visible,
+  [role="menu"] :focus-visible,
+  ul :focus-visible {
+    outline-offset: -2px;
+  }
+  /* A web app: everything clickable gets the same pointer (Tailwind v4 resets buttons to default). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+button svg,
+a svg {
+  flex-shrink: 0;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Film grain over the whole app chrome: barely there, keeps big dark surfaces from looking flat. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-raised) 0%, var(--color-hover) 50%, var(--color-raised) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.15s !important;
+  }
+}
