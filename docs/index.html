@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shipreel — viral videos for your app</title>
+<meta name="description" content="Shipreel turns your app into short-form videos cut like the ones that go viral on TikTok, Reels and Shorts, with Claude and Codex doing the work, then posts them.">
+<meta property="og:title" content="Shipreel — viral videos for your app">
+<meta property="og:description" content="Formats reverse-engineered from viral app videos, real footage, music on the beat, Claude and Codex agents, an editor and auto-posting. Runs on your Mac.">
+<meta property="og:image" content="media/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="media/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.145 0.004 120);
+    --panel: oklch(0.178 0.005 120);
+    --raised: oklch(0.215 0.006 120);
+    --line: oklch(0.27 0.006 120);
+    --line-strong: oklch(0.35 0.008 120);
+    --fg: oklch(0.95 0.006 120);
+    --fg-2: oklch(0.75 0.008 120);
+    --fg-3: oklch(0.64 0.008 120);
+    --accent: oklch(0.93 0.2 122);
+    --accent-ink: oklch(0.2 0.04 122);
+    --accent-soft: oklch(0.93 0.2 122 / 0.12);
+    --sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --display: "Instrument Serif", ui-serif, Georgia, serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --wrap: 1160px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { overflow-x: clip; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  img, video { display: block; max-width: 100%; }
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: oklch(0.145 0.004 120 / 0.78); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  nav.scrolled { border-bottom-color: var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
+  .brand img { width: 26px; height: 26px; }
+  .navlinks { display: flex; align-items: center; gap: 24px; font-size: 14px; color: var(--fg-2); }
+  .navlinks a { text-decoration: none; }
+  .navlinks a:hover { color: var(--fg); }
+  @media (max-width: 720px) { .navlinks .hide-sm { display: none; } }
+
+  button.btn { font-family: inherit; background: transparent; cursor: pointer; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 10px; font-weight: 600; font-size: 15px; text-decoration: none; transition: transform .15s var(--ease), background .15s; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: oklch(0.96 0.17 122); }
+  .btn-ghost { border: 1px solid var(--line-strong); color: var(--fg); }
+  .btn-ghost:hover { background: var(--raised); }
+  .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; border-radius: 8px; }
+
+  /* hero */
+  .hero { padding: 72px 0 40px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  @media (max-width: 960px) { .hero { grid-template-columns: 1fr; padding-top: 40px; } }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); }
+  h1 { font-family: var(--display); font-weight: 400; font-size: clamp(48px, 7vw, 88px); line-height: 0.98; letter-spacing: -0.02em; margin: 16px 0 20px; }
+  h1 em { color: var(--accent); }
+  .lede { font-size: 19px; color: var(--fg-2); max-width: 34ch; margin: 0 0 28px; }
+  .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .note { margin-top: 16px; font-size: 13px; color: var(--fg-3); }
+
+  /* phones */
+  .phones { position: relative; height: 640px; }
+  @media (max-width: 960px) { .phones { height: 560px; } }
+  @media (max-width: 520px) { .phones { height: 470px; } }
+  .phone { position: absolute; top: 50%; left: 50%; width: 270px; aspect-ratio: 9 / 19.5; border-radius: 44px; padding: 9px; background: linear-gradient(140deg, #b9babf, #55565b 22%, #2c2d31 50%, #6d6e73 78%, #c4c5ca); box-shadow: 0 40px 90px rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.35); transition: transform .6s var(--ease); }
+  .phone .screen { width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: #000; position: relative; }
+  .phone video { width: 100%; height: 100%; object-fit: cover; }
+  .phone .island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 84px; height: 24px; border-radius: 20px; background: #000; z-index: 2; }
+  .phone.p1 { transform: translate(-50%, -50%) translateX(-58%) rotate(-7deg) scale(0.84); filter: brightness(0.8); }
+  .phone.p2 { transform: translate(-50%, -50%); z-index: 2; }
+  .phone.p3 { transform: translate(-50%, -50%) translateX(58%) rotate(7deg) scale(0.84); filter: brightness(0.8); }
+  @media (max-width: 520px) { .phone { width: 210px; border-radius: 36px; padding: 7px; } .phone .screen { border-radius: 30px; } }
+  .sound { position: absolute; z-index: 3; left: 50%; bottom: -4px; transform: translateX(-50%); background: oklch(0.145 0.004 120 / 0.85) !important; backdrop-filter: blur(8px); }
+  .sound:active { transform: translateX(-50%) scale(0.97); }
+
+  section { padding: 96px 0; border-top: 1px solid var(--line); }
+  @media (max-width: 640px) { section { padding: 64px 0; } }
+  h2 { font-family: var(--display); font-weight: 400; font-size: clamp(36px, 4.6vw, 56px); line-height: 1.02; letter-spacing: -0.015em; margin: 12px 0 16px; }
+  .sub { color: var(--fg-2); font-size: 18px; max-width: 56ch; margin: 0; }
+
+  /* features */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 48px; margin-top: 56px; }
+  @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; gap: 32px; } }
+  .feature h3 { font-size: 17px; font-weight: 600; margin: 14px 0 6px; letter-spacing: -0.01em; }
+  .feature p { margin: 0; color: var(--fg-2); font-size: 15px; }
+  .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .ico svg { width: 18px; height: 18px; }
+
+  /* gallery */
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 48px; }
+  @media (max-width: 1000px) { .gallery { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 720px) { .gallery { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+  .reel { margin: 0; }
+  .reel .frame { aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); position: relative; cursor: pointer; }
+  .reel video { width: 100%; height: 100%; object-fit: cover; }
+  .reel figcaption { margin-top: 10px; font-size: 14px; }
+  .reel figcaption b { display: block; font-weight: 600; }
+  .reel figcaption span { color: var(--fg-3); font-size: 13px; }
+  .play { position: absolute; inset: auto 10px 10px auto; font-family: var(--mono); font-size: 11px; background: rgba(0,0,0,.6); color: #fff; padding: 4px 8px; border-radius: 6px; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; counter-reset: step; }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+  .step { padding: 24px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .step::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .step h3 { margin: 10px 0 6px; font-size: 18px; font-weight: 600; }
+  .step p { margin: 0; color: var(--fg-2); font-size: 15px; }
+
+  .shot { margin-top: 48px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+
+  /* install */
+  .install { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  @media (max-width: 860px) { .install { grid-template-columns: 1fr; } }
+  pre { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; overflow-x: auto; font-family: var(--mono); font-size: 14px; line-height: 1.7; color: var(--fg); }
+  pre .c { color: var(--fg-3); }
+  .req { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 10px; color: var(--fg-2); font-size: 15px; }
+  .req li { display: flex; gap: 10px; }
+  .req li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 9px; border-radius: 50%; background: var(--accent); }
+
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--raised); padding: 1px 6px; border-radius: 5px; white-space: nowrap; }
+  .fine { color: var(--fg-3); font-size: 14px; display: grid; gap: 10px; max-width: 72ch; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--fg-3); font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  html.js .rise { opacity: 0; transform: translateY(14px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  html.js .rise.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { html.js .rise { opacity: 1; transform: none; transition: none; } .phone { transition: none; } html { scroll-behavior: auto; } }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add("js")</script>
+<nav id="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="media/icon.svg" alt="">Shipreel</a>
+    <div class="navlinks">
+      <a class="hide-sm" href="#videos">Videos</a>
+      <a class="hide-sm" href="#how">How it works</a>
+      <a class="hide-sm" href="#install">Install</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/reidwcoleman/shipreel">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero">
+  <div>
+    <div class="eyebrow">Short-form video studio for app makers</div>
+    <h1>Your app,<br>cut like a <em>viral</em> TikTok.</h1>
+    <p class="lede">Shipreel turns your app into short videos built from the formats that actually go viral, with Claude and Codex doing the work. Then it posts them for you.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="https://github.com/reidwcoleman/shipreel">Get it on GitHub</a>
+      <a class="btn btn-ghost" href="#videos">Watch the videos</a>
+    </div>
+    <p class="note">Free on GitHub. Runs on your Mac; your footage never leaves it.</p>
+  </div>
+  <div class="phones" aria-label="Example videos made with Shipreel">
+    <div class="phone p1"><div class="screen"><div class="island"></div><video data-src="media/famsync-3.mp4" poster="media/famsync-3.jpg" muted loop playsinline preload="none"></video></div></div>
+    <div class="phone p2"><div class="screen"><div class="island"></div><video id="heroVideo" src="media/famsync-1.mp4" poster="media/famsync-1.jpg" muted loop playsinline autoplay></video></div></div>
+    <div class="phone p3"><div class="screen"><div class="island"></div><video data-src="media/famsync-2.mp4" poster="media/famsync-2.jpg" muted loop playsinline preload="none"></video></div></div>
+    <button class="btn btn-ghost btn-sm sound" id="sound" type="button">Sound on</button>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow rise">What it does</div>
+    <h2 class="rise">Built from what goes viral,<br>not from a template pack.</h2>
+    <p class="sub rise">Every format starts from real app videos with millions of views, taken apart frame by frame: hook timing, text size and position, cut rhythm, how the app shows up.</p>
+    <div class="features">
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></div>
+        <h3>Formats from real hits</h3>
+        <p>Slideshows, screen demos, text stories, problem-to-payoff edits and more, each with the hook bank and pacing of the videos it copies.</p>
+      </div>
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 10 4.55-2.28A1 1 0 0 1 21 8.62v6.76a1 1 0 0 1-1.45.9L15 14"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg></div>
+        <h3>Real footage, real taps</h3>
+        <p>Screen recordings with touch ripples and zooms, UI cards that lift out of the phone, and real-life b-roll for the problem and the payoff.</p>
+      </div>
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <h3>Cut on the beat</h3>
+        <p>Royalty-free music beds with every cut snapped to the beat and the drop landing on the moment your app appears.</p>
+      </div>
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+        <h3>Claude and Codex do the work</h3>
+        <p>Agents write ideas and full videos from your product brief. Ask for changes in plain English, or drive Shipreel from your own coding agent over MCP.</p>
+      </div>
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h12"/></svg></div>
+        <h3>A real editor</h3>
+        <p>Timeline, captions, transitions, taps, pop-outs and audio, previewed live inside TikTok, Reels and Shorts safe zones.</p>
+      </div>
+      <div class="feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></div>
+        <h3>Posts for you</h3>
+        <p>Schedule to TikTok, Instagram, YouTube, X and more through Upload-Post, Bluesky or a webhook, with a calendar and a manual handoff that always works.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="videos">
+  <div class="wrap">
+    <div class="eyebrow rise">Made with Shipreel</div>
+    <h2 class="rise">Real videos for a real app.</h2>
+    <p class="sub rise">Made for FamSync, a family calendar on the App Store, from its own screens, a screen recording and royalty-free footage. Tap a video for sound.</p>
+    <div class="gallery" id="gallery">
+      <figure class="reel rise"><div class="frame"><video data-src="media/famsync-1.mp4" poster="media/famsync-1.jpg" muted loop playsinline preload="none"></video><span class="play">17s</span></div><figcaption><b>Problem → app → payoff</b><span>“POV: you’re the family’s human calendar”</span></figcaption></figure>
+      <figure class="reel rise"><div class="frame"><video data-src="media/famsync-2.mp4" poster="media/famsync-2.jpg" muted loop playsinline preload="none"></video><span class="play">11s</span></div><figcaption><b>Written by Claude</b><span>“The button that rings every phone in the house”</span></figcaption></figure>
+      <figure class="reel rise"><div class="frame"><video data-src="media/famsync-3.mp4" poster="media/famsync-3.jpg" muted loop playsinline preload="none"></video><span class="play">12s</span></div><figcaption><b>Built from a format</b><span>“The 3:55pm text every family knows”</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow rise">How it works</div>
+    <h2 class="rise">Describe the app once.<br>Post every day.</h2>
+    <div class="steps">
+      <div class="step rise"><h3>Tell it about your app</h3><p>Who it’s for, the pain, the features. Drop in screenshots, a screen recording and your icon. Shipreel can read your project folder to fill this in.</p></div>
+      <div class="step rise"><h3>Swipe through ideas</h3><p>Claude writes hooks in the formats that fit your app. Swipe right and the video is built, rendered and queued.</p></div>
+      <div class="step rise"><h3>Tweak and post</h3><p>Change anything in the editor or by asking. Schedule it, and Shipreel posts it or hands you the file and caption at the right time.</p></div>
+    </div>
+    <img class="shot rise" src="media/app-editor.jpg" alt="The Shipreel editor with a FamSync video open: scene list, live preview with TikTok overlay, launch check and timeline." loading="lazy">
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap install">
+    <div>
+      <div class="eyebrow rise">Install</div>
+      <h2 class="rise">Runs on your Mac.</h2>
+      <p class="sub rise">Shipreel is a local app: the studio, the renderer and the agents all run on your machine.</p>
+      <ul class="req rise">
+        <li>Node.js 20 or newer and ffmpeg (<code>brew install node ffmpeg</code>)</li>
+        <li>Claude Code signed in for ideas and AI edits (optional; Codex works too)</li>
+        <li>An Upload-Post key or Bluesky app password for auto-posting (optional)</li>
+      </ul>
+    </div>
+    <pre class="rise"><span class="c"># get it</span>
+git clone https://github.com/reidwcoleman/shipreel
+cd shipreel
+npm install        <span class="c"># also fetches the music beds</span>
+
+<span class="c"># run it</span>
+npm run app        <span class="c"># → http://localhost:4747</span>
+
+<span class="c"># or drive it from a terminal / agent</span>
+npm run shipreel -- --help</pre>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow rise">Good to know</div>
+    <div class="fine rise" style="margin-top:16px">
+      <p>Music beds come from Mixkit under its free license (fine for social videos and ads) and are downloaded on install rather than shipped in the repo. Stock footage you add from Pexels or Mixkit can be used the same way.</p>
+      <p>Videos render with Remotion, which is free for individuals and companies of up to three people; larger companies need a Remotion company license.</p>
+      <p>Shipreel never invents numbers: revenue, downloads, ratings and reviews only appear if you enter real ones.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Shipreel</span>
+    <a href="https://github.com/reidwcoleman/shipreel">github.com/reidwcoleman/shipreel</a>
+  </div>
+</footer>
+
+<script>
+  const nav = document.getElementById("nav");
+  addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
+
+  // Reveal on scroll.
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".rise").forEach((el) => io.observe(el));
+
+  // Load and play videos only while they're on screen.
+  const vio = new IntersectionObserver((es) => es.forEach((e) => {
+    const v = e.target;
+    if (e.isIntersecting) {
+      if (!v.src && v.dataset.src) v.src = v.dataset.src;
+      v.play().catch(() => {});
+    } else v.pause();
+  }), { threshold: 0.35 });
+  document.querySelectorAll("video[data-src], #heroVideo").forEach((v) => vio.observe(v));
+
+  // Tap a gallery video for sound (one at a time).
+  document.querySelectorAll(".reel .frame").forEach((f) => f.addEventListener("click", () => {
+    const v = f.querySelector("video");
+    const on = v.muted;
+    document.querySelectorAll("video").forEach((o) => { o.muted = true; });
+    v.muted = !on;
+    if (!v.src && v.dataset.src) v.src = v.dataset.src;
+    v.currentTime = on ? 0 : v.currentTime;
+    v.play().catch(() => {});
+  }));
+
+  const hero = document.getElementById("heroVideo");
+  const sound = document.getElementById("sound");
+  sound.addEventListener("click", () => {
+    const on = hero.muted;
+    document.querySelectorAll("video").forEach((o) => { o.muted = true; });
+    hero.muted = !on;
+    if (on) hero.currentTime = 0;
+    sound.textContent = on ? "Sound off" : "Sound on";
+  });
+</script>
+</body>
+</html>
