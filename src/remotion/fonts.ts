@@ -14,6 +14,9 @@ import { loadFont as loadDMSerif } from "@remotion/google-fonts/DMSerifDisplay";
 import { loadFont as loadCaveat } from "@remotion/google-fonts/Caveat";
 import { loadFont as loadPermanentMarker } from "@remotion/google-fonts/PermanentMarker";
 import { loadFont as loadLuckiest } from "@remotion/google-fonts/LuckiestGuy";
+import { loadFont as loadCormorant } from "@remotion/google-fonts/CormorantGaramond";
+import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
+import { loadFont as loadArimo } from "@remotion/google-fonts/Arimo";
 import type { FontId } from "./spec";
 
 type FontDef = { family: string; load: () => void; label: string; vibe: string };
@@ -33,11 +36,35 @@ const once = (fn: () => void) => {
 };
 
 export const FONTS: Record<FontId, FontDef> = {
+  cormorant: {
+    family: "Cormorant Garamond",
+    label: "Cormorant",
+    vibe: "Aesthetic serif (wedding / lifestyle carousels)",
+    load: once(() => {
+      loadCormorant("normal", { weights: ["500", "600"], ...latin });
+      loadCormorant("italic", { weights: ["500"], ...latin });
+    }),
+  },
+  playfair: {
+    family: "Playfair Display",
+    label: "Playfair",
+    vibe: "Editorial serif list",
+    load: once(() => {
+      loadPlayfair("normal", { weights: ["400", "600"], ...latin });
+      loadPlayfair("italic", { weights: ["400"], ...latin });
+    }),
+  },
+  arimo: {
+    family: "Arimo",
+    label: "Arial (Arimo)",
+    vibe: "Script-made slideshow text",
+    load: once(() => loadArimo("normal", { weights: ["700"], ...latin })),
+  },
   "tiktok-sans": {
     family: "TikTok Sans",
     label: "TikTok Sans",
     vibe: "Native to the feed",
-    load: once(() => loadTikTokSans("normal", { weights: ["400", "600", "700", "800"], ...latin })),
+    load: once(() => loadTikTokSans("normal", { weights: ["400", "500", "600", "700", "800"], ...latin })),
   },
   inter: {
     family: "Inter",

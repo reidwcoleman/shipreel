@@ -1,4 +1,5 @@
 import "server-only";
+import crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -230,4 +231,78 @@ export async function composeMusic(projectId: string, prompt: string, seconds: n
   const buf = Buffer.from(await res.arrayBuffer());
   const name = `music-${prompt.split(/[,.]/)[0].slice(0, 32)}.mp3`;
   return addAsset(projectId, name, buf);
+}
+
+/* ───────────────────────────── Spoken chat stories ───────────────────────────── */
+
+const speakable = (t: string) => t.replace(/\p{Extended_Pictographic}|\u{FE0F}|\u{200D}/gu, "").replace(/\*/g, "").replace(/\s+/g, " ").trim();
+
+/** One line of speech as 44.1 kHz mono WAV with the leading/trailing silence trimmed. */
+async function sayLine(text: string, voice: string, out: string): Promise<number> {
+  const aiff = out.replace(/\.wav$/, ".aiff");
+  // ~5 words/s: the rate measured on text-story hits (4.2–5.4 w/s).
+  await run("say", ["-v", voice, "-r", "300", "-o", aiff, text || "…"], { maxBuffer: 1 << 24 });
+  await run("ffmpeg", ["-v", "error", "-y", "-i", aiff, "-af", "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse", "-ar", "44100", "-ac", "1", out]);
+  await fsp.rm(aiff, { force: true });
+  return (await probe(out)).durationSec ?? 0;
+}
+
+/**
+ * Voice every spoken chat scene (two system voices, lines back to back like the text-story pages) and
+ * time each bubble and the assist panel to its line. Returns null when nothing needed doing.
+ */
+export async function voiceChats(projectId: string, spec: VideoSpec): Promise<VideoSpec | null> {
+  if (process.platform !== "darwin") return null;
+  let changed = false;
+  const next: VideoSpec = structuredClone(spec);
+  for (const sc of next.scenes) {
+    if (sc.type !== "chat" || !sc.speak) continue;
+    const key = crypto
+      .createHash("sha1")
+      .update(JSON.stringify([sc.messages.map((m) => [m.from, m.text]), sc.voices, sc.assist?.app, sc.assist?.suggestion, sc.assist?.after]))
+      .digest("hex")
+      .slice(0, 12);
+    if (sc.voiceKey === key && sc.voice) continue;
+    const tmp = path.join(paths.tmp(), `chat-${sc.id}-${Date.now()}`);
+    await fsp.mkdir(tmp, { recursive: true });
+    const parts: string[] = [];
+    let cursor = 0;
+    const gap = 0.06;
+    const push = async (text: string, voice: string) => {
+      const f = path.join(tmp, `${String(parts.length).padStart(3, "0")}.wav`);
+      const d = await sayLine(speakable(text), voice, f);
+      parts.push(f);
+      const at = cursor;
+      cursor += d + gap;
+      return at;
+    };
+    for (let i = 0; i < sc.messages.length; i++) {
+      const m = sc.messages[i];
+      sc.messages[i] = { ...m, at: +(await push(m.text, m.from === "me" ? sc.voices.me : sc.voices.them)).toFixed(3) };
+      if (sc.assist && sc.assist.after === i) {
+        // "<App>, help me out here" → the suggestion read out while the panel is up.
+        const at = await push(`${sc.assist.app}, help me out here`, sc.voices.me);
+        await push(sc.assist.suggestion, "Karen");
+        sc.assist = { ...sc.assist, at: +at.toFixed(3), hold: +(cursor - at + 0.15).toFixed(3) };
+        cursor += 0.15;
+      }
+    }
+    // Concatenate with ~60 ms gaps (the concat list repeats one short silence file between lines).
+    const silence = path.join(tmp, "gap.wav");
+    await run("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", String(gap), silence]);
+    const list = path.join(tmp, "list.txt");
+    await fsp.writeFile(list, parts.flatMap((f) => [`file '${f}'`, `file '${silence}'`]).join("\n"));
+    const mp3 = path.join(tmp, "chat.mp3");
+    await run("ffmpeg", ["-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", list, "-af", "loudnorm=I=-15:TP=-1.5:LRA=11", "-ar", "44100", "-c:a", "libmp3lame", "-b:a", "160k", mp3]);
+    const name = `chatvoice-${spec.id}-${sc.id}.mp3`;
+    const prev = sc.voice?.replace(/^asset:/, "");
+    if (prev && prev !== name) await deleteAsset(projectId, prev).catch(() => undefined);
+    const asset = await addAsset(projectId, name, await fsp.readFile(mp3));
+    await fsp.rm(tmp, { recursive: true, force: true });
+    sc.voice = `asset:${asset.file}`;
+    sc.voiceKey = key;
+    sc.duration = +(cursor + 0.9).toFixed(2);
+    changed = true;
+  }
+  return changed ? next : null;
 }

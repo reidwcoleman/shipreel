@@ -160,7 +160,7 @@ function autoSfx(scene: Scene, frames: number): { at: number; id: string; volume
     out.push({ at: 0, id: "whoosh", volume: 0.45 });
   else if (scene.transition === "zoom") out.push({ at: 0, id: "swoosh", volume: 0.4 });
   else if (scene.transition === "flash") out.push({ at: 0, id: "shutter", volume: 0.35 });
-  if (scene.type === "chat") {
+  if (scene.type === "chat" && scene.layout !== "card") {
     const n = scene.messages.length;
     const span = Math.max(0.6, frames / FPS - 0.9);
     scene.messages.forEach((m, i) => out.push({ at: Math.round((m.at ?? 0.35 + (i * span) / n) * FPS), id: "pop", volume: 0.5 }));

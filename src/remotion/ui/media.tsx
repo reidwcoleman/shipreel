@@ -1,7 +1,7 @@
 import React from "react";
-import { AbsoluteFill, Easing, Img, OffthreadVideo, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, Img, Loop, OffthreadVideo, Sequence, continueRender, delayRender, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { noise2D } from "@remotion/noise";
-import type { Background, Callout, Tap, Zoom } from "../spec";
+import type { Background, Callout, FlowStep, Tap, Zoom } from "../spec";
 import { clamp } from "./anim";
 import { useRender, useResolve } from "./context";
 
@@ -72,7 +72,7 @@ const Mesh: React.FC<{ colors: string[] }> = ({ colors }) => {
 
 export const Backdrop: React.FC<{ bg?: Background; fallback?: string }> = ({ bg, fallback }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const { durationInFrames, fps } = useVideoConfig();
   const { theme } = useRender();
   if (!bg) return <AbsoluteFill style={{ background: fallback ?? theme.bg }} />;
   switch (bg.kind) {
@@ -91,7 +91,13 @@ export const Backdrop: React.FC<{ bg?: Background; fallback?: string }> = ({ bg,
       return (
         <AbsoluteFill style={{ background: "#000", overflow: "hidden" }}>
           <AbsoluteFill style={{ transform: `scale(${scale})`, filter: bg.blur ? `blur(${bg.blur}px)` : undefined }}>
-            <MediaView src={bg.src} />
+            {bg.loopSec ? (
+              <Loop durationInFrames={Math.max(1, Math.round(bg.loopSec * fps))}>
+                <MediaView src={bg.src} />
+              </Loop>
+            ) : (
+              <MediaView src={bg.src} />
+            )}
           </AbsoluteFill>
           <AbsoluteFill style={{ background: `rgba(0,0,0,${bg.dim ?? 0.25})` }} />
         </AbsoluteFill>
@@ -403,5 +409,199 @@ export const CalloutCard: React.FC<{
         </div>
       </div>
     </>
+  );
+};
+
+/* ───────────────────────────── Screen flow ───────────────────────────── */
+
+type FlowItem = { at: number; src: string; kind: "video" | "image"; transition: "push" | "sheet" | "tab" | "fade"; scroll: number; trimStart?: number; playbackRate?: number };
+
+const FLOW_FRAMES = { push: 11, sheet: 13, fade: 6, tab: 0 } as const;
+const iosEase = Easing.bezier(0.25, 0.9, 0.3, 1);
+
+/** Taps implied by a flow: the finger lands just before each screen change. */
+export function flowTaps(flow: FlowStep[]): Tap[] {
+  return flow.filter((s) => s.tap).map((s) => ({ at: Math.max(0, s.at - 0.12), x: s.tap!.x, y: s.tap!.y }));
+}
+
+const FlowScreen: React.FC<{ item: FlowItem; startFrame: number; endFrame: number; fit: "cover" | "contain" }> = ({ item, startFrame, endFrame, fit }) => {
+  const frame = useCurrentFrame();
+  const resolve = useResolve();
+  const url = resolve(item.src);
+  if (!url) return null;
+  const local = frame - startFrame;
+  if (item.kind === "video") {
+    return (
+      <Sequence from={startFrame} layout="none">
+        <MediaView src={item.src} kind="video" fit={fit} trimStart={item.trimStart} playbackRate={item.playbackRate} />
+      </Sequence>
+    );
+  }
+  if (item.scroll > 0) {
+    // A tall screenshot scrolled like a thumb would: ease in, coast, settle.
+    const p = interpolate(local, [6, Math.max(12, endFrame - startFrame - 4)], [0, 1], { ...clamp, easing: Easing.bezier(0.45, 0, 0.2, 1) });
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+        <Img src={url} style={{ width: "100%", height: "auto", transform: `translateY(${-item.scroll * 100 * p}%)` }} pauseWhenLoading />
+      </div>
+    );
+  }
+  return <Img src={url} style={{ width: "100%", height: "100%", objectFit: fit }} pauseWhenLoading />;
+};
+
+/** The app moving between screens inside one take, with iOS push / sheet / tab transitions. */
+export const ScreenFlow: React.FC<{ first: Omit<FlowItem, "at" | "transition" | "scroll"> & { scroll?: number }; flow: FlowStep[]; fit?: "cover" | "contain" }> = ({ first, flow, fit = "cover" }) => {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames } = useVideoConfig();
+  const items: FlowItem[] = [
+    { ...first, at: 0, transition: "tab", scroll: first.scroll ?? 0 },
+    ...[...flow].sort((a, b) => a.at - b.at).map((s) => ({ at: s.at, src: s.src, kind: s.kind, transition: s.transition, scroll: s.scroll })),
+  ];
+  const starts = items.map((it) => Math.round(it.at * fps));
+  let cur = 0;
+  for (let i = 0; i < items.length; i++) if (frame >= starts[i]) cur = i;
+  const it = items[cur];
+  const tf = FLOW_FRAMES[it.transition];
+  const t = cur > 0 && tf > 0 ? iosEase(interpolate(frame - starts[cur], [0, tf], [0, 1], clamp)) : 1;
+  const prev = cur > 0 && t < 1 ? cur - 1 : -1;
+  const end = (i: number) => starts[i + 1] ?? durationInFrames;
+  const layer = (i: number, style: React.CSSProperties, dim = 0) => (
+    <AbsoluteFill key={i} style={style}>
+      <FlowScreen item={items[i]} startFrame={starts[i]} endFrame={end(i)} fit={fit} />
+      {dim > 0 && <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})` }} />}
+    </AbsoluteFill>
+  );
+  if (prev < 0) return <AbsoluteFill style={{ overflow: "hidden" }}>{layer(cur, {})}</AbsoluteFill>;
+  switch (it.transition) {
+    case "push":
+      return (
+        <AbsoluteFill style={{ overflow: "hidden" }}>
+          {layer(prev, { transform: `translateX(${-30 * t}%)` }, 0.18 * t)}
+          {layer(cur, { transform: `translateX(${100 * (1 - t)}%)`, boxShadow: "-12px 0 30px rgba(0,0,0,0.18)" })}
+        </AbsoluteFill>
+      );
+    case "sheet":
+      return (
+        <AbsoluteFill style={{ overflow: "hidden", background: "#000" }}>
+          {layer(prev, { transform: `scale(${1 - 0.06 * t})`, borderRadius: 24 * t, overflow: "hidden" }, 0.3 * t)}
+          {layer(cur, { transform: `translateY(${100 * (1 - t)}%)`, borderRadius: 24, overflow: "hidden" })}
+        </AbsoluteFill>
+      );
+    case "fade":
+    default:
+      return (
+        <AbsoluteFill style={{ overflow: "hidden" }}>
+          {layer(prev, {})}
+          {layer(cur, { opacity: t })}
+        </AbsoluteFill>
+      );
+  }
+};
+
+/* ───────────────────────────── Phone in a real hand ───────────────────────────── */
+
+export type HandClip = { id: string; fps: number; frames: [number, number][][]; screenAspect?: number };
+
+/** 3×3 homography taking the unit rectangle (0,0)-(w,h) to the quad, as a CSS matrix3d. */
+export function quadMatrix(w: number, h: number, q: [number, number][]): string {
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
+  // Square → quad (Heckbert), then pre-scale by 1/w, 1/h.
+  const dx1 = x1 - x2, dx2 = x3 - x2, dy1 = y1 - y2, dy2 = y3 - y2;
+  const sx = x0 - x1 + x2 - x3, sy = y0 - y1 + y2 - y3;
+  const den = dx1 * dy2 - dx2 * dy1 || 1e-9;
+  const g = (sx * dy2 - dx2 * sy) / den;
+  const hh = (dx1 * sy - sx * dy1) / den;
+  const a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, c = x0;
+  const d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3, f = y0;
+  const m = [a / w, b / h, c, d / w, e / h, f, g / w, hh / h, 1];
+  // CSS matrix3d is column-major 4×4.
+  return `matrix3d(${[m[0], m[3], 0, m[6], m[1], m[4], 0, m[7], 0, 0, 1, 0, m[2], m[5], 0, m[8]].map((v) => +v.toFixed(8)).join(",")})`;
+}
+
+/**
+ * Stock footage of a hand holding a green-screen phone (public/hands/<id>/): the plate, the app screen
+ * warped onto the tracked screen corners, then the keyed footage (thumb, glare, edges) on top.
+ */
+export const HandPhone: React.FC<{ clipId: string; children: React.ReactNode }> = ({ clipId, children }) => {
+  const frame = useCurrentFrame();
+  const { width } = useVideoConfig();
+  const { publicBase } = useRender();
+  const base = `${publicBase ?? ""}/hands/${clipId}`;
+  const [clip, setClip] = React.useState<HandClip | null>(null);
+  const [handle] = React.useState(() => delayRender(`hand ${clipId}`));
+  React.useEffect(() => {
+    let live = true;
+    fetch(`${base}/corners.json`)
+      .then((r) => r.json())
+      .then((j) => live && setClip({ id: clipId, ...j }))
+      .catch(() => live && setClip({ id: clipId, fps: 30, frames: [] }))
+      .finally(() => continueRender(handle));
+    return () => {
+      live = false;
+    };
+  }, [base, clipId, handle]);
+  const n = clip?.frames.length ?? 0;
+  // Ping-pong past the end of the clip so a long scene never jumps.
+  const idx = n ? (Math.floor(frame / n) % 2 === 0 ? frame % n : n - 1 - (frame % n)) : 0;
+  const quad = clip?.frames[idx];
+  const sw = 600;
+  const sh = sw / (clip?.screenAspect ?? 0.46);
+  const k = width / 1080;
+  return (
+    <AbsoluteFill style={{ background: "#000" }}>
+      {n > 0 && (
+        <>
+          <PingPongVideo src={`${base}/plate.mp4`} frames={n} />
+          {quad && (
+            <div style={{ position: "absolute", left: 0, top: 0, width: sw, height: sh, transformOrigin: "0 0", transform: quadMatrix(sw, sh, quad.map(([x, y]) => [x * k, y * k]) as [number, number][]) }}>
+              <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative", background: "#000", filter: "brightness(1.02) contrast(1.02)" }}>
+                {children}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(125deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.03) 32%, transparent 48%)", pointerEvents: "none" }} />
+              </div>
+            </div>
+          )}
+          <PingPongVideo src={`${base}/keyed.webm`} frames={n} transparent />
+        </>
+      )}
+      {n === 0 && <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", color: "#888", fontSize: 30 * k }}>{clip ? `hand clip "${clipId}" missing — run npm run fetch-hands` : ""}</AbsoluteFill>}
+    </AbsoluteFill>
+  );
+};
+
+/** A clip that plays forward, then backward, forever (so hand footage never runs out mid-scene). */
+const PingPongVideo: React.FC<{ src: string; frames: number; transparent?: boolean }> = ({ src, frames, transparent }) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  const cycles = Math.ceil(durationInFrames / frames) + 1;
+  return (
+    <>
+      {Array.from({ length: cycles }, (_, c) => {
+        const from = c * frames;
+        if (frame < from - 1 || frame >= from + frames) return null;
+        const reverse = c % 2 === 1;
+        return (
+          <Sequence key={c} from={from} durationInFrames={frames} layout="none">
+            <AbsoluteFill>
+              {reverse ? (
+                <ReverseFrame src={src} frames={frames} transparent={transparent} />
+              ) : (
+                <OffthreadVideo src={src} muted transparent={transparent} style={{ width: "100%", height: "100%" }} />
+              )}
+            </AbsoluteFill>
+          </Sequence>
+        );
+      })}
+    </>
+  );
+};
+
+/** Backward playback: hold the mirrored frame via startFrom on a one-frame sequence. */
+const ReverseFrame: React.FC<{ src: string; frames: number; transparent?: boolean }> = ({ src, frames, transparent }) => {
+  const frame = useCurrentFrame();
+  const at = Math.max(0, frames - 1 - frame);
+  return (
+    <Sequence from={frame} durationInFrames={1} layout="none">
+      <OffthreadVideo src={src} muted transparent={transparent} trimBefore={at} style={{ width: "100%", height: "100%" }} />
+    </Sequence>
   );
 };

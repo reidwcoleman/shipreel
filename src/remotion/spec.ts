@@ -40,6 +40,9 @@ export const FONT_IDS = [
   "caveat",
   "permanent-marker",
   "luckiest-guy",
+  "cormorant",
+  "playfair",
+  "arimo",
 ] as const;
 export const FontId = z.enum(FONT_IDS);
 export type FontId = z.infer<typeof FontId>;
@@ -57,6 +60,10 @@ export const CAPTION_STYLES = [
   "serif", // editorial serif, italic emphasis
   "headline", // persistent red headline box, heavy caps (founder split-screen seam)
   "snapchat", // full-width translucent black bar, small white text (the "my roommate showed me this" look)
+  "tiktok-plain", // TikTok Classic with no outline, soft shadow (calm lists over moody photos); color sets yellow/pink variants
+  "tiktok-heavy", // script-made slideshow text: Arial Bold, thick black outline (Snugly / Larry carousels)
+  "serif-box", // Cormorant serif, black, in stacked per-line white boxes (aesthetic tips carousels)
+  "serif-white", // Playfair Display, white, no box; *italic* emphasis (editorial lists)
 ] as const;
 export const CaptionStyleId = z.enum(CAPTION_STYLES);
 export type CaptionStyleId = z.infer<typeof CaptionStyleId>;
@@ -64,7 +71,7 @@ export type CaptionStyleId = z.infer<typeof CaptionStyleId>;
 export const TEXT_ANIMATIONS = ["none", "pop", "slide-up", "fade", "words", "typewriter", "slam"] as const;
 export const TextAnimation = z.enum(TEXT_ANIMATIONS);
 
-export const TEXT_POSITIONS = ["top", "upper", "center", "lower", "bottom"] as const;
+export const TEXT_POSITIONS = ["top", "upper", "center", "low", "lower", "bottom"] as const;
 export const TextPosition = z.enum(TEXT_POSITIONS);
 
 /** How a piece of on-screen text looks. Every field is optional; the theme fills the gaps. */
@@ -103,6 +110,8 @@ export const Background = z.discriminatedUnion("kind", [
     blur: z.number().min(0).max(60).default(0),
     /** Slow push-in (Ken Burns). */
     kenBurns: z.boolean().default(true),
+    /** Loop a video background every N seconds (its length), for scenes longer than the clip. */
+    loopSec: z.number().min(0.5).optional(),
   }),
 ]);
 export type Background = z.infer<typeof Background>;
@@ -116,7 +125,8 @@ export const SFX_IDS = ["whoosh", "pop", "click", "ding", "swoosh", "boom", "key
 export const SfxId = z.enum(SFX_IDS);
 export type SfxId = z.infer<typeof SfxId>;
 
-export const DEVICE_FRAMES = ["none", "iphone", "browser", "floating"] as const;
+/** hand = the screen composited into stock footage of a real hand holding a phone (see public/hands). */
+export const DEVICE_FRAMES = ["none", "iphone", "browser", "floating", "hand"] as const;
 
 /** A punch-in on a screen recording: at `at` seconds, zoom to `scale` centred on (x, y) for `hold` seconds. */
 export const Zoom = z.object({
@@ -151,6 +161,26 @@ export const Callout = z.object({
   size: z.number().min(0.4).max(1).default(0.9),
 });
 export type Callout = z.infer<typeof Callout>;
+
+/**
+ * One step of a screen flow: inside the same device, the app moves to another screen at `at` seconds
+ * (after an optional tap), the way a real screen recording of someone using the app looks.
+ */
+export const FlowStep = z.object({
+  at: z.number().min(0),
+  src: MediaSrc,
+  kind: z.enum(["video", "image"]).default("image"),
+  /** Where the finger taps (0–1 of the screen) just before the change. */
+  tap: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).optional(),
+  /** push = iOS navigation push, sheet = modal from the bottom, tab = instant (tab bar), fade. */
+  transition: z.enum(["push", "sheet", "tab", "fade"]).default("push"),
+  /** Scroll the screen up by this fraction of its height over the step (tall screenshots / recordings). */
+  scroll: z.number().min(0).max(0.9).default(0),
+});
+export type FlowStep = z.infer<typeof FlowStep>;
+
+/** A caption line that replaces the previous one at `at` seconds (TikTok text swapped on each beat). */
+export const CaptionLine = z.object({ at: z.number().min(0), text: z.string() });
 
 const sceneBase = {
   id: z.string().min(1),
@@ -191,9 +221,19 @@ export const MediaScene = z.object({
   volume: z.number().min(0).max(1).default(0),
   fit: z.enum(["cover", "contain"]).default("cover"),
   device: z.enum(DEVICE_FRAMES).default("none"),
+  /** Full-bleed crop anchor. top keeps the status bar of a raw screen recording (the bottom sits under TikTok's UI anyway). */
+  anchor: z.enum(["center", "top"]).default("center"),
+  /** Slow push-in over the scene for full-bleed footage (1 = none; 1.03–1.05 for b-roll). Never on raw UI. */
+  push: z.number().min(1).max(1.3).default(1),
+  /** Which hand clip to use with device "hand" (id from public/hands/library.json); first one if omitted. */
+  hand: z.string().optional(),
   zooms: z.array(Zoom).default([]),
   taps: z.array(Tap).default([]),
   callouts: z.array(Callout).default([]),
+  /** Later screens in the same take (see FlowStep). The scene's own src is the first screen. */
+  flow: z.array(FlowStep).default([]),
+  /** Caption lines swapped over time; the first one shows from 0 (overrides caption.text). */
+  lines: z.array(CaptionLine).default([]),
   /** Media width ÷ height (e.g. 0.46 for an iPhone recording). Lets taps/callouts land exactly on full-bleed footage. */
   aspect: z.number().min(0.2).max(4).optional(),
   caption: Caption.optional(),
@@ -211,11 +251,37 @@ export const ChatMessage = z.object({
   name: z.string().optional(),
 });
 
+/**
+ * The app as the story's helper (the Rizz text-story plug): at `at` seconds a panel with the app's
+ * name replaces the chat card while its suggestion is read out, then the suggestion is sent as a bubble.
+ */
+export const ChatAssist = z.object({
+  at: z.number().min(0),
+  /** With spoken chats: the panel comes in right after this message (index); timing is then generated. */
+  after: z.number().int().min(0).optional(),
+  hold: z.number().min(1).default(3.5),
+  app: z.string(),
+  icon: MediaSrc.optional(),
+  /** The divider line, e.g. "👇 Foxy suggests 👇". */
+  label: z.string().optional(),
+  suggestion: z.string(),
+});
+
 export const ChatScene = z.object({
   ...sceneBase,
   type: z.literal("chat"),
   app: z.enum(["imessage", "whatsapp", "instagram", "discord"]).default("imessage"),
   theme: z.enum(["light", "dark"]).default("light"),
+  /** screen = the whole frame is the phone's chat; card = a floating chat card over background footage (text-story pages). */
+  layout: z.enum(["screen", "card"]).default("screen"),
+  background: Background.optional(),
+  /** Read every message aloud (two system voices); Shipreel fills `voice` and each message's `at`. */
+  speak: z.boolean().default(false),
+  voices: z.object({ me: z.string().default("Samantha"), them: z.string().default("Daniel") }).default({ me: "Samantha", them: "Daniel" }),
+  /** The spoken track (generated), and a key of what it was generated from. */
+  voice: MediaSrc.optional(),
+  voiceKey: z.string().optional(),
+  assist: ChatAssist.optional(),
   /** The contact, or the group's name when messages carry sender names ("Family 🏠"). */
   contact: z.string().default("Sam"),
   messages: z.array(ChatMessage).min(1),
@@ -348,8 +414,11 @@ export const SlideScene = z.object({
   type: z.literal("slide"),
   text: z.string(),
   image: MediaSrc.optional(),
-  /** photo = full-bleed image under the text; phone = text on top, the image (an app screen) in a phone below. */
-  layout: z.enum(["photo", "phone"]).default("photo"),
+  /**
+   * photo = full-bleed image under the text; phone = text on top, the image (an app screen) in a phone below;
+   * screenshot = a raw app screenshot at its native 9:16 (the carousel still keeps that size; videos letterbox it).
+   */
+  layout: z.enum(["photo", "phone", "screenshot"]).default("photo"),
   background: Background.optional(),
   textStyle: TextStyle.optional(),
 });

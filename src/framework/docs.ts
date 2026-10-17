@@ -36,6 +36,11 @@ type Scene =
       taps?: { at: number; x: number; y: number }[];        // touch ripples (+ click sound) where the finger hits, x/y 0–1 of the screen
       callouts?: { at: number; hold?: number; x: number; y: number; w: number; h: number; size?: number }[];  // a rect of the screen (0–1) lifts out of the phone as a big card: the "exploded UI" feature highlight. Look at the screenshot to get the rect of one card/row/button.
       aspect?: number;                                       // media width/height (asset metadata); needed for taps/callouts on full-bleed footage
+      anchor?: "center" | "top";                             // "top" for raw screen recordings/screenshots (keeps the status bar; the bottom sits under TikTok's UI)
+      push?: number;                                         // slow push-in for b-roll (1.03–1.05); leave 1 on app screens
+      flow?: { at: number; src: string; kind?: "image" | "video"; tap?: { x: number; y: number }; transition?: "push" | "sheet" | "tab" | "fade"; scroll?: number }[];  // later screens in the SAME take (someone using the app), iOS transitions
+      lines?: { at: number; text: string }[];                // caption lines swapped over the take (one per step); caption.style styles them
+      device?: "hand";                                       // the screen keyed into real footage of a hand holding a phone (public/hands); hand?: clip id
       caption?: { text: string; style?: TextStyle }; background?: Background }
   | { type: "chat"; app?: "imessage" | "whatsapp" | "instagram" | "discord"; theme?: "light" | "dark"; contact?: string;
       messages: { from: "me" | "them"; text: string; at?: number; image?: string; name?: string }[]; caption?: Caption }   // name = sender in a group chat (contact = group name, e.g. "Family 🏠")
@@ -78,14 +83,21 @@ type Position = "top" | "upper" | "center" | "lower" | "bottom";   // all inside
 export const RULES = `
 ## What makes these videos work (follow these)
 
+Measured from ~200 viral app videos and carousels (research/viral/*.md). The hits look like posts, not ads:
+- **Raw beats polished.** Show the real app full-screen (anchor "top") or in a real hand (device "hand"). No floating phone mockups, 3D tilts, gradient backdrops, animated zooms on UI, tap circles or pop-out cards by default; those read as ads.
+- **TikTok's own text.** "tiktok-plain" (white, soft shadow) on dark screens, "tiktok-box" (white box, black text) on light screens, "tiktok-classic" (white + black outline) over photos and b-roll. ≤ 22 characters a line, lowercase is fine, 0–2 trailing emoji. Static: text cuts on with the shot.
+- **One short caption per step** (2–7 words), hard cuts every 1.7–2.5 s, 3–5 steps, the result held 2.4–3 s at the end with no text.
+- **No end card.** End on the result or a loopable frame; name the app in the post caption, a pinned comment, or one late line ("it's called X"). In emotional/mental-load posts, never show the app on screen at all.
+- **Real-life footage** (role "broll" / "photo") for the problem and the payoff; carousels use candid 3:4 phone photos and a raw 9:16 screenshot slide (layout "screenshot").
+
 1. **Frame 1 has words.** The hook is on screen from the first frame and readable in ~1.5s (4–12 words). Curiosity first: person + conflict + reveal, POV, "nobody talks about", a specific number.
 2. **Get to beat two by 2.5s.** Hook scenes are 1.8–2.6s. Total length 7–15s for most formats (slideshows 4–7 slides).
-3. **Show the real app.** Prefer the user's screen recordings/screenshots (assets) in media scenes, with 1–2 punch-in zooms on the magic moment.
+3. **Show the real app.** Prefer the user's screen recordings/screenshots (assets) in media scenes, raw and full-screen (or in a hand), with the magic moment first.
 4. **The CTA names the app and the outcome** ("Snugly helped me finally convince her") — never just "link in bio".
 5. **Never invent numbers.** Revenue, users, downloads, ratings and testimonials must come from the product brief's proof. If there are none, choose a format that doesn't need them.
 6. **Sound plan.** Set meta.soundTip to the mood of a trending sound to add in-app (TikTok drafts), or set audio.soundId from the sounds library.
 7. **Caption** ≤ 150 chars, names the app, ≤ 5 hashtags (in meta.hashtags, without #). No ad-speak ("revolutionary", "seamless", "game-changer").
-8. **Native looks beat polish**: iMessage, Notes, tweets, comment replies and TikTok-style text boxes outperform glossy motion graphics.
+8. **Native looks beat polish**: raw screens, real hands, iMessage, Notes, comment replies and TikTok's own text outperform glossy motion graphics and end cards.
 `;
 
 export function frameworkMarkdown(): string {

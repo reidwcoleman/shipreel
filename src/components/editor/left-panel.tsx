@@ -357,6 +357,10 @@ function MediaTab({ spec, assets, projectId }: { spec: VideoSpec; assets: Asset[
       zooms: [],
       taps: [],
       callouts: [],
+      flow: [],
+      lines: [],
+      anchor: a.role === "screen" ? "top" : "center",
+      push: a.role === "broll" ? 1.04 : 1,
       ...(a.width && a.height ? { aspect: +(a.width / a.height).toFixed(4) } : {}),
     };
     edit((s) => {

@@ -103,7 +103,9 @@ async function pump() {
       for (let i = 0; i < job.stills.length; i++) {
         const s = job.stills[i];
         fs.mkdirSync(path.dirname(s.out), { recursive: true });
-        await renderStill({ composition, serveUrl, output: s.out, frame: s.frame, inputProps: job.props, imageFormat: "png" });
+        // A still can carry its own props (a 9:16 screenshot slide inside a 3:4 carousel).
+        const comp = s.props ? await selectComposition({ serveUrl, id: COMPOSITION, inputProps: s.props, timeoutInMilliseconds: 120000 }) : composition;
+        await renderStill({ composition: comp, serveUrl, output: s.out, frame: Math.min(s.frame, comp.durationInFrames - 1), inputProps: s.props ?? job.props, imageFormat: "png" });
         send({ type: "progress", jobId: job.jobId, progress: 0.85 + ((i + 1) / job.stills.length) * 0.15, stage: "stills" });
       }
     }

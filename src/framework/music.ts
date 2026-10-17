@@ -70,7 +70,9 @@ const OVERLAP: Record<string, number> = { cut: 0, punch: 0, flash: 0, fade: 8, "
  */
 export function beatSync(spec: VideoSpecInput, track: MusicTrack, opts: { minShot?: number; dropScene?: number } = {}): VideoSpecInput {
   const scenes = spec.scenes.map((s) => ({ ...s })) as SceneInput[];
-  if (scenes.length < 2) return spec;
+  if (scenes.length < 2)
+    // One shot: nothing to snap, just start the bed on its first downbeat.
+    return { ...spec, audio: { ...(spec.audio ?? {}), src: `music:${track.id}`, title: `${track.title}${track.artist ? ` — ${track.artist}` : ""}`, startFrom: +Math.max(0, track.dropAt != null ? track.dropAt - 0.5 : track.firstBeat).toFixed(3), volume: spec.audio?.volume ?? 0.6, fadeOut: true } };
   const period = 60 / track.bpm;
   // Half-beats for fast tracks would be too busy; for slow ones (< 90 bpm) cut on half beats.
   const grid = track.bpm < 90 ? period / 2 : period;

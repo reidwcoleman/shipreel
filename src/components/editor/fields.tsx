@@ -184,6 +184,10 @@ const STYLE_LABEL: Record<string, string> = {
   serif: "Serif",
   headline: "Headline",
   snapchat: "Snapchat",
+  "tiktok-plain": "Plain",
+  "tiktok-heavy": "Heavy",
+  "serif-box": "Serif box",
+  "serif-white": "Editorial",
 };
 
 function StyleSwatch({ id }: { id: string }) {
@@ -213,6 +217,14 @@ function StyleSwatch({ id }: { id: string }) {
           <span className="flex w-full items-center justify-center bg-[rgba(0,0,0,0.6)] py-[3px] text-[10px] font-medium text-white">Aa</span>
         </span>
       );
+    case "tiktok-plain":
+      return <span className={cn(base, "bg-[#2a2a2e] font-medium text-white")} style={{ textShadow: "0 1px 2px rgba(0,0,0,.4)" }}>Aa</span>;
+    case "tiktok-heavy":
+      return <span className={cn(base, "bg-[#2a2a2e] font-bold text-white")} style={{ fontFamily: "Arial, sans-serif", textShadow: "0 0 2px #000, 0 0 2px #000, 0 0 2px #000" }}>Aa</span>;
+    case "serif-box":
+      return <span className={cn(base, "bg-[#2a2a2e]")}><span className="rounded-[3px] bg-white px-1.5 py-0.5 text-[14px] text-black" style={{ fontFamily: "Georgia, serif" }}>Aa</span></span>;
+    case "serif-white":
+      return <span className={cn(base, "bg-[#2a2a2e] text-[15px] text-white italic")} style={{ fontFamily: "Georgia, serif" }}>Aa</span>;
     default:
       return <span className={cn(base, "bg-[#2a2a2e] font-semibold text-white")} style={{ textShadow: "0 0 1.5px #000, 0 0 1.5px #000" }}>Aa</span>;
   }

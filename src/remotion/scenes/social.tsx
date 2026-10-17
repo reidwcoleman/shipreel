@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Img, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { fillTextBox } from "@remotion/layout-utils";
 import type { z } from "zod";
 import { APPLE_UI, fontFamily } from "../fonts";
@@ -70,7 +70,205 @@ const CHAT_SKINS = {
   },
 } as const;
 
+/**
+ * Text-story card (measured on 13 Rizz/Plug AI text-story hits, 283K–8.5M views): background footage
+ * full-bleed, one floating chat card (x 175–907, top 340, radius 40, grows down, pages at y≈1530),
+ * SF Pro 37 px bubbles that appear on the frame their line is spoken, no typing dots, no SFX.
+ */
+const ChatCard: React.FC<P<typeof ChatScene>> = ({ scene }) => {
+  const frame = useCurrentFrame();
+  const { fps, width, durationInFrames } = useVideoConfig();
+  const resolve = useResolve();
+  const k = width / 1080;
+  const dark = scene.theme === "dark";
+  const cardX = 175 * k;
+  const cardW = 732 * k;
+  const top = 340 * k;
+  const maxBottom = 1530 * k;
+  const headerH = 200 * k;
+  const fs = 37 * k;
+  const lineH = fs * 1.2;
+  const padY = 18 * k;
+  const padX = 26 * k;
+  const inset = 34 * k;
+  const maxBubble = cardW * 0.7;
+  const t = frame / fps;
+  const n = scene.messages.length;
+  const span = Math.max(0.6, durationInFrames / fps - 0.6);
+  const times = scene.messages.map((m, i) => m.at ?? (i * span) / n);
+
+  // Lay out bubbles and split them into pages that fit between the card top and maxBottom.
+  const items = scene.messages.map((m, i) => {
+    const lines = countLines(m.text, APPLE_UI, fs, 400, maxBubble - 2 * padX);
+    const img = m.image ? 420 * k : 0;
+    const h = lines * lineH + 2 * padY + img;
+    const gap = i === 0 ? 0 : scene.messages[i - 1].from === m.from ? 4 * k : 24 * k;
+    return { h, gap };
+  });
+  const pages: number[] = [];
+  let page = 0;
+  let y = top + headerH + 24 * k;
+  items.forEach((it, i) => {
+    const gap = i === 0 || pages[i - 1] !== page ? 0 : it.gap;
+    if (i > 0 && y + gap + it.h + 30 * k > maxBottom) {
+      page++;
+      y = top + 30 * k;
+      pages.push(page);
+      y += it.h;
+      return;
+    }
+    pages.push(page);
+    y += gap + it.h;
+  });
+  const visible = times.filter((x) => t >= x - 1e-6).length;
+  const curPage = visible ? pages[visible - 1] : 0;
+  const shown = scene.messages.map((m, i) => ({ m, i })).filter(({ i }) => i < visible && pages[i] === curPage);
+  const assist = scene.assist && t >= scene.assist.at && t < scene.assist.at + scene.assist.hold ? scene.assist : undefined;
+  const bodyBg = dark ? "#000000" : "#FFFFFF";
+  const them = dark ? "#262628" : "#E9E9EB";
+  const themText = dark ? "#FFFFFF" : "#000000";
+  const lastOfRun = (i: number) => i === n - 1 || scene.messages[i + 1].from !== scene.messages[i].from || pages[i + 1] !== pages[i];
+  const voice = resolve(scene.voice);
+
+  return (
+    <AbsoluteFill style={{ background: "#000", fontFamily: APPLE_UI }}>
+      <Backdrop bg={scene.background ?? { kind: "solid", color: "#16171a" }} />
+      {voice && <Audio src={voice} />}
+      {!assist && (
+        <div
+          style={{
+            position: "absolute",
+            left: cardX,
+            top,
+            width: cardW,
+            borderRadius: 40 * k,
+            overflow: "hidden",
+            background: bodyBg,
+            boxShadow: `0 ${8 * k}px ${24 * k}px rgba(0,0,0,0.45)`,
+            paddingBottom: 26 * k,
+          }}
+        >
+          {curPage === 0 && (
+            <div style={{ height: headerH, background: dark ? "#1C1C1E" : "#F2F2F2", borderBottom: dark ? undefined : `${1 * k}px solid #D1D1D6`, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 * k }}>
+              <svg width={18 * k} height={30 * k} viewBox="0 0 12 20" style={{ position: "absolute", left: 30 * k, top: 52 * k }}>
+                <path d="M10 2 2 10l8 8" stroke="#0A84FF" strokeWidth={2.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <ContactAvatar name={scene.contact} size={100 * k} />
+              <div style={{ color: dark ? "#fff" : "#000", fontSize: 26 * k, display: "flex", alignItems: "center", gap: 6 * k }}>
+                {scene.contact}
+                <span style={{ color: "#8E8E93", fontSize: 22 * k }}>›</span>
+              </div>
+              <svg width={44 * k} height={30 * k} viewBox="0 0 30 20" style={{ position: "absolute", right: 30 * k, top: 54 * k }}>
+                <rect x="1.5" y="3" width="19" height="14" rx="3.5" fill="none" stroke="#0A84FF" strokeWidth="2.2" />
+                <path d="M21 9 28 5v10l-7-4z" fill="none" stroke="#0A84FF" strokeWidth="2.2" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", padding: `${curPage === 0 ? 24 * k : 30 * k}px ${inset}px 0` }}>
+            {shown.map(({ m, i }, j) => {
+              const me = m.from === "me";
+              const img = resolve(m.image);
+              const appear = interpolate(frame - Math.round(times[i] * fps), [0, 2], [0, 1], clamp);
+              return (
+                <div key={i} style={{ display: "flex", justifyContent: me ? "flex-end" : "flex-start", marginTop: j === 0 ? 0 : items[i].gap, opacity: appear }}>
+                  <div
+                    style={{
+                      position: "relative",
+                      maxWidth: maxBubble,
+                      padding: `${padY}px ${padX}px`,
+                      borderRadius: 36 * k,
+                      background: me ? "#0A84FF" : them,
+                      color: me ? "#FFFFFF" : themText,
+                      fontSize: fs,
+                      lineHeight: `${lineH}px`,
+                      letterSpacing: "-0.01em",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                      borderBottomRightRadius: me && lastOfRun(i) ? 10 * k : undefined,
+                      borderBottomLeftRadius: !me && lastOfRun(i) ? 10 * k : undefined,
+                    }}
+                  >
+                    {img && <Img src={img} style={{ width: 420 * k, height: 420 * k, objectFit: "cover", borderRadius: 24 * k, display: "block", marginBottom: m.text ? 8 * k : 0 }} />}
+                    {m.text}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {assist && <AssistPanel assist={assist} frame={frame - Math.round(assist.at * fps)} />}
+    </AbsoluteFill>
+  );
+};
+
+/** The app helping out mid-story: pastel panel, app name, divider label, the suggestion card. */
+const AssistPanel: React.FC<{ assist: NonNullable<z.infer<typeof ChatScene>["assist"]>; frame: number }> = ({ assist, frame }) => {
+  const { fps, width } = useVideoConfig();
+  const resolve = useResolve();
+  const k = width / 1080;
+  const s = spring({ frame, fps, config: { damping: 18, stiffness: 260, mass: 0.6 } });
+  const icon = resolve(assist.icon);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 136 * k,
+        top: 185 * k,
+        width: 807 * k,
+        height: 926 * k,
+        background: "linear-gradient(160deg, #CCC9F0 0%, #C9E1E5 100%)",
+        boxShadow: `0 ${8 * k}px ${24 * k}px rgba(0,0,0,0.45)`,
+        transform: `scale(${interpolate(s, [0, 1], [0.94, 1])})`,
+        opacity: interpolate(frame, [0, 2], [0, 1], clamp),
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: `${40 * k}px ${44 * k}px`,
+        boxSizing: "border-box",
+        fontFamily: APPLE_UI,
+        color: "#1b1b2a",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 18 * k, marginTop: 30 * k }}>
+        {icon && <Img src={icon} style={{ width: 96 * k, height: 96 * k, borderRadius: 22 * k }} />}
+        <div style={{ fontSize: 76 * k, fontWeight: 800, letterSpacing: "-0.03em" }}>{assist.app}</div>
+      </div>
+      <div style={{ flex: 1 }} />
+      <div style={{ width: "100%", height: 2 * k, background: "rgba(0,0,0,0.12)", marginBottom: 26 * k }} />
+      <div style={{ fontSize: 40 * k, fontWeight: 700, marginBottom: 34 * k }}>{assist.label ?? `👇 ${assist.app} suggests 👇`}</div>
+      <div
+        style={{
+          width: "100%",
+          background: "#FFFFFF",
+          borderRadius: 32 * k,
+          padding: `${34 * k}px ${40 * k}px`,
+          boxSizing: "border-box",
+          fontSize: 40 * k,
+          fontWeight: 700,
+          lineHeight: 1.25,
+          display: "flex",
+          gap: 20 * k,
+          alignItems: "center",
+          marginBottom: 40 * k,
+        }}
+      >
+        <div style={{ flex: 1 }}>{assist.suggestion}</div>
+        <svg width={40 * k} height={40 * k} viewBox="0 0 24 24" fill="none" stroke="#8a8aa0" strokeWidth={2}>
+          <rect x="8" y="8" width="12" height="12" rx="2.5" />
+          <path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" />
+        </svg>
+      </div>
+    </div>
+  );
+};
+
 export const Chat: React.FC<P<typeof ChatScene>> = ({ scene }) => {
+  if (scene.layout === "card") return <ChatCard scene={scene} />;
+  return <ChatScreen scene={scene} />;
+};
+
+const ChatScreen: React.FC<P<typeof ChatScene>> = ({ scene }) => {
   const frame = useCurrentFrame();
   const { fps, width, height, durationInFrames } = useVideoConfig();
   const safe = useSafeArea();

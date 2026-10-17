@@ -43,14 +43,20 @@ type Recipe = {
   mono?: boolean;
   italicHighlight?: boolean;
   shrinkAt: number; // characters before auto-shrink kicks in
+  /** Max block width (fraction of frame width): sets the measured characters-per-line of each look. */
+  maxW?: number;
+  /** TikTok's own text tool: cuts on and off with the shot, no entrance animation. */
+  native?: boolean;
 };
 
+/** A solid outline from stacked text-shadows: an outer ring plus an inner one so thick strokes stay round. */
 const outline = (px: number, color = "#000") => {
-  const steps = 16;
   const parts: string[] = [];
-  for (let i = 0; i < steps; i++) {
-    const a = (i / steps) * Math.PI * 2;
-    parts.push(`${(Math.cos(a) * px).toFixed(1)}px ${(Math.sin(a) * px).toFixed(1)}px 0 ${color}`);
+  for (const [r, steps] of [[px, px > 4 ? 24 : 16], [px * 0.55, 12]] as const) {
+    for (let i = 0; i < steps; i++) {
+      const a = (i / steps) * Math.PI * 2;
+      parts.push(`${(Math.cos(a) * r).toFixed(1)}px ${(Math.sin(a) * r).toFixed(1)}px 0 ${color}`);
+    }
   }
   return parts.join(", ");
 };
@@ -60,15 +66,41 @@ export function recipeFor(style: CaptionStyleId, width: number): Recipe {
   // Values measured from viral app promos (research/design.json) at 1080 wide.
   switch (style) {
     case "tiktok-box":
-      // TikTok background-box: white box, black TikTok Sans 600 (size 5.9% W, generous rounded box).
+      // TikTok "text background": one white box per line, boxes touching (pitch 1.74 em), radius ≈ 0.33 em,
+      // black TikTok Sans 600. Measured on Hevy 483K (46 px text, 80 px box, 15 px radius at 1080 wide).
       return {
-        font: "tiktok-sans", weight: 600, size: 0.059, lineHeight: 1.42, tracking: "-0.005em",
-        box: { bg: "#FFFFFF", fg: "#000000", padY: 0.16, padX: 0.42, radius: 0.36 }, shrinkAt: 64,
+        font: "tiktok-sans", weight: 600, size: 0.046, lineHeight: 1.74, tracking: "-0.01em",
+        box: { bg: "#FFFFFF", fg: "#000000", padY: 0.27, padX: 0.55, radius: 0.33 }, shrinkAt: 70, maxW: 0.8, native: true,
       };
     case "tiktok-box-dark":
       return {
-        font: "tiktok-sans", weight: 600, size: 0.059, lineHeight: 1.42, tracking: "-0.005em",
-        box: { bg: "#000000", fg: "#FFFFFF", padY: 0.16, padX: 0.42, radius: 0.36 }, shrinkAt: 64,
+        font: "tiktok-sans", weight: 600, size: 0.046, lineHeight: 1.74, tracking: "-0.01em",
+        box: { bg: "#000000", fg: "#FFFFFF", padY: 0.27, padX: 0.55, radius: 0.33 }, shrinkAt: 70, maxW: 0.8, native: true,
+      };
+    case "serif-box":
+      // Lense 1.2M: Cormorant Medium, black on per-line white boxes that touch (pitch ≈ 1.22 em, radius ≈ 0.17 em).
+      return {
+        font: "cormorant", weight: 500, size: 0.056, lineHeight: 1.3, tracking: "0em",
+        box: { bg: "#FFFFFF", fg: "#111111", padY: 0.12, padX: 0.28, radius: 0.17 }, shrinkAt: 70, maxW: 0.8, native: true,
+      };
+    case "serif-white":
+      // Opal 444K: Playfair Display, white, no box, tight 1.05 pitch; *highlighted* words go italic.
+      return {
+        font: "playfair", weight: 400, size: 0.052, lineHeight: 1.08, tracking: "-0.005em", color: "#FFFFFF",
+        italicHighlight: true, shadow: `0 ${1 * k}px ${4 * k}px rgba(0,0,0,0.45)`, shrinkAt: 60, maxW: 0.86, native: true,
+      };
+    case "tiktok-plain":
+      // TikTok's default text on faceless screen demos (31 hits): TikTok Sans Medium ~64 px, white, soft
+      // shadow, no stroke or box, ≤ 22 characters a line, 1.28 pitch.
+      return {
+        font: "tiktok-sans", weight: 500, size: 0.059, lineHeight: 1.28, tracking: "-0.01em",
+        shadow: `0 ${2 * k}px ${6 * k}px rgba(0,0,0,0.35)`, shrinkAt: 66, maxW: 0.7, native: true,
+      };
+    case "tiktok-heavy":
+      // Script-rendered carousels (Snugly 482K): Arial Bold, ~6 px black outline, 1.42 pitch.
+      return {
+        font: "arimo", weight: 700, size: 0.057, lineHeight: 1.42, tracking: "0em",
+        shadow: outline(6 * k), shrinkAt: 60, maxW: 0.86, native: true,
       };
     case "hormozi":
       // Montserrat 900 caps, 10px black stroke, hard drop shadow; active word highlighted.
@@ -112,15 +144,16 @@ export function recipeFor(style: CaptionStyleId, width: number): Recipe {
       // Snapchat caption bar: edge-to-edge rgba(0,0,0,.6) band, white ~3.7% W text, one or two lines.
       return {
         font: "inter", weight: 500, size: 0.037, lineHeight: 1.3, tracking: "-0.005em", color: "#FFFFFF",
-        bar: { bg: "rgba(0,0,0,0.6)", padY: 0.42 }, shrinkAt: 90,
+        bar: { bg: "rgba(0,0,0,0.6)", padY: 0.42 }, shrinkAt: 90, native: true,
       };
     case "tiktok-classic":
     default:
-      // TikTok's native text, measured on 1M–140M-view app hooks: white TikTok Sans medium at ~6.5% W,
-      // ~1.25 line height, a hairline dark outline and a soft drop shadow (no heavy stroke).
+      // TikTok's "Classic" text with the outline option, measured on 27 carousels and 64 UGC videos:
+      // white TikTok Sans semibold, a crisp 3 px black outline, no blur, ~1.23 line pitch; hooks
+      // 60–72 px, ≤ ~26 characters a line.
       return {
-        font: "tiktok-sans", weight: 500, size: 0.065, lineHeight: 1.24, tracking: "-0.012em",
-        shadow: `${outline(2.2 * k, "rgba(0,0,0,0.78)")}, 0 ${3 * k}px ${10 * k}px rgba(0,0,0,0.5)`, shrinkAt: 40,
+        font: "tiktok-sans", weight: 600, size: 0.06, lineHeight: 1.23, tracking: "-0.01em",
+        shadow: outline(3 * k), shrinkAt: 44, maxW: 0.78, native: true,
       };
   }
 }
@@ -171,7 +204,7 @@ export const StyledText: React.FC<StyledTextProps> = ({
   const { theme } = useRender();
   const styleId = style?.style ?? fallbackStyle ?? theme.captionStyle;
   const r = recipeFor(styleId, width);
-  const fontId: FontId = style?.font ?? (styleId === "tiktok-classic" || styleId === "tiktok-box" || styleId === "tiktok-box-dark" ? theme.font : r.font);
+  const fontId: FontId = style?.font ?? r.font;
   const family = fontFamily(fontId);
   const single = SINGLE_WEIGHT[fontId];
   const px = (size ?? style?.size ?? autoSize(r.size, text, r.shrinkAt)) * width;
@@ -180,8 +213,8 @@ export const StyledText: React.FC<StyledTextProps> = ({
   const sceneInfo = useSceneInfo();
   // The first frame of the video is its thumbnail and the moment the scroll stops: hook text is
   // already on screen there (it settles with a small punch instead of fading in).
-  const coldOpen = sceneInfo?.index === 0 && delay === 0;
-  const requested = style?.animation ?? "pop";
+  const coldOpen = sceneInfo?.index === 0 && delay === 0 && !r.native;
+  const requested = style?.animation ?? (r.native ? "none" : "pop");
   const anim = coldOpen && requested !== "words" && requested !== "typewriter" ? "settle" : requested;
   const align = style?.align ?? "center";
   const lines = parseRich(text);
@@ -232,7 +265,7 @@ export const StyledText: React.FC<StyledTextProps> = ({
   return (
     <div
       style={{
-        width: r.bar ? width : width * maxWidth,
+        width: r.bar ? width : width * Math.min(maxWidth, r.maxW ?? 1),
         ...(r.bar ? { background: r.bar.bg, padding: `${r.bar.padY * px}px ${0.06 * width}px`, boxSizing: "border-box" as const } : {}),
         textAlign: align,
         fontFamily: family,
@@ -286,7 +319,8 @@ export const StyledText: React.FC<StyledTextProps> = ({
               }
               const isActive = wi === activeWord;
               const hi = t.hi || isActive;
-              const wordColor = hi ? (r.box ? r.box.fg : hiColor) : undefined;
+              // Serif styles mark emphasis with italics only (Opal / Astra), not colour.
+              const wordColor = hi ? (r.box ? r.box.fg : r.italicHighlight && !style?.highlight ? undefined : hiColor) : undefined;
               return (
                 <React.Fragment key={ti}>
                   <span

@@ -1,7 +1,8 @@
 import { buildSpec, fillHook, FORMAT_MAP } from "@/framework/formats";
 import { bad, body, handle, json } from "@/lib/server/http";
 import { listAssets } from "@/lib/server/media";
-import { createVideo, getProject, listVideos } from "@/lib/server/projects";
+import { createVideo, getProject, listVideos, saveVideoSpec } from "@/lib/server/projects";
+import { voiceChats } from "@/lib/server/voice";
 
 export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
@@ -19,5 +20,8 @@ export const POST = handle(async (req: Request, ctx: Ctx) => {
   // No hook given: use the format's own best hook, filled for this product.
   const hook = b.hook?.trim() || fillHook(FORMAT_MAP[formatId].hooks[0] ?? "I built an app that {does}", project);
   const spec = buildSpec(formatId, { project, hook, media });
-  return json(await createVideo(id, spec, "template"), 201);
+  const doc = await createVideo(id, spec, "template");
+  // Spoken chat stories get their voices now, so the preview plays them in sync.
+  const voiced = await voiceChats(id, doc.spec).catch(() => null);
+  return json(voiced ? await saveVideoSpec(id, doc.id, voiced) : doc, 201);
 });

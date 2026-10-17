@@ -5,8 +5,9 @@
  */
 import type { Asset, Platform, Project } from "@/lib/types";
 import type { Background, CaptionStyleId, SceneInput, VideoSpecInput } from "@/remotion/spec";
-import { fill, hashString, pick, seeded, short, toYou, vocab, type Vocab } from "./fill";
+import { fill, hashString, pick, seeded, short, shuffle, toYou, vocab, type Vocab } from "./fill";
 import { beatSync, MUSIC_VIBES, pickMusic } from "./music";
+import handLibrary from "../../public/hands/library.json";
 
 export type FormatCategory =
   | "demo"
@@ -44,6 +45,8 @@ export type FormatDef = {
   captionStyle: CaptionStyleId;
   soundTip: string;
   hooks: string[];
+  /** Music mood for the built-in bed, best first (defaults by category). */
+  musicVibes?: string[];
   /** Builds the spec. Never throws: falls back to media-free scenes when there's no footage. */
   build: (ctx: BuildContext) => Omit<VideoSpecInput, "id">;
 };
@@ -1510,6 +1513,462 @@ F.push({
   },
 });
 
+// ── native formats (rebuilt from research/viral/*.md: what the hits actually look like) ───────────
+
+/** Hand-held phone clips available to the "hand" device (public/hands, fetched by npm run fetch-hands). */
+const HANDS: { id: string; setting?: string; motion?: string }[] = (handLibrary as unknown as { id: string }[]).filter((h) => h && h.id);
+
+/** Every portrait app screen, ordered by the feature it shows (features are ranked by wow). */
+function orderedScreens(ctx: BuildContext, v: Vocab) {
+  const rank = (file: string) => {
+    const f = featureFor(file, v.features);
+    return f ? v.features.indexOf(f) : 99;
+  };
+  return images(ctx)
+    .filter((m) => m.role === "screen" || (!m.role && isPortrait(m)))
+    .map((m, i) => ({ m, i, r: rank(m.file) }))
+    .sort((a, b) => a.r - b.r || a.i - b.i)
+    // One screen per feature, so no two shots say the same thing.
+    .filter((x, i, all) => x.r === 99 || all.findIndex((y) => y.r === x.r) === i)
+    .map((x) => x.m);
+}
+/** A real launch / tap-through recording if the project has one (named launch, open, tapthrough…). */
+function launchClip(ctx: BuildContext) {
+  return ctx.media.find((m) => m.kind === "video" && m.role === "screen" && /launch|open|splash|tap.?through|start/i.test(m.file));
+}
+/** One step caption in the hits' voice: lowercase, 2–7 words, no full stop. */
+export function stepLine(f: { name: string; benefit?: string }): string {
+  const b = (f.benefit || "").replace(/[.!]+$/, "").trim();
+  const clause = b.split(/[,;:]|\s+—\s+|\s+-\s+/)[0].trim();
+  const n = clause.split(/\s+/).length;
+  const pick = clause && n >= 3 && n <= 8 ? clause : f.name;
+  return lc1(pick.replace(/[.!]+$/, ""));
+}
+const lc1 = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+/** Is the app's UI light (cream/white screens)? Plain white TikTok text vanishes on those. */
+function lightUi(p: Project): boolean {
+  const m = /^#?([0-9a-f]{6})$/i.exec((p.brand.bg || "").trim());
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255) > 0.45;
+}
+/** TikTok text over the app's own screens: plain white on dark UIs (as the hits do), the white box on light ones. */
+const uiText = (p: Project): CaptionStyleId => (lightUi(p) ? "tiktok-box" : "tiktok-plain");
+const nativeTheme = (p: Project, captionStyle: CaptionStyleId) => ({ ...theme(p, captionStyle), grain: false, sfx: false });
+const photosOf = (ctx: BuildContext) => ctx.media.filter((m) => m.kind === "image" && m.role === "photo");
+/** First match of each regex, in order, among a list of files. */
+function firstFile<T extends { file: string }>(list: T[], res: RegExp[], not: T[] = []): T | undefined {
+  for (const re of res) {
+    const hit = list.find((m) => re.test(m.file) && !not.includes(m));
+    if (hit) return hit;
+  }
+  return undefined;
+}
+const screenScene = (m: { file: string; width?: number; height?: number }, extra: Partial<SceneInput> & { duration: number }): SceneInput =>
+  ({ id: sid(), type: "media", src: `asset:${m.file}`, kind: "image", device: "none", anchor: "top", aspect: aspectOf(m), transition: "cut", ...extra }) as SceneInput;
+
+F.push({
+  id: "raw-demo",
+  name: "Raw screen demo",
+  tagline: "Result first, then the app doing it: raw recording, one caption per step, no mockup.",
+  category: "demo",
+  kind: "video",
+  platforms: ["tiktok", "instagram", "youtube"],
+  status: "hot",
+  why: "The faceless format with the best install rate (0.5–1% of viewers). Every hit studied (Remini 14–139M, StudyFetch 13.4M, Cal AI) is deliberately raw: the real screen edge to edge, TikTok's own text, one short line per step, hard cuts every ~2 s, the result held at the end. Mockups, zooms and end cards read as ads.",
+  beats: ["Hook over the result screen, 0–2.8 s", "Name drop: the app opening (≈1.5 s)", "3–4 steps, one lowercase caption each, hard cuts ~2 s", "The result again, no text, 2.4–3 s"],
+  lengthSec: [10, 20],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-plain",
+  soundTip: "One trending or Commercial Music Library track, kept as a bed. No voiceover.",
+  hooks: ["how I stopped {painYou}", "I don't have time to {pain} 💀💀💀", "POV: you found an app that {does}", "this is how I {outcome} now"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const screens = orderedScreens(ctx, v);
+    const launch = launchClip(ctx);
+    const result = screens[0];
+    const steps = screens.slice(1, 5);
+    const top = (text: string) => ({ text, style: { style: uiText(p), position: "upper" as const } });
+    const scenes: SceneInput[] = [];
+    if (result) scenes.push(screenScene(result, { duration: 2.8, caption: top(ctx.hook) }));
+    else scenes.push({ id: sid(), type: "hook", duration: 2.8, text: ctx.hook, textStyle: { style: "tiktok-plain" } });
+    if (launch)
+      scenes.push({ id: sid(), type: "media", duration: 1.6, src: `asset:${launch.file}`, kind: "video", device: "none", anchor: "top", aspect: aspectOf(launch), caption: top(`download ${v.app.toLowerCase()}`) });
+    steps.forEach((m) => {
+      const f = featureFor(m.file, v.features);
+      scenes.push(screenScene(m, { duration: 2.1, caption: top(f ? stepLine(f) : v.outcome) }));
+    });
+    if (result) scenes.push(screenScene(result, { duration: 2.6 }));
+    return {
+      title: short(ctx.hook.replace(/\*/g, ""), 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      meta: meta(ctx, v, this, `${ctx.hook.replace(/\*/g, "")} 😭 app is called ${v.app}`),
+    };
+  },
+});
+
+F.push({
+  id: "found-this",
+  name: "“I'm just NOW finding this??”",
+  tagline: "A relatable moment, then one continuous take of the app doing the whole job.",
+  category: "demo",
+  kind: "video",
+  platforms: ["tiktok", "instagram", "youtube"],
+  status: "hot",
+  why: "Disbelief-discovery is the strongest product-led format in the research (Potto 29.3M and 10.5M, Stronger 851K, Nomad Table 1.0M): a 3 s relatable shot with the hook, then a single unbroken take of the app in a hand, one benefit line per beat. Viewers save it because it feels like a friend's tip, not an ad.",
+  beats: ["0–3 s: real-life shot + hook strip", "One continuous take of the app (phone in hand when available)", "A new benefit line every ~2 s", "Hold the payoff screen; name the app in the caption"],
+  lengthSec: [12, 20],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-plain",
+  soundTip: "Soft trending sound or lo-fi; optionally a whispered 'I can't believe this is real' voiceover.",
+  hooks: [
+    "been {pain} for years and I'm JUST NOW finding this??",
+    "why did nobody tell me you can just {outcome}",
+    "someone made an app that {does}??",
+    "my friend just showed me this and I'm so mad nobody told me sooner",
+  ],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const screens = orderedScreens(ctx, v);
+    const launch = launchClip(ctx);
+    const { all: clips } = brollClips(ctx);
+    const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
+    const opener = firstFile(clips, [/phone|texting|scroll/i, /overwhelm|stress|frustrat|tired|chaos/i]) ?? (clips.length ? pick(clips, r) : undefined);
+    const scenes: SceneInput[] = [];
+    if (opener)
+      scenes.push({ id: sid(), type: "media", duration: 3, src: `asset:${opener.file}`, kind: "video", device: "none", aspect: aspectOf(opener), push: 1.05, caption: { text: ctx.hook, style: { style: "snapchat", position: "bottom" } } });
+    // One take: the app opens (if there's a recording), then moves screen to screen like someone using it.
+    const take = screens.slice(0, 5);
+    const first = launch ?? take[0];
+    if (first) {
+      const firstDur = launch ? Math.min(3.2, Math.max(2, (launch.durationSec ?? 3) - 0.4)) : 2.2;
+      const flow = (launch ? take : take.slice(1)).map((m, i) => ({ at: +(firstDur + i * 2.2).toFixed(2), src: `asset:${m.file}`, kind: "image" as const, transition: "push" as const }));
+      const lines = [
+        { at: 0, text: "watch this…" },
+        ...(launch ? take : take.slice(1)).map((m, i) => {
+          const f = featureFor(m.file, v.features);
+          return { at: +(firstDur + i * 2.2).toFixed(2), text: f ? stepLine(f) : v.outcome };
+        }),
+      ];
+      const total = firstDur + flow.length * 2.2 + 0.6;
+      scenes.push({
+        id: sid(),
+        type: "media",
+        duration: +total.toFixed(2),
+        src: `asset:${first.file}`,
+        kind: launch ? "video" : "image",
+        device: HANDS.length ? "hand" : "none",
+        hand: HANDS.length ? pick(HANDS, r).id : undefined,
+        anchor: "top",
+        aspect: aspectOf(first),
+        flow,
+        lines,
+        caption: { text: "watch this…", style: { style: uiText(p), position: "upper" } },
+      } as SceneInput);
+    }
+    return {
+      title: short(ctx.hook.replace(/\*/g, ""), 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      meta: meta(ctx, v, this, `it's called ${v.app} and it's ${p.cta.text?.toLowerCase().includes("free") ? "free" : "on the App Store"} 😭`),
+    };
+  },
+});
+
+F.push({
+  id: "mental-load",
+  name: "“No one talks about…” wall of text",
+  tagline: "One real clip, one honest paragraph, no app on screen. Built for reach.",
+  category: "story",
+  kind: "video",
+  platforms: ["tiktok", "instagram"],
+  status: "hot",
+  why: "The highest-engagement content in most niches is the feeling, not the product (mental-load posts hit 9–18% like rates, up to 6.9M views). Naming the app in the overlay cut a competitor's reach ~80–250×; its breakouts named it only in the caption. The paragraph takes longer to read than the 7 s clip, so viewers loop.",
+  beats: ["One static clip, 6–8 s, no cuts", "A 40–60 word paragraph on screen from frame 1, with one specific detail", "App only in the caption + pinned comment"],
+  lengthSec: [6, 8],
+  needs: ["nothing"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  musicVibes: ["emotional", "cinematic", "lofi", "chill"],
+  soundTip: "A trending melancholy or ironic sound with no voice.",
+  hooks: ["No one talks about how exhausting it is when {painYou}", "Nobody warns you that {painYou}"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const { problem } = brollClips(ctx);
+    const youPains = p.pains.map((x) => toYou(x.replace(/[.!?]+$/, "")));
+    const opening = ctx.hook.replace(/\*/g, "").replace(/[.!?]+$/, "");
+    const rest = youPains.slice(opening.toLowerCase().includes(youPains[0]?.toLowerCase() ?? "\u0000") ? 1 : 0, 3).map((x) => x.charAt(0).toUpperCase() + x.slice(1));
+    // 40–60 words: the hook, then the brief's pains until the paragraph is full.
+    const parts = [opening + "."];
+    for (const x of rest) if ((parts.join(" ") + " " + x).split(/\s+/).length <= 58) parts.push(x + ".");
+    const paragraph = parts.join(" ");
+    return {
+      title: short(opening, 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes: [
+        problem
+          ? { id: sid(), type: "media", duration: 7, src: `asset:${problem.file}`, kind: "video", device: "none", aspect: aspectOf(problem), push: 1.03, caption: { text: paragraph, style: { style: "tiktok-classic", size: 0.041, position: "center" } } }
+          : { id: sid(), type: "hook", duration: 7, text: paragraph, textStyle: { style: "tiktok-classic", size: 0.041 } },
+      ],
+      meta: meta(ctx, v, this, `it's why we use ${v.app} now tbh 🫠`),
+    };
+  },
+});
+
+F.push({
+  id: "setup-receipts",
+  name: "Setup → receipts (2 slides)",
+  tagline: "A quote over a candid photo, then a raw screenshot from the app as the punchline.",
+  category: "slideshow",
+  kind: "slideshow",
+  platforms: ["tiktok", "instagram"],
+  status: "hot",
+  why: "The highest-reach carousel structure in the research (Stronger 7.3M / 3.5M / 1.2M, Hevy 1.1M): one swipe pays off, and the screenshot is both punchline and proof. 3:4 photos, TikTok's own text, the app's real screen at native size.",
+  beats: ["Slide 1: candid phone photo + a quote someone said to you", "Slide 2: raw screenshot from the app + the punchline in a white box"],
+  lengthSec: [5, 7],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  soundTip: "Add a trending sped-up sound in TikTok's photo mode; reuse it across the series.",
+  hooks: ["“how do you {outcome}?”", "“you're so organized, how do you remember everything?”", "“I wish I could {outcome} like you”"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
+    const photos = photosOf(ctx);
+    const photo = firstFile(photos, [/overwhelm|stress|chaos|rush|frustrat|phone|texting/i]) ?? (photos.length ? pick(photos, r) : undefined);
+    const shot = orderedScreens(ctx, v)[0];
+    const quote = /[“"]/.test(ctx.hook) ? ctx.hook : `“${ctx.hook.replace(/\*/g, "")}”`;
+    return {
+      title: short(quote, 60),
+      formatId: this.id,
+      kind: "slideshow",
+      aspect: "3:4",
+      theme: nativeTheme(p, this.captionStyle),
+      scenes: [
+        { id: sid(), type: "slide", duration: 2.5, text: quote, image: photo ? `asset:${photo.file}` : undefined, layout: "photo", textStyle: { style: "tiktok-classic", size: 0.05, position: "center" }, background: photo ? undefined : { kind: "solid", color: "#1c1a17" } },
+        { id: sid(), type: "slide", duration: 2.5, text: `I don't. ${v.app} does`, image: shot ? `asset:${shot.file}` : undefined, layout: shot ? "screenshot" : "photo", textStyle: { style: "tiktok-box", position: "center" } },
+      ],
+      meta: { ...meta(ctx, v, this, `honestly 🫠 #${v.app.toLowerCase().replace(/[^a-z0-9]/g, "")}`), soundTip: this.soundTip },
+    };
+  },
+});
+
+F.push({
+  id: "that-girl",
+  name: "“N reasons why X is THAT girl”",
+  tagline: "A calm numbered list over real-life footage, small serif text, one beat per reason.",
+  category: "listicle",
+  kind: "video",
+  platforms: ["tiktok", "instagram"],
+  status: "hot",
+  why: "The organization-satisfaction list (Hearth 754K and 468K, ~1% saves): pretty real-life footage, small calm serif text, a cut every 1.5–3 s, and the product shown as part of life rather than as a feature tour. Re-runs every season with a new header.",
+  beats: ["Hook over a lifestyle shot", "One reason per shot (most show life, a few show the app)", "Last line speaks to the viewer"],
+  lengthSec: [18, 28],
+  needs: ["nothing"],
+  effort: "low",
+  captionStyle: "serif-white",
+  soundTip: "A trending upbeat 'that girl' sound, no voiceover.",
+  hooks: ["{number} reasons why {app} is THAT girl", "{number} small things that saved my sanity this year"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
+    const clips = shuffle(brollClips(ctx).all, r);
+    const screens = orderedScreens(ctx, v);
+    const reasons = [...v.features.map((f) => stepLine(f)), ...v.outcomes.map((o) => `I finally ${o}`)].slice(0, 6);
+    const hookText = ctx.hook.replace(/\{number\}/g, String(reasons.length));
+    // Hearth's text measures ≈ 46–50 px at 1080 wide: calm, but readable at a glance.
+    const small = (text: string, position: "center" | "low") => ({ text, style: { style: "serif-white" as const, size: 0.045, position } });
+    const scenes: SceneInput[] = [];
+    const clipAt = (i: number) => clips[i % Math.max(1, clips.length)];
+    const c0 = clipAt(0);
+    scenes.push(
+      c0
+        ? { id: sid(), type: "media", duration: 2.8, src: `asset:${c0.file}`, kind: "video", device: "none", aspect: aspectOf(c0), push: 1.04, caption: small(hookText, "center") }
+        : { id: sid(), type: "hook", duration: 2.8, text: hookText, textStyle: { style: "serif-white" } },
+    );
+    reasons.forEach((reason, i) => {
+      const text = `${i + 1}. ${reason}`;
+      // Every third reason shows the app itself, the rest show life with it.
+      const shot = i % 3 === 1 ? screens[Math.floor(i / 3) % Math.max(1, screens.length)] : undefined;
+      const clip = clipAt(i + 1);
+      if (shot) scenes.push(screenScene(shot, { duration: 2.6, caption: lightUi(p) ? { text, style: { style: "serif-box", size: 0.044, position: "low" } } : small(text, "low") }));
+      else if (clip) scenes.push({ id: sid(), type: "media", duration: 2.6, src: `asset:${clip.file}`, kind: "video", device: "none", aspect: aspectOf(clip), push: 1.04, caption: small(text, "low") });
+    });
+    const last = clipAt(reasons.length + 1);
+    if (last) scenes.push({ id: sid(), type: "media", duration: 2.6, src: `asset:${last.file}`, kind: "video", device: "none", aspect: aspectOf(last), push: 1.04, caption: small(`if ${v.painYou}… you need this`, "low") });
+    return {
+      title: short(hookText, 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      meta: meta(ctx, v, this, `saving my sanity one app at a time 🤍 (${v.app})`),
+    };
+  },
+});
+
+F.push({
+  id: "backdrop-pov",
+  name: "App-screen backdrop POV",
+  tagline: "Your busiest app screen as the whole background, one meme line on top.",
+  category: "reaction",
+  kind: "video",
+  platforms: ["tiktok", "instagram"],
+  status: "hot",
+  why: "The cheapest product-visible format (Howbout 21.4M / 7.7M / 1.1M): the packed screen is the joke, so it reads as 'a screenshot of my life', not an ad. One line, 6–7 s, loops.",
+  beats: ["Full-screen app screen (the busiest one) from frame 1", "One meme line in TikTok text, top third", "Loop"],
+  lengthSec: [5, 8],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  musicVibes: ["funny", "bouncy", "lofi", "chill"],
+  soundTip: "A trending meme sound.",
+  hooks: ["me checking {app} to see if anyone else could've done it today", "POV: you finally see how much you were carrying", "the {app} in October be like"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const shot = firstFile(orderedScreens(ctx, v), [/calendar|week|month|schedule|feed|dashboard|home/i]) ?? orderedScreens(ctx, v)[0];
+    return {
+      title: short(ctx.hook.replace(/\*/g, ""), 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes: [
+        shot
+          ? screenScene(shot, { duration: 6.5, push: 1.04, caption: { text: ctx.hook, style: { style: "tiktok-classic", position: "upper" } } })
+          : { id: sid(), type: "hook", duration: 6.5, text: ctx.hook, textStyle: { style: "tiktok-classic" } },
+      ],
+      meta: meta(ctx, v, this, `the chaos is color-coded now at least 🙃 (${v.app})`),
+    };
+  },
+});
+
+F.push({
+  id: "ditch-old-way",
+  name: "“When you finally ditch the…” transformation",
+  tagline: "The old messy way, the app opening, a checklist that builds on the beat, the calm after.",
+  category: "comparison",
+  kind: "video",
+  platforms: ["tiktok", "instagram"],
+  status: "hot",
+  why: "Before→after organization satisfaction (Hearth 9.3M with 91.7K shares, 'Bye bye paper calendar' 402K): the mess, the switch, a ✅ list that fills up on the beat, the payoff shot. Cuts every ~1.5 s.",
+  beats: ["0–3 s: the old way, hook on screen", "The app opens", "✅ checklist builds one line per cut", "Payoff shot + one line"],
+  lengthSec: [14, 20],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  soundTip: "Trending upbeat song with a drop around 1.6 s.",
+  hooks: ["When you finally ditch the {competitor} nobody looks at", "bye bye {competitor} 👋"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const { all: clips, payoff } = brollClips(ctx);
+    const old = firstFile(clips, [/calendar|sticky|paper|notes|whiteboard|fridge/i, /overwhelm|chaos|mess|rush|stress/i]);
+    const old2 = firstFile(clips, [/overwhelm|chaos|mess|rush|stress|frustrat/i], old ? [old] : []);
+    const launch = launchClip(ctx);
+    const screens = orderedScreens(ctx, v).slice(0, 3);
+    const hook = ctx.hook.replace(/\{competitor\}/g, "old way");
+    const scenes: SceneInput[] = [];
+    for (const c of [old, old2].filter(Boolean) as typeof clips)
+      scenes.push({ id: sid(), type: "media", duration: 1.6, src: `asset:${c.file}`, kind: "video", device: "none", aspect: aspectOf(c), push: 1.04, transition: "cut" });
+    if (launch) scenes.push({ id: sid(), type: "media", duration: 1.8, src: `asset:${launch.file}`, kind: "video", device: "none", anchor: "top", aspect: aspectOf(launch) });
+    const checks = v.features.slice(0, Math.max(3, screens.length)).map((f) => `✅ ${stepLine(f)}`);
+    const startList = scenes.length;
+    // The ✅ list builds one line per cut, in TikTok's own text (boxed on light screens so it reads over the UI).
+    screens.forEach((m, i) => scenes.push(screenScene(m, { duration: 1.7, caption: { text: checks.slice(0, i + 1).join("\n"), style: { style: lightUi(p) ? "tiktok-box" : "tiktok-classic", size: lightUi(p) ? 0.038 : 0.04, align: "left", position: "low" } } })));
+    if (payoff)
+      scenes.push({ id: sid(), type: "media", duration: 2.4, src: `asset:${payoff.file}`, kind: "video", device: "none", aspect: aspectOf(payoff), push: 1.04, caption: { text: `this app helped me ${v.outcome}`, style: { style: "tiktok-classic", position: "upper" } } });
+    const hookEnd = scenes.slice(0, Math.max(1, startList)).reduce((a, sc) => a + sc.duration, 0);
+    return {
+      title: short(hook, 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      overlays: [{ id: "hook", type: "text", start: 0, end: +hookEnd.toFixed(2), text: hook, textStyle: { style: "tiktok-classic", position: "upper" } }],
+      meta: meta(ctx, v, this, `no $300 screen needed, it's just an app 🙃 (${v.app})`),
+    };
+  },
+});
+
+F.push({
+  id: "text-card",
+  name: "Spoken text story",
+  tagline: "A floating iMessage card over footage, every message read aloud, the app saves the day mid-story.",
+  category: "story",
+  kind: "video",
+  platforms: ["tiktok", "instagram", "youtube"],
+  status: "hot",
+  why: "The format behind Rizz's 550M-view text-story pages: full-screen background footage, one chat card that grows a bubble per spoken line (two fast TTS voices, ~5 words/s, no gaps, no music), and the app as the plot device — the protagonist asks it for help, its suggestion is read out, sent, and wins. No end card; the caption carries the app.",
+  beats: ["0 s: mid-conflict lines, 2–4 bubbles in the first 1.5 s", "Escalation", "Stuck → '<App>, help me out here' → the app's panel reads its suggestion", "The suggestion is sent; the other side melts", "Twist or cliffhanger, no end card"],
+  lengthSec: [25, 90],
+  needs: ["nothing"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  musicVibes: [],
+  soundTip: "No music: the two voices are the sound (exactly like the text-story pages).",
+  hooks: ["{pain}", "we need to talk about {painYou}", "ok who forgot AGAIN 😭"],
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
+    const clips = brollClips(ctx).all;
+    const bg = firstFile(clips, [/cook|kitchen|egg|dinner|pasta/i, /calm|couch|family/i]) ?? (clips.length ? pick(clips, r) : undefined);
+    const contact = contactFor(ctx.hook) ?? pick(["Babe ❤️", "Mom 💕", "Sis", "Jess 🫶"], r);
+    const line = ctx.hook.replace(/\*/g, "").replace(/[.!]+$/, "");
+    const messages = [
+      { from: "them" as const, text: "we need to talk" },
+      { from: "me" as const, text: "uh oh" },
+      { from: "them" as const, text: line },
+      { from: "me" as const, text: "ok that's fair 😭" },
+      { from: "them" as const, text: "so what are you gonna do about it" },
+      { from: "me" as const, text: "hold on" },
+      { from: "me" as const, text: `already did. I set up ${v.app}, it ${v.does} so nobody has to ask me anymore` },
+      { from: "them" as const, text: "wait…" },
+      { from: "them" as const, text: "that's actually genius" },
+      { from: "them" as const, text: "why didn't we do this years ago" },
+      { from: "me" as const, text: "because I was busy being the reminder 🙃" },
+    ];
+    return {
+      title: short(line, 60),
+      formatId: this.id,
+      theme: { ...nativeTheme(p, this.captionStyle) },
+      scenes: [
+        {
+          id: sid(),
+          type: "chat",
+          duration: 24,
+          layout: "card",
+          theme: "dark",
+          contact,
+          speak: true,
+          messages,
+          assist: { at: 10, after: 5, app: v.app, icon: p.brand.logo, label: `👇 ${v.app} suggests 👇`, suggestion: messages[6].text },
+          background: bg ? { kind: "media", src: `asset:${bg.file}`, dim: 0, blur: 0, kenBurns: false, loopSec: Math.max(2, (bg.durationSec ?? 8) - 0.1) } : { kind: "solid", color: "#141416" },
+        } as SceneInput,
+      ],
+      meta: meta(ctx, v, this, `@${v.app} clutched up 😭 link in bio #textstory #texts #${v.app.toLowerCase().replace(/[^a-z0-9]/g, "")}`),
+    };
+  },
+});
+
 /** The chat contact that matches whoever a hook mentions ("my girlfriend thought…" → her chat). */
 export function contactFor(hook: string): string | undefined {
   const who = /\bmy (mum|mom|dad|girlfriend|boyfriend|roommate|boss|nan|grandma|coach|landlord|sister|brother|friend|wife|husband)\b/i.exec(hook)?.[1]?.toLowerCase();
@@ -1534,9 +1993,9 @@ export function buildSpec(formatId: string, ctx: BuildContext): VideoSpecInput {
  * you swap in a trending sound when posting). The project's own music asset wins over the library.
  */
 function withMusic(spec: VideoSpecInput, fmt: FormatDef, p: Project, seed: number): VideoSpecInput {
-  if (spec.kind === "slideshow" || spec.audio?.src) return spec;
+  if (spec.kind === "slideshow" || spec.audio?.src || (fmt.musicVibes && fmt.musicVibes.length === 0)) return spec;
   const familyish = /famil|parent|mom|dad|kid|home|household/i.test(`${p.category} ${p.audience.map((a) => a.name).join(" ")} ${p.tone ?? ""}`);
-  const vibes = fmt.category === "story" ? MUSIC_VIBES.story : familyish ? MUSIC_VIBES.family : (MUSIC_VIBES[fmt.category] ?? MUSIC_VIBES.demo);
+  const vibes = fmt.musicVibes ?? (fmt.category === "story" ? MUSIC_VIBES.story : familyish ? MUSIC_VIBES.family : (MUSIC_VIBES[fmt.category] ?? MUSIC_VIBES.demo));
   const track = pickMusic(vibes, seed);
   if (!track) return spec;
   // Chat/text stories keep the bed low so message pops land.

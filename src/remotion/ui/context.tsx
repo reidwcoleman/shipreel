@@ -78,6 +78,9 @@ export function positionY(pos: string | undefined, height: number, safe: { top: 
     case "upper":
       // Measured on viral app hooks (1.2M–140M views): the text block centres ~21% from the top.
       return top + span * 0.16;
+    case "low":
+      // Lists and checklists under the subject (y ≈ 0.62 of the frame in the family-niche hits).
+      return top + span * 0.86;
     case "lower":
       return top + span * 0.78;
     case "bottom":

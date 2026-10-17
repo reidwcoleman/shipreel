@@ -130,6 +130,9 @@ const uploadPost: Publisher = {
     if (post.platforms.includes("tiktok")) {
       form.append("post_mode", post.asDraft ? "MEDIA_UPLOAD" : "DIRECT_POST");
       form.append("privacy_level", "PUBLIC_TO_EVERYONE");
+      // TikTok's guidelines (Sep 2026) require disclosing promotion of your own product; undisclosed
+      // self-promotion can lose reach or the account. Shipreel only ever posts the user's own app.
+      form.append("brand_organic_toggle", "true");
     }
     if (post.platforms.includes("instagram")) {
       if (!carousel) form.append("media_type", "REELS");
@@ -144,7 +147,9 @@ const uploadPost: Publisher = {
       for (const j of jpgs) form.append("photos[]", await fs.openAsBlob(j, { type: "image/jpeg" }), path.basename(j));
       form.append("description", captionFor(post, video, "tiktok"));
       form.append("photo_cover_index", "0");
-      if (post.asDraft) form.append("auto_add_music", "false");
+      // Photo posts without a sound die in the feed: let TikTok add a recommended one when posting directly
+      // (drafts get their trending sound picked by hand in the app).
+      form.append("auto_add_music", post.asDraft ? "false" : "true");
       log(`Uploading ${jpgs.length} slides to Upload-Post…`);
     } else {
       form.append("video", await fs.openAsBlob(file, { type: "video/mp4" }), path.basename(file));

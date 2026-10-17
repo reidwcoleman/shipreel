@@ -107,15 +107,25 @@ export const Slide: React.FC<P<typeof SlideScene>> = ({ scene }) => {
   const { theme } = useRender();
   const safe = useSafeArea();
   if (scene.layout === "phone" && scene.image) return <PhoneShowcase text={scene.text} image={scene.image} background={scene.background} textStyle={scene.textStyle} drift={drift} />;
+  if (scene.layout === "screenshot" && scene.image) {
+    // A raw screenshot exactly as the phone saved it: no frame, no crop, black around it if the canvas differs.
+    return (
+      <AbsoluteFill style={{ background: "#000" }}>
+        <MediaView src={scene.image} kind="image" fit={height / width > 1.7 ? "cover" : "contain"} style={{ objectPosition: "50% 0%" }} />
+        {scene.text && <TextBlock text={scene.text} style={{ position: "center", ...scene.textStyle }} />}
+      </AbsoluteFill>
+    );
+  }
+  // Carousel photos are real phone photos: shown as they are (no darkening, no drift on stills).
   const bg = scene.image
-    ? ({ kind: "media", src: scene.image, dim: 0.18, blur: 0, kenBurns: true } as const)
+    ? ({ kind: "media", src: scene.image, dim: 0, blur: 0, kenBurns: false } as const)
     : scene.background;
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{ transform: `scale(${drift})` }}>
+      <AbsoluteFill style={{ transform: scene.image ? undefined : `scale(${drift})` }}>
         <Backdrop bg={bg} />
       </AbsoluteFill>
-      <TextBlock text={scene.text} style={{ animation: "fade", position: "upper", ...scene.textStyle }} />
+      {scene.text && <TextBlock text={scene.text} style={{ position: "center", ...scene.textStyle }} />}
     </AbsoluteFill>
   );
 };

@@ -9,7 +9,8 @@ import type { VideoDoc } from "@/lib/types";
 import type { CompositionProps } from "@/remotion/spec";
 import { layoutScenes } from "@/remotion/timeline";
 import { probe } from "./media";
-import { getVideo, patchVideo } from "./projects";
+import { getVideo, patchVideo, saveVideoSpec } from "./projects";
+import { voiceChats } from "./voice";
 import { APP_ROOT, emit, now, paths } from "./store";
 
 const run = promisify(execFile);
@@ -103,8 +104,11 @@ export function startRender(projectId: string, videoId: string, opts: { force?: 
 }
 
 async function doRender(projectId: string, videoId: string, { force }: { force?: boolean }, onStarted: () => void): Promise<VideoDoc> {
-  const doc = await getVideo(projectId, videoId);
+  let doc = await getVideo(projectId, videoId);
   if (!doc) throw new Error(`video ${videoId} not found`);
+  // Spoken text stories: (re)generate the voices first so bubbles land on their lines.
+  const voiced = await voiceChats(projectId, doc.spec).catch(() => null);
+  if (voiced) doc = await saveVideoSpec(projectId, videoId, voiced);
   const hash = specHash(doc.spec);
   const dir = paths.renders(projectId);
   if (!force && doc.render?.specHash === hash && doc.status === "rendered") {
@@ -123,11 +127,17 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
   const isSlideshow = doc.spec.kind === "slideshow";
   const { timed } = layoutScenes(doc.spec.scenes);
   const stills = isSlideshow
-    ? timed.map((t, i) => ({
+    ? timed.map((t, i) => {
+        const out = path.join(dir, `${videoId}-slides`, `${String(i + 1).padStart(2, "0")}.png`);
+        const sc = t.scene;
+        // Screenshot slides go into the carousel at the phone's own 9:16 size, like a saved screenshot.
+        if (sc.type === "slide" && sc.layout === "screenshot" && doc.spec.aspect !== "9:16") {
+          const solo = { ...doc.spec, aspect: "9:16" as const, scenes: [{ ...sc, transition: "cut" as const }], overlays: [], captions: undefined };
+          return { frame: Math.round(t.frames * 0.55), out, props: compositionProps(projectId, solo) };
+        }
         // The settled frame of each slide: after its entrance, before its exit.
-        frame: t.from + Math.min(t.frames - 1, t.enterFrames + Math.round(t.frames * 0.55)),
-        out: path.join(dir, `${videoId}-slides`, `${String(i + 1).padStart(2, "0")}.png`),
-      }))
+        return { frame: t.from + Math.min(t.frames - 1, t.enterFrames + Math.round(t.frames * 0.55)), out };
+      })
     : [];
 
   await patchVideo(projectId, videoId, { status: "rendering", progress: 0, error: undefined });

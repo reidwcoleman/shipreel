@@ -1,10 +1,10 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, Sequence, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { z } from "zod";
 import type { MediaScene } from "../spec";
 import { clamp } from "../ui/anim";
 import { positionY, useRender, useSafeArea, useSceneInfo } from "../ui/context";
-import { Backdrop, BrowserFrame, CalloutCard, calloutState, MediaView, PhoneFrame, phoneGeometry, TapRipples, zoomState, zoomTransform } from "../ui/media";
+import { Backdrop, BrowserFrame, CalloutCard, calloutState, flowTaps, HandPhone, MediaView, PhoneFrame, phoneGeometry, ScreenFlow, TapRipples, zoomState, zoomTransform } from "../ui/media";
 import { estimateTextHeight, TextBlock } from "../ui/text";
 import { mixHex } from "./basic";
 
@@ -21,7 +21,10 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
   // Montage shots arrive on a punch cut: the phone is already there. Otherwise it rises in.
   const rises = scene.transition !== "punch" && scene.transition !== "flash" && (info?.index ?? 1) > 0;
 
-  const media = (
+  const flow = scene.flow ?? [];
+  const media = flow.length ? (
+    <ScreenFlow first={{ src: scene.src, kind: scene.kind, trimStart: scene.trimStart, playbackRate: scene.playbackRate }} flow={flow} fit={scene.fit} />
+  ) : (
     <MediaView
       src={scene.src}
       kind={scene.kind}
@@ -29,24 +32,57 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
       trimStart={scene.trimStart}
       playbackRate={scene.playbackRate}
       volume={scene.volume}
+      style={scene.anchor === "top" ? { objectPosition: "50% 0%" } : undefined}
     />
   );
+  const taps = [...(scene.taps ?? []), ...flowTaps(flow)];
+  // Timed caption lines: the one whose time has come replaces the previous (TikTok text per beat).
+  const t0 = frame / fps;
+  const lines = scene.lines ?? [];
+  const lineIdx = lines.reduce((acc, l, i) => (t0 >= l.at ? i : acc), -1);
+  const captionText = lineIdx >= 0 ? lines[lineIdx].text : scene.caption?.text;
+  const lineFrom = lineIdx >= 0 ? Math.round(lines[lineIdx].at * fps) : 0;
 
-  const captionPos = scene.caption?.style?.position ?? (scene.device === "none" ? "upper" : "top");
+  const captionPos = scene.caption?.style?.position ?? (scene.device === "none" || scene.device === "hand" ? "upper" : "top");
 
   const callout = calloutState(scene.callouts ?? [], frame, fps);
-  const renderMedia = () => (
-    <MediaView src={scene.src} kind={scene.kind} fit="cover" trimStart={scene.trimStart} playbackRate={scene.playbackRate} />
-  );
+  const renderMedia = () =>
+    flow.length ? (
+      <ScreenFlow first={{ src: scene.src, kind: scene.kind, trimStart: scene.trimStart, playbackRate: scene.playbackRate }} flow={flow} fit="cover" />
+    ) : (
+      <MediaView src={scene.src} kind={scene.kind} fit="cover" trimStart={scene.trimStart} playbackRate={scene.playbackRate} />
+    );
+
+  // One caption element for every layout; lines re-key so each new line lands like freshly typed TikTok text.
+  const captionEl = (extra?: Partial<NonNullable<typeof scene.caption>["style"]>) =>
+    captionText ? (
+      <Sequence from={lineFrom} layout="none" key={`cap-${lineIdx}`}>
+        <TextBlock text={captionText} style={{ animation: lineIdx >= 0 ? "none" : "pop", ...scene.caption?.style, position: captionPos, ...extra }} />
+      </Sequence>
+    ) : null;
+
+  if (scene.device === "hand") {
+    return (
+      <AbsoluteFill style={{ background: "#000" }}>
+        <AbsoluteFill style={{ transform: cam.transform, transformOrigin: "50% 50%" }}>
+          <HandPhone clipId={scene.hand ?? "default"}>
+            {media}
+            <TapRipples taps={taps} boxW={600} />
+          </HandPhone>
+        </AbsoluteFill>
+        {captionEl()}
+      </AbsoluteFill>
+    );
+  }
 
   if (scene.device === "none") {
-    const push = interpolate(frame, [0, durationInFrames], [1, 1.05], clamp);
+    const push = interpolate(frame, [0, durationInFrames], [1, scene.push ?? 1], clamp);
     // With a known aspect the footage is laid out in its own cover box, so taps and callouts can be
     // placed in screen coordinates. Without one it simply fills the frame.
     const a = scene.aspect;
     const box = a
       ? width / height > a
-        ? { x: 0, y: (height - width / a) / 2, w: width, h: width / a }
+        ? { x: 0, y: scene.anchor === "top" ? 0 : (height - width / a) / 2, w: width, h: width / a }
         : { x: (width - height * a) / 2, y: 0, w: height * a, h: height }
       : { x: 0, y: 0, w: width, h: height };
     const zt = zoomTransform(scene.zooms ?? [], frame, fps);
@@ -75,12 +111,12 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
             {a ? (
               <div style={{ position: "absolute", left: box.x, top: box.y, width: box.w, height: box.h }}>
                 {renderMedia()}
-                <TapRipples taps={scene.taps ?? []} boxW={box.w} />
+                <TapRipples taps={taps} boxW={box.w} />
               </div>
             ) : (
               <>
                 {media}
-                <TapRipples taps={scene.taps ?? []} boxW={width} />
+                <TapRipples taps={taps} boxW={width} />
               </>
             )}
           </AbsoluteFill>
@@ -88,7 +124,7 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
         {callout && (
           <CalloutCard callout={callout.c} p={callout.p} box={placed} minTop={capBottomFull} maxBottom={height - safe.bottom * 0.7} render={renderMedia} />
         )}
-        {scene.caption && <TextBlock text={scene.caption.text} style={{ animation: "pop", ...scene.caption.style, position: captionPos }} />}
+        {captionEl()}
       </AbsoluteFill>
     );
   }
@@ -109,7 +145,7 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
             </BrowserFrame>
           </div>
         </AbsoluteFill>
-        {scene.caption && <TextBlock text={scene.caption.text} style={{ animation: "pop", ...scene.caption.style, position: captionPos }} />}
+        {captionEl()}
       </AbsoluteFill>
     );
   }
@@ -136,7 +172,7 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
             <div style={{ width: "100%", height: "100%", transform: cam.transform }}>{media}</div>
           </div>
         </AbsoluteFill>
-        {scene.caption && <TextBlock text={scene.caption.text} style={{ animation: "pop", ...scene.caption.style, position: captionPos }} />}
+        {captionEl()}
       </AbsoluteFill>
     );
   }
@@ -200,7 +236,7 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
         >
           <PhoneFrame width={g.width}>
             {media}
-            <TapRipples taps={scene.taps ?? []} boxW={g.screenW} />
+            <TapRipples taps={taps} boxW={g.screenW} />
           </PhoneFrame>
         </div>
       </AbsoluteFill>
@@ -214,18 +250,7 @@ export const Media: React.FC<{ scene: z.infer<typeof MediaScene> }> = ({ scene }
           render={renderMedia}
         />
       )}
-      {scene.caption && (
-        <TextBlock
-          text={scene.caption.text}
-          style={{
-            animation: "pop",
-            ...scene.caption.style,
-            position: captionPos,
-            // When a zoom pulls the phone up under the caption, thin white text would sit on the app's UI: box it.
-            ...(panUnder && (!scene.caption.style?.style || scene.caption.style.style === "tiktok-classic" || scene.caption.style.style === "minimal") ? { style: "tiktok-box" as const } : {}),
-          }}
-        />
-      )}
+      {captionEl(panUnder && (!scene.caption?.style?.style || scene.caption.style.style === "tiktok-classic" || scene.caption.style.style === "minimal" || scene.caption.style.style === "tiktok-plain") ? { style: "tiktok-box" } : undefined)}
     </AbsoluteFill>
   );
 };
