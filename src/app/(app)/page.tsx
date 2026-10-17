@@ -7,10 +7,11 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PlatformIcon } from "@/components/platform-icon";
+import { PostSheet } from "@/components/post-sheet";
 import { Reel } from "@/components/reel";
 import { Button } from "@/components/ui/button";
 import { Badge, SectionLabel, Skeleton } from "@/components/ui/misc";
-import { buildSpec, fillHook, FORMAT_MAP } from "@/framework/formats";
+import { bestHook, buildSpec, FORMAT_MAP } from "@/framework/formats";
 import { post, useApi } from "@/lib/client/api";
 import { useActiveProject, useBootstrap, useProjectDetail } from "@/lib/client/store";
 import { cn } from "@/lib/cn";
@@ -48,6 +49,8 @@ export default function Home() {
   const drafts = (posts ?? []).filter((p) => p.status === "posted" && p.asDraft && p.results.some((r) => r.mode === "draft")).filter((p) => new Date(p.updatedAt) > subDays(now, 2));
   const needsYou = (posts ?? []).filter((p) => p.status === "needs-you" || p.status === "failed");
   const unlogged = (posts ?? []).filter((p) => p.status === "posted" && !p.metrics?.views && new Date(p.scheduledAt) < subDays(now, 1));
+  const [posting, setPosting] = useState<VideoDoc | null>(null);
+  const [postOpen, setPostOpen] = useState(false);
 
   // Posting streak: consecutive days (ending today or yesterday) with a post out.
   const postedDays = new Set((posts ?? []).filter((p) => p.status === "posted" || p.status === "partial").map((p) => startOfDay(new Date(p.scheduledAt)).toISOString()));
@@ -66,7 +69,7 @@ export default function Home() {
     const media = (detail?.assets ?? []).map((a) => ({ file: a.file, kind: a.kind, role: a.role, width: a.width, height: a.height, durationSec: a.durationSec }));
     return ["text-story", "doubter-reveal", "hook-demo"].map((fid) => {
       const f = FORMAT_MAP[fid];
-      return { key: fid, spec: buildSpec(fid, { project, hook: fillHook(f.hooks[0], project), media, seed: 3 }), label: f.name, platforms: [], href: "", formatId: fid };
+      return { key: fid, spec: buildSpec(fid, { project, hook: bestHook(fid, project), media, seed: 3 }), label: f.name, platforms: [], href: "", formatId: fid };
     });
   }, [upcoming, videos, videoById, project, projectId, detail, now]);
 
@@ -193,15 +196,32 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-6">
             {(videos ?? []).slice(0, 6).map((v) => (
-              <Link key={v.id} href={`/edit/${projectId}/${v.id}`} className="group flex flex-col gap-2">
-                <Reel letterbox spec={v.spec} projectId={projectId} mode="hover" className="ring-1 ring-line transition-transform duration-200 group-hover:-translate-y-0.5" />
-                <span className="truncate text-[13px] text-fg-2 group-hover:text-fg">{v.spec.title}</span>
-              </Link>
+              <div key={v.id} className="group relative">
+                <Link href={`/edit/${projectId}/${v.id}`} className="flex flex-col gap-2">
+                  <Reel letterbox spec={v.spec} projectId={projectId} mode="hover" className="ring-1 ring-line transition-transform duration-200 group-hover:-translate-y-0.5" />
+                  <span className="truncate text-[13px] text-fg-2 group-hover:text-fg">{v.spec.title}</span>
+                </Link>
+                {v.status === "rendered" && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<Send className="size-3.5" />}
+                    className="absolute top-2 right-2 bg-black/60 opacity-0 backdrop-blur transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+                    onClick={() => {
+                      setPosting(v);
+                      setPostOpen(true);
+                    }}
+                  >
+                    Post
+                  </Button>
+                )}
+              </div>
             ))}
             {!videos && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-[9/16] rounded-xl" />)}
           </div>
         )}
       </section>
+      {projectId && posting && <PostSheet open={postOpen} onOpenChange={setPostOpen} projectId={projectId} videoId={posting.id} spec={posting.spec} />}
     </div>
   );
 }

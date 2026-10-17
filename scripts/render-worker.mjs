@@ -4,7 +4,8 @@
  * stdin; progress/results come back as JSON lines on stdout. Bundling happens once and is reused
  * until a file under src/remotion changes.
  *
- * job:    {"type":"render","jobId":"…","props":{…},"out":"/abs/file.mp4","stills":[{"frame":12,"out":"/abs/1.png"}]}
+ * job:    {"type":"render","jobId":"…","props":{…},"out":"/abs/file.mp4","stills":[{"frame":12,"out":"/abs/1.png","scale?":0.25,"format?":"jpeg"}]}
+ *         (out is optional: a stills-only job renders just the stills)
  * events: {"type":"progress","jobId","progress":0.42,"stage":"bundling|rendering|stills"}
  *         {"type":"done","jobId"} | {"type":"error","jobId","message"}
  */
@@ -105,7 +106,7 @@ async function pump() {
         fs.mkdirSync(path.dirname(s.out), { recursive: true });
         // A still can carry its own props (a 9:16 screenshot slide inside a 3:4 carousel).
         const comp = s.props ? await selectComposition({ serveUrl, id: COMPOSITION, inputProps: s.props, timeoutInMilliseconds: 120000 }) : composition;
-        await renderStill({ composition: comp, serveUrl, output: s.out, frame: Math.min(s.frame, comp.durationInFrames - 1), inputProps: s.props ?? job.props, imageFormat: "png" });
+        await renderStill({ composition: comp, serveUrl, output: s.out, frame: Math.min(s.frame, comp.durationInFrames - 1), inputProps: s.props ?? job.props, imageFormat: s.format ?? "png", scale: s.scale ?? 1 });
         send({ type: "progress", jobId: job.jobId, progress: 0.85 + ((i + 1) / job.stills.length) * 0.15, stage: "stills" });
       }
     }

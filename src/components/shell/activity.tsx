@@ -268,6 +268,13 @@ function RunSheet({ runId, onClose }: { runId: string | null; onClose: () => voi
               </Link>
             </div>
           )}
+          {!!run?.output?.postIds?.length && (
+            <div className="border-t border-line px-5 py-3">
+              <Link href="/calendar" onClick={onClose} className={buttonClass({ variant: "primary", className: "w-full" })}>
+                Open the Calendar
+              </Link>
+            </div>
+          )}
           {run?.output?.ideaIds && (
             <div className="border-t border-line px-5 py-3">
               <Link href="/ideas" onClick={onClose} className={buttonClass({ variant: "primary", className: "w-full" })}>

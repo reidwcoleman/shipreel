@@ -84,6 +84,8 @@ export const TextStyle = z.object({
   /** Colour for words wrapped in *asterisks*. Defaults to the theme accent. */
   highlight: z.string().optional(),
   position: TextPosition.optional(),
+  /** Exact vertical centre (0–1 of frame height); wins over `position`. Set by the render-time fit pass. */
+  y: z.number().min(0.05).max(0.95).optional(),
   align: z.enum(["left", "center", "right"]).optional(),
   animation: TextAnimation.optional(),
 });

@@ -87,7 +87,7 @@ export function recipeFor(style: CaptionStyleId, width: number): Recipe {
       // Opal 444K: Playfair Display, white, no box, tight 1.05 pitch; *highlighted* words go italic.
       return {
         font: "playfair", weight: 400, size: 0.052, lineHeight: 1.08, tracking: "-0.005em", color: "#FFFFFF",
-        italicHighlight: true, shadow: `0 ${1 * k}px ${4 * k}px rgba(0,0,0,0.45)`, shrinkAt: 60, maxW: 0.86, native: true,
+        italicHighlight: true, shadow: `0 ${1 * k}px ${4 * k}px rgba(0,0,0,0.45), 0 0 ${18 * k}px rgba(0,0,0,0.2)`, shrinkAt: 60, maxW: 0.86, native: true,
       };
     case "tiktok-plain":
       // TikTok's default text on faceless screen demos (31 hits): TikTok Sans Medium ~64 px, white, soft
@@ -283,11 +283,15 @@ export const StyledText: React.FC<StyledTextProps> = ({
         fontKerning: "normal",
       }}
     >
-      {lines.map((tokens, li) => (
-        <div key={li} style={{ display: "block", textWrap: "balance" }}>
+      {(() => {
+        // A left-aligned boxed list (a ✅ checklist) reads as one block: every line as wide as the
+        // longest, so the screen underneath doesn't peek out between ragged line boxes.
+        const card = !!r.box && align === "left";
+        const body = lines.map((tokens, li) => (
+        <div key={li} style={{ display: "block", textWrap: card ? undefined : "balance" }}>
           <span
             style={
-              r.box
+              r.box && !card
                 ? {
                     background: r.box.bg,
                     padding: `${r.box.padY * px}px ${r.box.padX * px}px`,
@@ -358,7 +362,26 @@ export const StyledText: React.FC<StyledTextProps> = ({
             )}
           </span>
         </div>
-      ))}
+        ));
+        if (!card || !r.box) return body;
+        return (
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                display: "inline-block",
+                textAlign: "left",
+                background: r.box.bg,
+                padding: `${r.box.padY * px * 1.6}px ${r.box.padX * px}px`,
+                borderRadius: r.box.radius * px * 1.3,
+                lineHeight: 1.36,
+                maxWidth: "100%",
+              }}
+            >
+              {body}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
@@ -370,7 +393,7 @@ export const TextBlock: React.FC<StyledTextProps & { position?: TextStyle["posit
   const pos = position ?? props.style?.position ?? "center";
   // The Snapchat bar runs edge to edge, so it ignores the side safe margins.
   const bar = (props.style?.style ?? props.fallbackStyle ?? theme.captionStyle) === "snapchat";
-  const y = positionY(pos, safe.height, safe);
+  const y = props.style?.y ?? positionY(pos, safe.height, safe);
   const align = props.style?.align ?? "center";
   const usable = (safe.width - safe.left - safe.right) / safe.width;
   return (

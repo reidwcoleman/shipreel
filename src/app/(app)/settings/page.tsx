@@ -146,57 +146,18 @@ function SettingsInner() {
       <PageHeader title={SETTINGS_TITLE} subtitle={SETTINGS_SUBTITLE} />
       <div className="px-8">
         <Section
-          id="posting"
-          title="Auto-posting"
+          id="connect"
+          title="Connect accounts"
           hint={
             <>
-              <p>Shipreel renders each video and posts it at its time while the app is running.</p>
-              <p className="mt-2">Upload-Post is the simplest route: one key covers TikTok, Instagram, YouTube, X, LinkedIn, Threads, Facebook, Pinterest and Bluesky. TikTok needs a paid plan (about $16–24/mo); the free tier covers the rest at 10 uploads a month.</p>
+              <p>You don&apos;t need any of this to post: every video&apos;s Post sheet can AirDrop it to your iPhone or open the upload page with the caption copied.</p>
+              <p className="mt-2">Connect a service when you want Shipreel to post on its own at your posting times (it posts while the app is running). Upload-Post is the simplest: one key covers TikTok, Instagram, YouTube, X, LinkedIn, Threads and more.</p>
             </>
           }
         >
-          <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Upload-Post</span>
-              <Dot tone={secrets.uploadPostKey ? "ok" : "neutral"} />
-              <span className="text-xs text-fg-3">{secrets.uploadPostKey ? "Key saved" : "Not set up"}</span>
-              <a href="https://www.upload-post.com" target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs text-fg-3 hover:text-fg">
-                upload-post.com <ExternalLink className="size-3" />
-              </a>
-            </div>
-            <SecretField k="uploadPostKey" label="API key" set={secrets.uploadPostKey} placeholder="Paste from Upload-Post → API Keys" onSaved={reload} />
-            <Field label="Profile name" hint="The Upload-Post profile your accounts are linked to. Shipreel creates it if it doesn't exist.">
-              <ProfileName onSaved={reload} set={secrets.uploadPostUser} />
-            </Field>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="primary" icon={<Link2 className="size-4" />} disabled={!secrets.uploadPostKey} onClick={connect}>
-                Connect accounts
-              </Button>
-              {profiles?.error && <span className="text-xs text-bad">{profiles.error}</span>}
-              {connected.length > 0 && (
-                <span className="flex flex-wrap items-center gap-1.5 text-xs text-fg-2">
-                  Connected:
-                  {connected.map((c) => (
-                    <Badge key={c} tone="ok">
-                      {PLATFORM_LABEL[c as Platform] ?? c}
-                    </Badge>
-                  ))}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <details className="group rounded-xl border border-line bg-panel">
-            <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 text-sm font-semibold select-none [&::-webkit-details-marker]:hidden">
-              <ChevronRight className="size-4 text-fg-3 transition-transform duration-150 group-open:rotate-90" />
-              Bluesky (free, direct)
-              <Dot tone={secrets.blueskyHandle && secrets.blueskyAppPassword ? "ok" : "neutral"} />
-            </summary>
-            <div className="flex flex-col gap-4 border-t border-line px-5 py-4">
-              <SecretField k="blueskyHandle" label="Handle" set={secrets.blueskyHandle} placeholder="you.bsky.social" onSaved={reload} />
-              <SecretField k="blueskyAppPassword" label="App password" set={secrets.blueskyAppPassword} placeholder="xxxx-xxxx-xxxx-xxxx" hint="Bluesky → Settings → Privacy and security → App passwords." onSaved={reload} />
-            </div>
-          </details>
+          <UploadPostCard set={secrets.uploadPostKey} userSet={secrets.uploadPostUser} connected={connected} profilesError={profiles?.error} onConnect={connect} onSaved={reload} />
+          <BlueskyCard handleSet={secrets.blueskyHandle} passwordSet={secrets.blueskyAppPassword} onSaved={reload} />
+          <ChromeCard autoPost={s.browserAutoPost ?? {}} onAutoPost={(browserAutoPost) => save({ browserAutoPost })} />
 
           <details className="group rounded-xl border border-line bg-panel">
             <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 text-sm font-semibold select-none [&::-webkit-details-marker]:hidden">
@@ -369,6 +330,219 @@ function ProfileName({ set, onSaved }: { set: boolean; onSaved: () => void }) {
       >
         Save
       </Button>
+    </div>
+  );
+}
+
+type TestResult = { ok: boolean; message: string; platforms?: string[] };
+
+function Step({ n, title, children }: { n: number; title: React.ReactNode; children?: React.ReactNode }) {
+  return (
+    <li className="grid grid-cols-[22px_1fr] gap-x-3 gap-y-2">
+      <span className="flex size-[22px] items-center justify-center rounded-full border border-line-strong font-mono text-[11px] text-fg-2 tabular-nums">{n}</span>
+      <span className="pt-0.5 text-[13px] leading-relaxed text-fg">{title}</span>
+      {children && <div className="col-start-2 flex min-w-0 flex-col gap-2">{children}</div>}
+    </li>
+  );
+}
+
+function TestLine({ result }: { result: TestResult | null }) {
+  if (!result) return null;
+  return (
+    <p role="status" className={cn("flex items-start gap-1.5 text-xs leading-relaxed", result.ok ? "text-ok" : "text-bad")}>
+      {result.ok ? <Check className="mt-0.5 size-3.5 shrink-0" /> : <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />}
+      <span>{result.message}</span>
+    </p>
+  );
+}
+
+/** Upload-Post: sign up, paste the key, link socials, test. */
+function UploadPostCard({ set, userSet, connected, profilesError, onConnect, onSaved }: { set: boolean; userSet: boolean; connected: string[]; profilesError?: string; onConnect: () => void; onSaved: () => void }) {
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<TestResult | null>(null);
+  const test = async () => {
+    setTesting(true);
+    try {
+      const r = await post<TestResult>("/api/publishers", { action: "test-upload-post" });
+      setResult(r);
+      if (r.ok) onSaved();
+    } catch (e) {
+      setResult({ ok: false, message: (e as Error).message });
+    } finally {
+      setTesting(false);
+    }
+  };
+  const linked = result?.platforms?.length ? result.platforms : connected;
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold">Upload-Post</span>
+        <Dot tone={set ? (linked.length ? "ok" : "warn") : "neutral"} />
+        <span className="text-xs text-fg-3">{!set ? "Not set up" : linked.length ? `${linked.length} account${linked.length === 1 ? "" : "s"} linked` : "Key saved, no accounts linked yet"}</span>
+      </div>
+      <ol className="flex flex-col gap-4">
+        <Step
+          n={1}
+          title={
+            <>
+              Make a free account at{" "}
+              <a href="https://app.upload-post.com/register" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 underline underline-offset-2">
+                upload-post.com <ExternalLink className="size-3" />
+              </a>
+              . The free plan covers 10 uploads a month; TikTok needs their Basic plan (about $16–24/mo).
+            </>
+          }
+        />
+        <Step n={2} title="Copy your API key (Upload-Post dashboard → API Keys) and paste it here.">
+          <SecretField k="uploadPostKey" label="API key" set={set} placeholder="Paste your Upload-Post API key" onSaved={onSaved} />
+        </Step>
+        <Step n={3} title="Link your accounts. A page opens where you sign in to TikTok, Instagram, YouTube and the rest.">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="primary" icon={<Link2 className="size-4" />} disabled={!set} onClick={onConnect}>
+              Connect accounts
+            </Button>
+            {profilesError && <span className="text-xs text-bad">{profilesError}</span>}
+          </div>
+        </Step>
+        <Step n={4} title="Check it works. Shipreel asks Upload-Post which accounts are linked (nothing is posted).">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" disabled={!set} loading={testing} onClick={test}>
+              Test connection
+            </Button>
+            {linked.length > 0 && (
+              <span className="flex flex-wrap items-center gap-1.5">
+                {linked.map((c) => (
+                  <Badge key={c} tone="ok">
+                    {PLATFORM_LABEL[c as Platform] ?? c}
+                  </Badge>
+                ))}
+              </span>
+            )}
+          </div>
+          <TestLine result={result} />
+        </Step>
+      </ol>
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs text-fg-3 select-none hover:text-fg-2 [&::-webkit-details-marker]:hidden">
+          <ChevronRight className="size-3 transition-transform duration-150 group-open:rotate-90" />
+          Profile name (advanced)
+        </summary>
+        <div className="pt-3">
+          <Field label="Profile name" hint="The Upload-Post profile your accounts are linked to. Shipreel creates it if it doesn't exist.">
+            <ProfileName onSaved={onSaved} set={userSet} />
+          </Field>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+/** Bluesky: handle + app password, then a test login. */
+function BlueskyCard({ handleSet, passwordSet, onSaved }: { handleSet: boolean; passwordSet: boolean; onSaved: () => void }) {
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<TestResult | null>(null);
+  const ready = handleSet && passwordSet;
+  const test = async () => {
+    setTesting(true);
+    try {
+      setResult(await post<TestResult>("/api/publishers", { action: "test-bluesky" }));
+    } catch (e) {
+      setResult({ ok: false, message: (e as Error).message });
+    } finally {
+      setTesting(false);
+    }
+  };
+  return (
+    <details className="group rounded-xl border border-line bg-panel">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 text-sm font-semibold select-none [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-4 text-fg-3 transition-transform duration-150 group-open:rotate-90" />
+        Bluesky (free, direct)
+        <Dot tone={ready ? "ok" : "neutral"} />
+      </summary>
+      <ol className="flex flex-col gap-4 border-t border-line px-5 py-4">
+        <Step n={1} title="Your handle.">
+          <SecretField k="blueskyHandle" label="Handle" set={handleSet} placeholder="you.bsky.social" onSaved={onSaved} />
+        </Step>
+        <Step
+          n={2}
+          title={
+            <>
+              Make an app password in{" "}
+              <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 underline underline-offset-2">
+                Bluesky → Settings → App passwords <ExternalLink className="size-3" />
+              </a>{" "}
+              (not your real password) and paste it.
+            </>
+          }
+        >
+          <SecretField k="blueskyAppPassword" label="App password" set={passwordSet} placeholder="xxxx-xxxx-xxxx-xxxx" onSaved={onSaved} />
+        </Step>
+        <Step n={3} title="Check it works (logs in, posts nothing).">
+          <div>
+            <Button size="sm" disabled={!ready} loading={testing} onClick={test}>
+              Test login
+            </Button>
+          </div>
+          <TestLine result={result} />
+        </Step>
+      </ol>
+    </details>
+  );
+}
+
+const CHROME_PLATFORMS: Platform[] = ["tiktok", "youtube", "instagram", "x"];
+
+/** Uploads through Shipreel's own Chrome window: log in once, choose where it may press Post. */
+function ChromeCard({ autoPost, onAutoPost }: { autoPost: Partial<Record<Platform, boolean>>; onAutoPost: (v: Partial<Record<Platform, boolean>>) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<Record<string, boolean> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const openLogin = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await post<{ loggedIn: Record<string, boolean> }>("/api/publishers", { action: "browser-login" });
+      setStatus(r.loggedIn);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5">
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-semibold">Upload in Chrome (no API key)</span>
+        <span className="text-[13px] leading-relaxed text-fg-2">
+          Shipreel opens the upload page in its own Chrome window, attaches the video and fills the caption, then stops so you press Post. Log in once; the window remembers you. Shipreel never types your password or gets past captchas for you.
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" loading={busy} onClick={openLogin}>
+          Log in to your accounts
+        </Button>
+        {status &&
+          CHROME_PLATFORMS.map((p) => (
+            <Badge key={p} tone={status[p] ? "ok" : "neutral"} icon={status[p] ? <Check className="size-3" /> : undefined}>
+              {PLATFORM_LABEL[p].replace(" Shorts", "")}
+              {status[p] ? "" : ": log in"}
+            </Badge>
+          ))}
+      </div>
+      {error && <p className="text-xs text-bad">{error}</p>}
+      <div className="flex flex-col gap-2">
+        <span className="text-[13px] font-medium text-fg-2">Press Post for me on</span>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {CHROME_PLATFORMS.map((p) => (
+            <label key={p} className="flex items-center gap-2 text-[13px] text-fg-2">
+              <Switch checked={!!autoPost[p]} onCheckedChange={(v) => onAutoPost({ ...autoPost, [p]: v })} label={`Press Post for me on ${PLATFORM_LABEL[p]}`} />
+              <PlatformIcon platform={p} />
+              {PLATFORM_LABEL[p].replace(" Shorts", "")}
+            </label>
+          ))}
+        </div>
+        <span className="text-xs text-fg-3">Off (recommended) means Shipreel stops on the final screen and you press Post. TikTok&apos;s terms restrict automated posting.</span>
+      </div>
     </div>
   );
 }

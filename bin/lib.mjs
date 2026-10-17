@@ -76,3 +76,36 @@ export async function waitRender(pid, vid, { timeoutMs = 15 * 60_000 } = {}) {
 export async function readJsonFile(file) {
   return JSON.parse(await readFile(file, "utf8"));
 }
+
+// ── Posting helpers (same endpoints the website's Post sheet uses) ──────────────────
+
+export const UPLOAD_PLATFORMS = ["tiktok", "instagram", "youtube", "x", "threads", "bluesky", "linkedin"];
+export const CHROME_PLATFORMS = ["tiktok", "youtube", "instagram", "x"];
+
+/** File path, cover, captions per platform and upload pages for a video. */
+export const postKit = (pid, vid) => get(`/api/projects/${pid}/videos/${vid}/handoff`);
+
+/** airdrop | photos | open | copy (see src/app/api/projects/[id]/videos/[vid]/handoff). */
+export const handoff = (pid, vid, action, opts = {}) => post(`/api/projects/${pid}/videos/${vid}/handoff`, { action, ...opts });
+
+/** Rendered videos with no post yet, newest first. */
+export async function readyVideos(pid) {
+  const [videos, posts] = await Promise.all([get(`/api/projects/${pid}/videos`), get(`/api/projects/${pid}/posts`)]);
+  const posted = new Set(posts.filter((p) => p.status !== "canceled").map((p) => p.videoId));
+  return videos.filter((v) => v.status === "rendered" && v.render?.file && !posted.has(v.id));
+}
+
+/** Wait until a post leaves the queued/rendering/posting states. */
+export async function waitPost(pid, postId, { timeoutMs = 12 * 60_000, onLog } = {}) {
+  const start = Date.now();
+  let seen = 0;
+  for (;;) {
+    const p = (await get(`/api/projects/${pid}/posts`)).find((x) => x.id === postId);
+    if (!p) throw new ShipreelError(`Post ${postId} not found`);
+    if (onLog) for (const l of p.log.slice(seen)) onLog(l);
+    seen = p.log.length;
+    if (!["scheduled", "rendering", "posting"].includes(p.status) || (p.status === "scheduled" && new Date(p.scheduledAt).getTime() > Date.now() + 60_000)) return p;
+    if (Date.now() - start > timeoutMs) return p;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+}

@@ -1,12 +1,14 @@
 "use client";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Clapperboard, Copy, Download, FolderOpen, Link2, Loader2, MoreHorizontal, Plus, Send, Trash2 } from "lucide-react";
+import { CalendarClock, Clapperboard, Copy, Download, FolderOpen, Link2, Loader2, MoreHorizontal, Plus, Send, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { BatchDialog, readyToPost } from "@/components/batch-dialog";
 import { CloneDialog } from "@/components/clone-dialog";
 import { Page, PageHeader } from "@/components/page";
+import { PostSheet } from "@/components/post-sheet";
 import { Reel } from "@/components/reel";
 import { Button, buttonClass, IconButton } from "@/components/ui/button";
 import { Badge, Empty, Segmented, Skeleton } from "@/components/ui/misc";
@@ -30,6 +32,14 @@ export default function Studio() {
   const [filter, setFilter] = useState<"all" | "draft" | "rendered" | "scheduled">("all");
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [cloning, setCloning] = useState(false);
+  const [posting, setPosting] = useState<VideoDoc | null>(null);
+  const [postOpen, setPostOpen] = useState(false);
+  const [batchOpen, setBatchOpen] = useState(false);
+  const ready = useMemo(() => readyToPost(videos, posts), [videos, posts]);
+  const openPost = (v: VideoDoc) => {
+    setPosting(v);
+    setPostOpen(true);
+  };
 
   useServerEvents((e) => {
     if (e.type === "render" && e.projectId === projectId) setProgress((p) => ({ ...p, [e.videoId]: e.status === "rendering" ? e.progress ?? 0 : -1 }));
@@ -59,6 +69,11 @@ export default function Studio() {
         subtitle="Hover to preview, click to edit. Your agent can edit these too."
         actions={
           <>
+            {ready.length > 1 && (
+              <Button icon={<CalendarClock className="size-4" />} onClick={() => setBatchOpen(true)}>
+                Post all ready ({ready.length})
+              </Button>
+            )}
             <Segmented
               layoutId="studio-filter"
               value={filter}
@@ -139,7 +154,12 @@ export default function Studio() {
                         <span className="font-mono tabular-nums">{Math.round(p * 100)}%</span>
                       </div>
                     )}
-                    <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-[[data-state=open]]:opacity-100">
+                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-[[data-state=open]]:opacity-100">
+                      {v.status === "rendered" && (
+                        <Button size="sm" variant="secondary" icon={<Send className="size-3.5" />} className="bg-black/60 backdrop-blur" onClick={() => openPost(v)}>
+                          Post
+                        </Button>
+                      )}
                       <Dropdown
                         trigger={
                           <IconButton label="More" size="sm" variant="secondary" className="bg-black/60 backdrop-blur">
@@ -147,8 +167,8 @@ export default function Studio() {
                           </IconButton>
                         }
                       >
-                        <MenuItem icon={<Send className="size-3.5" />} onSelect={() => router.push(`/edit/${projectId}/${v.id}?schedule=1`)}>
-                          Schedule…
+                        <MenuItem icon={<Send className="size-3.5" />} onSelect={() => openPost(v)} description="AirDrop, upload page, Chrome or schedule">
+                          Post…
                         </MenuItem>
                         <MenuItem
                           icon={<Clapperboard className="size-3.5" />}
@@ -222,6 +242,8 @@ export default function Studio() {
         )}
       </div>
       <CloneDialog open={cloning} onOpenChange={setCloning} projectId={projectId} productName={project?.name} />
+      {projectId && posting && <PostSheet open={postOpen} onOpenChange={setPostOpen} projectId={projectId} videoId={posting.id} spec={posting.spec} />}
+      {projectId && <BatchDialog open={batchOpen} onOpenChange={setBatchOpen} projectId={projectId} videos={ready} />}
     </Page>
   );
 }

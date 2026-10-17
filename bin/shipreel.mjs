@@ -3,7 +3,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { APP_ROOT, BASE, boot, get, patch, post, projectId, put, readJsonFile, ShipreelError, waitRender, waitRun } from "./lib.mjs";
+import { APP_ROOT, BASE, boot, CHROME_PLATFORMS, get, handoff, patch, post, postKit, projectId, put, readJsonFile, readyVideos, ShipreelError, waitPost, waitRender, waitRun } from "./lib.mjs";
 
 const HELP = `shipreel: marketing videos for your app, from the terminal (talks to the Shipreel app at ${BASE})
 
@@ -23,14 +23,31 @@ Usage: shipreel <command> [options]
   spec <video> [--set spec.json]     Print (or replace) a video's JSON spec
   edit <video> "instruction" [--engine claude|codex]   Let an agent edit the video (waits)
   render <video> [--wait]            Render the MP4 (--wait prints the file path)
-  post <video> [--at next|now|2026-10-20T19:00] [--platforms tiktok,instagram]
-               [--provider upload-post|bluesky|webhook|manual] [--no-draft]
+  post <video> [--at next|now|2026-10-20T19:00] [--now] [--platforms tiktok,instagram]
+               [--provider upload-post|bluesky|webhook|browser|manual] [--no-draft]
   posts                              Upcoming and recent posts
+  post-status <post>                 One post's status, results and log
+
+Posting by hand (easiest first):
+  ready                              Rendered videos with no post yet, with captions
+  kit <video> [--platform tiktok]    MP4 path, cover and the caption for each platform
+  phone <video> [--photos] [--platform tiktok] [--dry-run]
+                                     AirDrop to your iPhone (or save to Photos), caption copied
+  upload-page <video> --platform tiktok
+                                     Open the web upload page, caption copied, MP4 shown in Finder
+  chrome <video> --platform tiktok [--auto-post]
+                                     Fill the upload in Shipreel's Chrome window; stops before Post
+  queue <video> [<video>…] [--per-day 1] [--platforms …] [--provider …]
+                                     Spread videos across the next days at your posting times
+  connect                            Test Upload-Post and Bluesky (posts nothing)
   mcp                                How to add Shipreel to Claude Code or Codex as an MCP server
 
 Options: --project <id> targets a product other than the active one. --json prints raw JSON.
 Env: SHIPREEL_URL (default http://localhost:4747)
 `;
+
+// `shipreel ready | head` closes the pipe early: that's fine, not a crash.
+process.stdout.on("error", (e) => (e.code === "EPIPE" ? process.exit(0) : undefined));
 
 function parse(argv) {
   const pos = [];
@@ -213,7 +230,7 @@ async function main() {
       if (!args[0]) throw new ShipreelError("Which video?");
       const p = await post(`/api/projects/${pid}/posts`, {
         videoId: args[0],
-        scheduledAt: opt.at ?? "next",
+        scheduledAt: opt.now ? "now" : opt.at ?? "next",
         platforms: opt.platforms ? String(opt.platforms).split(",") : undefined,
         provider: opt.provider,
         asDraft: opt["no-draft"] ? false : undefined,
@@ -229,10 +246,106 @@ async function main() {
       return;
     }
 
+    case "post-status": {
+      const pid = await projectId(opt.project);
+      if (!args[0]) throw new ShipreelError("Which post? (shipreel posts --json)");
+      const p = (await get(`/api/projects/${pid}/posts`)).find((x) => x.id === args[0]);
+      if (!p) throw new ShipreelError(`Post ${args[0]} not found`);
+      out(p, opt, () => printPost(p, 12));
+      return;
+    }
+
+    case "ready": {
+      const pid = await projectId(opt.project);
+      const list = await readyVideos(pid);
+      if (opt.json) {
+        const kits = await Promise.all(list.map((v) => postKit(pid, v.id)));
+        return console.log(JSON.stringify(kits, null, 2));
+      }
+      if (!list.length) return console.log("Nothing ready: every rendered video already has a post. (shipreel videos)");
+      for (const v of list) {
+        const k = await postKit(pid, v.id);
+        console.log(`${bold(v.id)}  ${v.spec.title}${k.stale ? dim("  (changed since render)") : ""}`);
+        console.log(dim(`  ${k.file}`));
+        console.log(`  ${k.captions.tiktok.replace(/\n/g, " ").slice(0, 160)}`);
+      }
+      return;
+    }
+
+    case "kit": {
+      const pid = await projectId(opt.project);
+      if (!args[0]) throw new ShipreelError("Which video?");
+      const k = await postKit(pid, args[0]);
+      out(k, opt, () => {
+        if (!k.ready) console.log(k.file ? "Changed since the last render: shipreel render <video> --wait" : "Not rendered yet: shipreel render <video> --wait");
+        if (k.file) console.log(`${bold("File")}   ${k.file}`);
+        if (k.cover) console.log(`${bold("Cover")}  ${k.cover}`);
+        const ps = opt.platform ? [String(opt.platform)] : Object.keys(k.captions);
+        for (const p of ps) console.log(`\n${bold(p)}  ${dim(k.uploadPages[p] ?? "")}\n${k.captions[p] ?? ""}`);
+      });
+      return;
+    }
+
+    case "phone": {
+      const pid = await projectId(opt.project);
+      if (!args[0]) throw new ShipreelError("Which video?");
+      const r = await handoff(pid, args[0], opt.photos ? "photos" : "airdrop", { platform: opt.platform ?? "tiktok", dryRun: !!opt["dry-run"] });
+      out(r, opt, () => console.log(`${green("✓")} ${r.detail}${r.copied ? ` ${dim("Caption copied.")}` : ""}`));
+      return;
+    }
+
+    case "upload-page":
+    case "open-upload": {
+      const pid = await projectId(opt.project);
+      if (!args[0]) throw new ShipreelError("Which video?");
+      const r = await handoff(pid, args[0], "open", { platform: opt.platform ?? "tiktok" });
+      out(r, opt, () => console.log(`${green("✓")} ${r.detail}\n${dim(r.url)}`));
+      return;
+    }
+
+    case "chrome": {
+      const pid = await projectId(opt.project);
+      const platform = String(opt.platform ?? "tiktok");
+      if (!args[0]) throw new ShipreelError("Which video?");
+      if (!CHROME_PLATFORMS.includes(platform)) throw new ShipreelError(`Chrome uploads cover ${CHROME_PLATFORMS.join(", ")}. Try: shipreel upload-page ${args[0]} --platform ${platform}`);
+      const p = await post(`/api/projects/${pid}/posts`, { videoId: args[0], platforms: [platform], scheduledAt: "now", provider: "browser", autoPost: !!opt["auto-post"] });
+      process.stderr.write(dim(`Filling in ${platform} in Shipreel's Chrome window (post ${p.id})…\n`));
+      const done = await waitPost(pid, p.id, { onLog: (l) => !/^Scheduled for/.test(l) && process.stderr.write(dim(`  ${l}\n`)) });
+      out(done, opt, () => printPost(done, 0));
+      return;
+    }
+
+    case "queue": {
+      const pid = await projectId(opt.project);
+      const ids = args.length ? args : (await readyVideos(pid)).map((v) => v.id);
+      if (!ids.length) throw new ShipreelError("Nothing to queue: no rendered videos without a post.");
+      const ps = await post(`/api/projects/${pid}/posts/batch`, {
+        videoIds: ids,
+        perDay: Number(opt["per-day"] ?? 1),
+        platforms: opt.platforms ? String(opt.platforms).split(",") : undefined,
+        provider: opt.provider,
+        asDraft: opt["no-draft"] ? false : undefined,
+      });
+      out(ps, opt, () => ps.forEach((p) => console.log(`${green("Scheduled")} ${new Date(p.scheduledAt).toLocaleString().padEnd(24)} ${p.videoId}  → ${p.platforms.join(",")} via ${p.provider}`)));
+      return;
+    }
+
+    case "connect": {
+      const [up, bsky] = await Promise.all([post("/api/publishers", { action: "test-upload-post" }), post("/api/publishers", { action: "test-bluesky" })]);
+      out({ uploadPost: up, bluesky: bsky }, opt, () => {
+        console.log(`${bold("Upload-Post")}  ${up.ok ? green(up.message) : up.message}`);
+        console.log(`${bold("Bluesky")}      ${bsky.ok ? green(bsky.message) : bsky.message}`);
+        if (!up.ok) console.log(dim(`Set up: ${BASE}/settings#connect`));
+      });
+      return;
+    }
+
     case "mcp": {
       const mcp = path.join(APP_ROOT, "bin", "shipreel-mcp.mjs");
       console.log(`Claude Code:  claude mcp add shipreel -- node ${mcp}`);
       console.log(`Codex:        codex mcp add shipreel -- node ${mcp}`);
+      console.log(`Claude Desktop: add to ~/Library/Application Support/Claude/claude_desktop_config.json →`);
+      console.log(dim(JSON.stringify({ mcpServers: { shipreel: { command: process.execPath, args: [mcp] } } }, null, 2)));
       console.log(dim("Then ask: “make a TikTok about the feature I just shipped and schedule it for tonight”."));
       return;
     }
@@ -240,6 +353,12 @@ async function main() {
     default:
       throw new ShipreelError(`Unknown command "${cmd}". Run: shipreel help`);
   }
+}
+
+function printPost(p, logLines) {
+  console.log(`${bold(p.id)}  ${p.status}  ${new Date(p.scheduledAt).toLocaleString()}  ${p.platforms.join(",")} via ${p.provider}`);
+  for (const r of p.results ?? []) console.log(`  ${r.ok ? green("✓") : r.mode === "manual" ? "→" : "✗"} ${r.platform}: ${r.ok ? r.url ?? r.mode ?? "ok" : r.error}${r.screenshot ? dim(` (screenshot: ${r.screenshot})`) : ""}`);
+  if (logLines) for (const l of p.log.slice(-logLines)) console.log(dim(`  ${l}`));
 }
 
 function printIdeas(ideas) {

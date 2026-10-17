@@ -35,6 +35,23 @@ Shipreel only listens on this Mac (127.0.0.1), and its API refuses requests from
 
 The research behind all of this (formats, hooks, sounds, design specs, posting APIs, the competitive landscape and the practitioner playbook, gathered October 2026) is in `research/`.
 
+### Native formats
+
+The viral app accounts don't use phone mockups, zooms or end cards. They post things that look like a person made them on their phone. These formats copy that, measured from ~200 viral app videos (`research/viral/`):
+
+| Format | What it looks like |
+| --- | --- |
+| `raw-demo` | A full-screen screen recording in one take, with TikTok's boxed text changing at each step. |
+| `found-this` | A real-life clip with a Snapchat-bar hook, then the app opened and used in one take. |
+| `text-card` | A floating iMessage card over footage, every message read aloud by two voices; the app saves the day mid-story. |
+| `mental-load` | One relatable paragraph over a real-life clip. The app is only named in the caption. |
+| `that-girl` | “6 reasons why … is THAT girl”: a numbered serif list over lifestyle clips and app screens. |
+| `ditch-old-way` | The old way, the app opening, a ✅ list that builds on the beat, then the payoff shot. |
+| `backdrop-pov` | One “me checking the app…” line over a single screen. |
+| `setup-receipts` | A 3:4 photo carousel: a quoted compliment, then the screens that are the answer. |
+
+When a video renders, Shipreel renders it once without text at low resolution and checks what's under each caption. It moves captions off busy UI, and swaps white text for TikTok's boxed text on light screens. Captions you place by hand (a `y` in the text style) are left alone.
+
 ## Claude Code and Codex
 
 Shipreel uses the agents you already have, with your own subscriptions:
@@ -53,6 +70,14 @@ codex mcp add shipreel -- node ~/Glide/Shipreel/bin/shipreel-mcp.mjs
 
 Then, in your app's repo: *“make a TikTok about the feature I just shipped and schedule it for tonight.”* The server exposes `get_brief`, `list_formats`, `list_hooks`, `create_video`, `clone_video`, `get_video`, `update_video`, `render_video`, `schedule_post`, `log_results` and more. Shipreel must be running.
 
+Claude Desktop: add this to `~/Library/Application Support/Claude/claude_desktop_config.json` (use the full path to `node` from `which node`; `node bin/shipreel.mjs mcp` prints it filled in):
+
+```json
+{ "mcpServers": { "shipreel": { "command": "/usr/local/bin/node", "args": ["/Users/you/Glide/Shipreel/bin/shipreel-mcp.mjs"] } } }
+```
+
+**Skill and `/post`**: Claude Code opened in this repo picks up `skills/shipreel/SKILL.md` (linked from `.claude/skills/`) and the `/post` command. To use them from your app's repo too: `ln -s ~/Glide/Shipreel/skills/shipreel ~/.claude/skills/shipreel`.
+
 ### CLI
 
 ```bash
@@ -67,9 +92,19 @@ node bin/shipreel.mjs post <video> --at next --platforms tiktok,instagram
 
 (`npm link` puts `shipreel` on your PATH.)
 
+## Posting
+
+Every video has a **Post** button (editor, Studio and Home cards; *Open post kit* in the Calendar). Easiest first:
+
+1. **iPhone**: *AirDrop to iPhone* opens the AirDrop picker with the MP4 and copies the caption (paste it on the phone through Universal Clipboard), or *Save to Photos* puts it in a "Shipreel" album that iCloud syncs. Post from the app with a trending sound: the best reach on TikTok. If macOS blocks Photos, allow it in System Settings → Privacy & Security → Automation.
+2. **Upload page**: one click per platform copies that caption, selects the MP4 in Finder and opens TikTok Studio, Instagram, YouTube Studio, X, Threads or Bluesky. Drag the file in, paste.
+3. **Chrome**: Shipreel opens the upload page in its own Chrome window (`workspace/browser-profile`; log in once), attaches the video, fills the caption and stops before Post. Turn on *Press Post for me* per platform in Settings → Connect accounts if you want it to finish on its own. TikTok, YouTube, Instagram and X. No captcha or 2FA solving: if a login is needed, it waits for you.
+4. **Auto-post**: *Post now* or *Schedule* through a connected service (below). *Post all ready* in the Studio spreads your rendered videos across the next days at your posting times.
+5. **Let Claude do it**: in Claude Code, `/post` or "post the newest video to TikTok tomorrow at 6pm" (MCP tools `send_to_phone`, `open_upload`, `browser_upload`, `post_now`, `schedule_post`, `schedule_batch`, `post_status`; CLI `shipreel phone|upload-page|chrome|queue`). The in-app agent understands the same requests.
+
 ## Auto-posting
 
-Settings → Auto-posting. Pick one or more:
+Settings → Connect accounts (each has a *Test* button). Pick one or more:
 
 - **Upload-Post** (recommended): one API key posts to TikTok (including drafts), Instagram, YouTube, X, LinkedIn, Threads, Facebook, Pinterest and Bluesky. Paste the key, press *Connect accounts*, link your socials on their page. TikTok needs their paid Basic plan (about $16–24/month); the free tier is 10 uploads a month without TikTok.
 - **Bluesky**: direct and free with an app password.

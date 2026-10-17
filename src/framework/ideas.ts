@@ -1,12 +1,14 @@
 /**
- * Instant ideas: hook templates × formats filled from the product brief. No AI wait — Claude/Codex
- * produce the premium versions, but this keeps the deck full in under a millisecond.
+ * Instant ideas: every format's hook bank filled from the product brief, linted and ranked (hooks.ts),
+ * then dealt round-robin across formats so a batch mixes bodies and patterns. No AI wait — Claude/Codex
+ * produce the premium versions (and get scored by the same linter), but this keeps the deck full in
+ * a few milliseconds.
  */
 import type { Idea, Platform, Project } from "@/lib/types";
-import { fill, hashString, seeded, shuffle, vocab } from "./fill";
+import { postCaption } from "./captions";
+import { hashString, seeded, shuffle } from "./fill";
 import { FORMAT_MAP, FORMATS } from "./formats";
-import { HOOK_TEMPLATES, type HookTemplate } from "./hooks";
-import { scoreHook } from "./score";
+import { rankHooks, type RankedHook } from "./hooks";
 
 export type DraftIdea = Omit<Idea, "id" | "createdAt" | "status">;
 
@@ -18,70 +20,74 @@ function needsSatisfied(formatId: string, p: Project, hasVideo: boolean, hasImag
   return true;
 }
 
+const STATUS_BONUS = { hot: 4, steady: 0, saturated: -6 } as const;
+
 export function instantIdeas(
   project: Project,
   opts: { count?: number; seed?: number; formats?: string[]; hasVideo?: boolean; hasImages?: boolean; avoidHooks?: string[] } = {},
 ): DraftIdea[] {
   const count = opts.count ?? 10;
-  const r = seeded(opts.seed ?? hashString(project.id + Date.now()));
-  const v = vocab(project);
-  const allowed = new Set(
-    (opts.formats?.length ? opts.formats : FORMATS.map((f) => f.id)).filter((id) =>
-      needsSatisfied(id, project, !!opts.hasVideo, !!opts.hasImages),
-    ),
-  );
-  const avoid = new Set((opts.avoidHooks ?? []).map((h) => h.toLowerCase()));
-  const day = String(1 + Math.floor(r() * 30));
-  const doubters = ["mom", "landlord", "boss", "girlfriend", "roommate", "grandma", "dad", "coach"];
+  const seed = opts.seed ?? hashString(project.id + Date.now());
+  const r = seeded(seed);
+  const allowed = (opts.formats?.length ? opts.formats : FORMATS.map((f) => f.id)).filter((id) => needsSatisfied(id, project, !!opts.hasVideo, !!opts.hasImages));
+  const avoid = new Set((opts.avoidHooks ?? []).map((h) => h.toLowerCase().trim()));
+  const single = allowed.length === 1;
 
-  // Rank templates: strength first, with some randomness so every batch differs.
-  const pool = shuffle(HOOK_TEMPLATES, r)
-    .filter((h) => !h.formats.length || h.formats.some((f) => allowed.has(f)))
-    .sort((a, b) => b.strength + r() * 1.5 - (a.strength + r() * 1.5));
+  // Each format's usable hooks, best first, with a little seeded jitter so batches differ.
+  const decks = allowed
+    .map((id) => {
+      const fmt = FORMAT_MAP[id];
+      const hooks = rankHooks(id, project, { seed })
+        .filter((h) => h.score >= 55 && !avoid.has(h.text.toLowerCase()))
+        .map((h) => ({ ...h, rank: h.score + STATUS_BONUS[fmt.status] + r() * 12 }))
+        .sort((a, b) => b.rank - a.rank);
+      return { id, hooks, top: hooks[0]?.rank ?? 0 };
+    })
+    .filter((d) => d.hooks.length);
+  // Strongest formats first, shuffled within near-ties.
+  const order = shuffle(decks, r).sort((a, b) => b.top - a.top + (r() - 0.5) * 8);
 
   const out: DraftIdea[] = [];
-  const usedFormats = new Map<string, number>();
-  for (const h of pool) {
-    if (out.length >= count) break;
-    const formatId = pickFormat(h, allowed, usedFormats, r);
-    if (!formatId) continue;
-    const hook = fill(h.text, v, { day, doubter: doubters[Math.floor(r() * doubters.length)] });
-    if (!hook || hook.includes("{") || avoid.has(hook.toLowerCase())) continue;
-    if (/\b(undefined|null)\b/.test(hook)) continue;
-    // Skip fills that left a hole or doubled a word ("never never", "you you", "is .").
-    if (/\b(\w+) \1\b/i.test(hook) || /:\s*$|\bis\s*$|need\s*$|deleted\s*$/i.test(hook) || /\s[,.?]/.test(hook)) continue;
-    if (/\{competitor\}/.test(h.text) && !v.competitor) continue;
-    if (/\{metric\}/.test(h.text) && !v.metric) continue;
-    if (/\{price\}/.test(h.text) && !v.price) continue;
-    const fmt = FORMAT_MAP[formatId];
-    const { score, checks } = scoreHook(hook);
-    usedFormats.set(formatId, (usedFormats.get(formatId) ?? 0) + 1);
-    avoid.add(hook.toLowerCase());
-    out.push({
-      formatId,
-      hook,
-      angle: `${fmt.name}: ${fmt.tagline.replace(/\{app\}/g, v.app)}`,
-      beats: fmt.beats,
-      platforms: fmt.platforms.filter((p): p is Platform => ["tiktok", "instagram", "youtube", "x", "linkedin"].includes(p)).slice(0, 3),
-      caption: `${hook.replace(/[.!]$/, "")} — ${v.app}`,
-      hashtags: project.hashtags.slice(0, 5),
-      score: Math.round(score * 0.7 + h.strength * 6),
-      scoreNotes: checks.filter((c) => !c.ok).map((c) => c.tip),
-      source: "instant",
-    });
+  const usedText = new Set<string>();
+  const patternCount = new Map<string, number>();
+  // At most ~2 per format unless there are too few formats to fill the batch.
+  const rounds = single ? 40 : Math.max(2, Math.ceil(count / Math.max(1, order.length)));
+  for (let round = 0; out.length < count && round < rounds; round++) {
+    let added = false;
+    for (const d of order) {
+      if (out.length >= count) break;
+      // Prefer a pattern we haven't leaned on yet in this batch.
+      const pickIdx = d.hooks.findIndex((h) => !usedText.has(h.text.toLowerCase()) && (patternCount.get(h.pattern) ?? 0) < Math.max(2, Math.ceil(count / 4)));
+      const h: (RankedHook & { rank: number }) | undefined = d.hooks.splice(pickIdx >= 0 ? pickIdx : 0, 1)[0];
+      if (!h || usedText.has(h.text.toLowerCase())) continue;
+      usedText.add(h.text.toLowerCase());
+      patternCount.set(h.pattern, (patternCount.get(h.pattern) ?? 0) + 1);
+      out.push(toIdea(project, d.id, h, seed));
+      added = true;
+    }
+    if (!added) break;
   }
   return out;
 }
 
-function pickFormat(h: HookTemplate, allowed: Set<string>, used: Map<string, number>, r: () => number): string | null {
-  const candidates = (h.formats.length ? h.formats : [...allowed]).filter((f) => allowed.has(f));
-  if (!candidates.length) return null;
-  // Prefer formats we haven't used much in this batch (variety beats repetition when exploring).
-  const sorted = [...candidates].sort((a, b) => (used.get(a) ?? 0) - (used.get(b) ?? 0) + (r() - 0.5) * 0.5);
-  return sorted[0];
+function toIdea(project: Project, formatId: string, h: RankedHook, seed: number): DraftIdea {
+  const fmt = FORMAT_MAP[formatId];
+  const post = postCaption({ project, formatId, hook: h.text, seed });
+  return {
+    formatId,
+    hook: h.text,
+    angle: `${fmt.name}: ${fmt.tagline.replace(/\{app\}/g, project.name)}`,
+    beats: fmt.beats,
+    platforms: fmt.platforms.filter((p): p is Platform => ["tiktok", "instagram", "youtube", "x", "linkedin"].includes(p)).slice(0, 3),
+    caption: post.caption,
+    hashtags: post.hashtags,
+    score: h.score,
+    scoreNotes: h.reasons.filter((x) => x.delta < 0 && x.tip).map((x) => x.tip as string),
+    source: "instant",
+  };
 }
 
-/** Variations of a winner: same format/body, new hooks from other families. */
+/** Variations of a winner: same format/body, new hooks (other patterns first). */
 export function variationsOf(project: Project, idea: Pick<Idea, "formatId" | "hook">, n = 3, seed = Date.now()): DraftIdea[] {
   const ideas = instantIdeas(project, { count: 30, seed, formats: [idea.formatId], hasVideo: true, hasImages: true, avoidHooks: [idea.hook] });
   return ideas.slice(0, n);

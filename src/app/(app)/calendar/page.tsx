@@ -25,6 +25,7 @@ import React, { Suspense, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/page";
 import { PLATFORM_LABEL, PlatformIcon } from "@/components/platform-icon";
+import { PostSheet as PostKitSheet } from "@/components/post-sheet";
 import { Reel } from "@/components/reel";
 import { ScheduleDialog } from "@/components/schedule-dialog";
 import { Button, IconButton } from "@/components/ui/button";
@@ -407,6 +408,7 @@ function PostSheet({ post: p, video, projectId, onClose, onChanged }: { post: Po
   const [m, setM] = useState<Partial<PostMetrics>>({});
   const [saving, setSaving] = useState(false);
   const [reading, setReading] = useState(false);
+  const [kitOpen, setKitOpen] = useState(false);
   const shot = useRef<HTMLInputElement>(null);
   const key = p?.id;
   const [loadedFor, setLoadedFor] = useState<string | undefined>();
@@ -533,6 +535,11 @@ function PostSheet({ post: p, video, projectId, onClose, onChanged }: { post: Po
                     I posted it
                   </Button>
                 )}
+                {(p.status === "needs-you" || p.status === "failed") && (
+                  <Button size="sm" icon={<Send className="size-3.5" />} onClick={() => setKitOpen(true)}>
+                    Open post kit
+                  </Button>
+                )}
                 {video?.render?.file && (
                   <Button size="sm" variant="ghost" onClick={() => window.open(`/api/media/${projectId}/${video.render!.file}?download=1`)}>
                     Download MP4
@@ -657,6 +664,7 @@ function PostSheet({ post: p, video, projectId, onClose, onChanged }: { post: Po
               </div>
             </div>
           </div>
+          <PostKitSheet open={kitOpen} onOpenChange={setKitOpen} projectId={projectId} videoId={p.videoId} spec={video?.spec} />
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

@@ -100,10 +100,55 @@ Measured from ~200 viral app videos and carousels (research/viral/*.md). The hit
 8. **Native looks beat polish**: raw screens, real hands, iMessage, Notes, comment replies and TikTok's own text outperform glossy motion graphics and end cards.
 `;
 
+/** How to write hooks. Shared by FRAMEWORK.md and the ideas prompt; every hook is scored by lintHook (hooks.ts). */
+export const HOOK_GUIDE = `
+## Writing hooks
+
+The hook is the text on frame 1 (and the first spoken line). People decide in about a second. Write it like a post, not an ad.
+
+**Patterns** (research/viral/hooks.md has ~380 real ones with views; in the top 30 the median hook is 7.5 words, 27/30 don't name the app, 19/30 have no closing punctuation): discovery/disbelief ("I'm JUST NOW finding this??") · POV + one exact moment · mental load / "no one talks about" · dialogue (something someone said, a text, a comment) · identity call-out ("if you're the default parent…") · list (the number = the items shown) · contrarian ("the fridge calendar could never") · confession ("this may look sponsored but…") · before → after · specific moment (a time, a day, a person) · build in public (a real stake).
+
+**Rules**
+1. 4–12 words, ≤ 22 characters a line, ≤ 3 lines. Paragraph formats (mental-load, text-wall): one 8–28 word opening sentence.
+2. The first two words do the work: POV / nobody / no one / why / wait / been / my <person> / if you're / a number / a quote.
+3. One specific detail: a time (3:55pm), a person (my mother-in-law), a thing (the fridge calendar), a place (Aldi).
+4. Open a gap or name a pain, and let the video close it. Don't explain the product in the hook.
+5. Talk like a person: you / I / POV. Lowercase is native; one CAPS word for spoken emphasis (JUST NOW, THAT girl); 0–2 emoji at the end; no hashtags.
+6. Keep the app's name out of the hook in problem, POV and feeling formats; it goes in the caption. (Orbits: 1.4M and 426K with no name on screen, ~5K with "Orbits" added to the same text.)
+7. No ad-speak: revolutionary, game-changer, seamless, introducing, all-in-one, unlock, "the best app", "are you tired of".
+8. Never invent numbers about the product (users, ratings, revenue, "saves 5 hours"). List numbers equal the items the video shows. Persona details (a time, "3 kids") must be true for whoever posts.
+9. Match the format's voice: text-card = a line someone texts you; setup-receipts = a quoted question answered by "I don't. <App> does"; mental-load = the opening sentence of a paragraph; that-girl = "N reasons why <App> is THAT girl"; comment-reply = a question.
+10. Write several variants on different patterns. Shipreel scores every hook 0–100 (length, opener, specificity, gap/pain, voice, no ad-speak, no invented numbers, no app name up front) and keeps the best.
+
+**Real hooks that worked** (views from the research files)
+- "been shopping at Aldi literally for 7 years and I'm JUST NOWWW FINDING THIS????" (Potto UGC, 29.3M)
+- "me checking my friend's shared calendar every day to make silly lil plans together 🤭🤭" (Howbout, 21.4M)
+- "Doing my silly goofy laundry because a bird on my phone told me to 🧚" (Finch, 20.3M)
+- "⚠️It will be time to BeReal at 3:42pm on Monday⚠️" (BeReal, 17.0M; a brand can be named when it's the ritual)
+- "I don't have 1 hour 💀💀💀" (StudyFetch, 13.4M)
+- "our prof showed us how to watch a 1 hour lecture in 2 minutes 😭" (AnswersAI, 10.9M)
+- "When you decide to ditch the paper calendars and go digital" (Hearth, 9.3M)
+- "pov: you have a type A mom" (5.4M)
+- "POV: Your first vacation with a man who quietly takes the mental load" (4.9M)
+- "No one talks about how exhausting it is to live with a man who is perfectly willing to help…" (Orbits partner, 1.4M; app only in the caption)
+- "“I wish I had the discipline to hit the gym as consistently as you”" → "My consistency:" (Hevy, 1.1M)
+- "Me checking my screen time like it's a horror movie" (Opal, 1.0M)
+- "my hostel roommate just showed me this and all my solo travel anxiety is gone 🤯🤯" (Nomad Table, 1.0M)
+- "7 reasons why Hearth is THAT girl" (Hearth, 754K)
+- "my landlord said I can't change anything" (Snugly, 482.5K; its feature-first hooks got ~1K)
+
+**Bad → good**
+- "Introducing FamSync, the all-in-one family organizer!" → "POV: it's 3:55 and nobody knows who's getting the kids"
+- "I built an app that puts the whole family's calendar, chores, groceries, meals and pickups in one app" → "the fridge calendar could never"
+- "this app helps busy parents and nobody's talking about it" → "been running this family off a group chat for 6 years and I'm JUST NOW finding this??"
+- "Are you tired of forgetting what you studied? Try Recall!" → "it's 2am and I've read the same page 4 times"
+- "FamSync: stop being the family's human calendar" (on a mental-load post) → "No one talks about how exhausting it is when you're the only one who knows where everyone needs to be."
+`;
+
 export function frameworkMarkdown(): string {
   const formats = FORMATS.map(
     (f) =>
-      `### ${f.name} (\`${f.id}\`) — ${f.kind}, ${f.lengthSec[0]}–${f.lengthSec[1]}s, ${f.status}\n${f.tagline}\n- Why: ${f.why}\n- Beats: ${f.beats.join(" → ")}\n- Needs: ${f.needs.join(", ")}\n- Example hooks: ${f.hooks.map((h) => `"${h}"`).join(", ")}\n`,
+      `### ${f.name} (\`${f.id}\`) — ${f.kind}, ${f.lengthSec[0]}–${f.lengthSec[1]}s, ${f.status}\n${f.tagline}\n- Why: ${f.why}\n- Beats: ${f.beats.join(" → ")}\n- Needs: ${f.needs.join(", ")}\n- Hook templates ({slots} fill from the brief): ${f.hooks.map((h) => `"${h}"`).join(", ")}\n`,
   ).join("\n");
   return `# Shipreel framework
 
@@ -119,6 +164,7 @@ This folder is the user's Shipreel workspace. Each project lives in \`projects/<
 
 You can also drive the app with the CLI: \`shipreel --help\` (or \`node <shipreel>/bin/shipreel.mjs\`).
 ${RULES}
+${HOOK_GUIDE}
 ${SPEC_REFERENCE}
 ## Formats
 ${formats}`;

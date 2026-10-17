@@ -243,7 +243,7 @@ export function TextStyleField({ value, onChange, layoutId }: { value?: TextStyl
         ))}
       </div>
       <Row label="Position">
-        <EnumField layoutId={`${layoutId}-pos`} value={v.position ?? "center"} options={TEXT_POSITIONS} onChange={(position) => onChange({ ...v, position })} />
+        <EnumField layoutId={`${layoutId}-pos`} value={v.position ?? "center"} options={TEXT_POSITIONS} onChange={(position) => onChange({ ...v, position, y: undefined })} />
       </Row>
       <div className="grid grid-cols-2 gap-2">
         <Row label="Animation">

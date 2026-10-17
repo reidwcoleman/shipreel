@@ -6,29 +6,24 @@
 import type { VideoSpec } from "@/remotion/spec";
 import { totalDurationSeconds } from "@/remotion/timeline";
 import { FORMAT_MAP } from "./formats";
+import { lintHook, type LintContext } from "./hooks";
 
 export type Check = { id: string; label: string; ok: boolean; weight: number; tip: string };
 
-const CURIOSITY = /\b(why|how|secret|nobody|no one|illegal|wish|stop|never|actually|finally|this|until|what happened|pov|wait|imagine|you('| a)re|realized)\b/i;
-const SPECIFIC = /\d|\$|%/;
-const YOU = /\b(you|your|pov|me|my|i)\b/i;
-const HYPE = /\b(revolutionary|game.?changer|cutting.?edge|seamless|leverage|synergy|innovative|best app ever)\b/i;
-
-export function scoreHook(hook: string): { score: number; checks: Check[] } {
-  const text = hook.replace(/\*/g, "").replace(/\\n|\n/g, " ").trim();
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const checks: Check[] = [
-    { id: "length", label: "Readable in ~1.5s (4–12 words)", ok: words >= 3 && words <= 12, weight: 25, tip: words > 12 ? "Cut it down: the hook should be readable before the thumb moves." : "Add a bit more context so it makes sense cold." },
-    { id: "curiosity", label: "Opens a curiosity gap", ok: CURIOSITY.test(text) || text.includes("?"), weight: 25, tip: "Tease an outcome without explaining it (why/how/nobody/finally/POV…)." },
-    { id: "personal", label: "Talks to one person", ok: YOU.test(text), weight: 15, tip: "Use 'you', 'I' or POV framing instead of describing a product." },
-    { id: "specific", label: "Has something specific", ok: SPECIFIC.test(text) || words >= 6, weight: 15, tip: "Numbers, timeframes and concrete nouns beat adjectives." },
-    { id: "no-hype", label: "No ad-speak", ok: !HYPE.test(text), weight: 20, tip: "Words like 'revolutionary' or 'seamless' scream ad. Say what it does." },
-  ];
-  return { score: sum(checks), checks };
+/**
+ * The hook linter from hooks.ts, as launch-check rows: each reason becomes a check (ok when it adds
+ * points, with its tip when it costs them). `ctx` makes it format- and brief-aware.
+ */
+export function scoreHook(hook: string, ctx: LintContext = {}): { score: number; checks: Check[] } {
+  const lint = lintHook(hook, ctx);
+  const checks: Check[] = lint.reasons
+    .filter((r) => r.delta !== 0 || r.tip)
+    .map((r) => ({ id: r.id, label: r.label, ok: r.delta > 0, weight: Math.abs(r.delta), tip: r.tip ?? "" }));
+  return { score: lint.score, checks };
 }
 
 /** `proof`: the brief's real numbers. Without any, store-card ratings or a chart rank can't be real. */
-export function scoreVideo(spec: VideoSpec, ctx: { proof?: string[] } = {}): { score: number; checks: Check[] } {
+export function scoreVideo(spec: VideoSpec, ctx: { proof?: string[]; app?: string } = {}): { score: number; checks: Check[] } {
   const dur = totalDurationSeconds(spec);
   const fmt = FORMAT_MAP[spec.formatId];
   const [minLen, maxLen] = fmt?.lengthSec ?? [7, 30];
@@ -40,7 +35,7 @@ export function scoreVideo(spec: VideoSpec, ctx: { proof?: string[] } = {}): { s
       spec.overlays.some((o) => o.type === "text" && o.start <= 0.3));
   const hasCta = spec.scenes.some((s) => s.type === "cta") || /link in bio|download|search|app store/i.test(JSON.stringify(spec.scenes.at(-1) ?? {}));
   const hook = spec.meta.hook || ("text" in (first ?? {}) ? String((first as { text?: string }).text ?? "") : "");
-  const hookScore = scoreHook(hook || spec.title).score;
+  const hookScore = scoreHook(hook || spec.title, { formatId: spec.formatId, proof: ctx.proof, app: ctx.app }).score;
   // Scene notes that mark placeholder proof ("Use your real numbers", "payments you actually received"),
   // not every note that says "real" ("rebuild for a real demo").
   const PLACEHOLDER = /\b(real|actual)(ly)? (numbers?|revenue|users?|payments?|comments?|reviews?|results?|stats?|metrics?|screenshots?)\b|made.?up|actually received|\bfake\b|placeholder/i;

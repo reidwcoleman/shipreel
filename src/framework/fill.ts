@@ -86,22 +86,98 @@ export function fill(template: string, v: Vocab, extra: Record<string, string> =
     day: "1",
     ...extra,
   };
-  return template
-    .replace(/\{(\w+)\}/g, (_, k: string) => map[k] ?? "")
-    .replace(/\s+([,.!?])/g, "$1")
-    .replace(/\s{2,}/g, " ")
-    .trim();
+  return polish(template.replace(/\{(\w+)\}/g, (_, k: string) => map[k] ?? ""));
 }
 
-/** First-person pain → "you" framing: "I forget to drink water" → "you forget to drink water". */
+/** First-person pain → "you" framing: "I forget to drink water" → "you forget to drink water", "our family…" → "your family…". */
 export function toYou(s: string): string {
   return s
     .replace(/\bI am\b/gi, "you're")
     .replace(/\bI'm\b/gi, "you're")
+    .replace(/\bI was\b/g, "you were")
+    .replace(/\bwe're\b/gi, "you're")
+    .replace(/\bwe were\b/gi, "you were")
     .replace(/\bI\b/g, "you")
+    .replace(/\bwe\b/gi, "you")
     .replace(/\bmy\b/gi, "your")
-    .replace(/\bme\b/gi, "you")
-    .replace(/\bmyself\b/gi, "yourself");
+    .replace(/\bour\b/gi, "your")
+    .replace(/\bmine\b/gi, "yours")
+    .replace(/\bours\b/gi, "yours")
+    .replace(/\b(me|us)\b/gi, "you")
+    .replace(/\b(myself|ourselves)\b/gi, "yourself");
+}
+
+/** Second-person outcome → first person: "get your evenings back" → "get my evenings back". */
+export function toMe(s: string): string {
+  return s
+    .replace(/\byou're\b/gi, "I'm")
+    .replace(/\byour\b/gi, "my")
+    .replace(/\byours\b/gi, "mine")
+    .replace(/\byourself\b/gi, "myself")
+    .replace(/^you\b/i, "I")
+    .replace(/\byou\b/gi, "me");
+}
+
+const IRREGULAR_PAST: Record<string, string> = {
+  be: "was", get: "got", know: "knew", find: "found", make: "made", keep: "kept", take: "took", run: "ran", go: "went", have: "had",
+  feel: "felt", sleep: "slept", spend: "spent", read: "read", write: "wrote", eat: "ate", pay: "paid", lose: "lost", quit: "quit",
+  put: "put", set: "set", buy: "bought", think: "thought", sit: "sat", win: "won", meet: "met", begin: "began", build: "built",
+  hit: "hit", cut: "cut", stop: "stopped", plan: "planned", drop: "dropped", skip: "skipped", ditch: "ditched", fix: "fixed",
+  beat: "beat", break: "broke", leave: "left", say: "said", tell: "told", see: "saw", do: "did", give: "gave", forget: "forgot",
+};
+const DOUBLE_ING = new Set(["stop", "get", "run", "plan", "forget", "skip", "sit", "put", "set", "begin", "swim", "shop", "drop", "quit", "cut", "win", "hit", "jog", "chat", "prep"]);
+
+/** "stop being late" → "stopped being late" (only the first verb changes). */
+export function pastOf(phrase: string): string {
+  // "never miss a pickup" → "never missed a pickup": conjugate the verb after a leading adverb.
+  const adv = /^(never|finally|always|actually|just|really|still|now|also)\s+/i.exec(phrase);
+  if (adv) return adv[0] + pastOf(phrase.slice(adv[0].length));
+  const [v, ...rest] = phrase.split(" ");
+  const low = v.toLowerCase();
+  const past = IRREGULAR_PAST[low] ?? (/e$/.test(low) ? `${low}d` : /[^aeiou]y$/.test(low) ? `${low.slice(0, -1)}ied` : `${low}ed`);
+  return [past, ...rest].join(" ");
+}
+
+/** "stop being late" → "stopping being late"; "be the only one" → "being the only one". */
+export function gerundOf(phrase: string): string {
+  const [v, ...rest] = phrase.split(" ");
+  const low = v.toLowerCase();
+  const ing =
+    low === "be" ? "being" : DOUBLE_ING.has(low) ? `${low}${low.slice(-1)}ing` : /ie$/.test(low) ? `${low.slice(0, -2)}ying` : /[^e]e$/.test(low) && low !== "be" ? `${low.slice(0, -1)}ing` : `${low}ing`;
+  return [ing, ...rest].join(" ");
+}
+
+function needsAn(word: string): boolean {
+  const w = word.toLowerCase();
+  if (/^(one|once|u[^aeiou][aeiou]|use|usu|uni|eu|ure)/.test(w)) return false;
+  if (/^(hour|honest|honou?r|heir)/.test(w)) return true;
+  return /^[aeiou]/.test(w);
+}
+
+/** Words that can repeat on purpose ("bye bye", "no no no"). */
+const REPEATABLE = new Set(["bye", "ha", "no", "very", "so", "really", "la", "go"]);
+
+/**
+ * Make a filled template read like a person typed it: no doubled words ("the the", "just just"),
+ * "a" → "an" before a vowel sound, no space before punctuation, no dangling "and"/"the"/":" at the end,
+ * balanced quotes, and no "??." pile-ups.
+ */
+export function polish(raw: string): string {
+  let s = raw.replace(/\s+/g, " ").trim();
+  s = s.replace(/\b(\w+)(\s+\1\b)+/gi, (m, w: string) => (REPEATABLE.has(w.toLowerCase()) ? m : w));
+  // Only the article: lowercase "a", or "A" opening a sentence ("type A and" stays).
+  s = s.replace(/(^|[.?!]\s+|[\s(“"])([Aa]) ([A-Za-z][\w']*)/g, (m, pre: string, a: string, w: string) =>
+    (a === "a" || /^$|[.?!]\s+$/.test(pre)) && needsAn(w) ? `${pre}${a}n ${w}` : m,
+  );
+  s = s.replace(/\s+([,.!?…:;])/g, "$1").replace(/([,;:])(?=\S)(?![\d/])/g, "$1 ");
+  s = s.replace(/\(\s+/g, "(").replace(/\s+\)/g, ")");
+  s = s.replace(/([?!])\.+$/g, "$1").replace(/\.{2}(?!\.)/g, ".").replace(/,\s*([.?!])/g, "$1");
+  // Dangling ends left by an empty slot.
+  for (let i = 0; i < 3; i++) s = s.replace(/[\s,;:—–-]+$/g, "").replace(/\s+(and|or|to|the|a|an|with|of|that|for|but|so|because|when)$/i, "");
+  // Balance straight and curly double quotes.
+  if ((s.match(/"/g) ?? []).length % 2 === 1) s = s.replace(/"/g, "");
+  if ((s.match(/“/g) ?? []).length !== (s.match(/”/g) ?? []).length) s = s.replace(/[“”]/g, "");
+  return s.trim();
 }
 
 /** Short enough to sit on one or two lines of a vertical video. */

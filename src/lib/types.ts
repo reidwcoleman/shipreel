@@ -109,6 +109,8 @@ export type PostResult = {
   error?: string;
   mode?: "published" | "draft" | "manual";
   at: string;
+  /** Browser uploads: a screenshot of the page when something went wrong (relative to the project folder). */
+  screenshot?: string;
 };
 
 export type Post = {
@@ -121,6 +123,8 @@ export type Post = {
   provider: ProviderId;
   /** Upload to drafts/inbox instead of publishing (so you can add a trending sound in-app). */
   asDraft: boolean;
+  /** Browser uploads only: press the final Post button too (otherwise Shipreel stops so you confirm). */
+  autoPost?: boolean;
   status: PostStatus;
   results: PostResult[];
   log: string[];
@@ -144,7 +148,7 @@ export type PostMetrics = {
 
 export type Verdict = "double-down" | "keep" | "retry" | "drop" | "unknown";
 
-export type ProviderId = "upload-post" | "ayrshare" | "bluesky" | "webhook" | "claude-chrome" | "manual";
+export type ProviderId = "upload-post" | "ayrshare" | "bluesky" | "webhook" | "claude-chrome" | "browser" | "manual";
 
 export type PostingSlot = { platform: Platform; time: string; days: number[] };
 
@@ -163,6 +167,8 @@ export type Settings = {
   onboarded: boolean;
   /** Opt-in: let Claude Code drive TikTok Studio in Chrome (against TikTok's automation rules; your risk). */
   allowBrowserPosting?: boolean;
+  /** Chrome uploads (provider "browser"): platforms where Shipreel may press Post itself. Off = stop for you. */
+  browserAutoPost?: Partial<Record<Platform, boolean>>;
 };
 
 export type SecretKey =
@@ -202,7 +208,7 @@ export type Run = {
   summary?: string;
   error?: string;
   /** What the run produced (ids), for linking in the UI. */
-  output?: { ideaIds?: string[]; videoId?: string; projectId?: string };
+  output?: { ideaIds?: string[]; videoId?: string; projectId?: string; postIds?: string[]; notes?: string[] };
 };
 
 export type AgentStatus = {
@@ -223,3 +229,28 @@ export type ServerEvent =
   | { type: "project"; projectId: string }
   | { type: "ideas"; projectId: string }
   | { type: "videos"; projectId: string };
+
+// ── Posting handoff (post kit, phone, upload pages, Chrome uploads) ───────────────────
+
+/** Everything needed to post a rendered video by hand or through a helper. */
+export type PostKit = {
+  projectId: string;
+  videoId: string;
+  title: string;
+  /** False when the video has no render yet, or the spec changed since the last render. */
+  ready: boolean;
+  stale: boolean;
+  file?: string;
+  url?: string;
+  cover?: string;
+  coverUrl?: string;
+  durationSec?: number;
+  sizeBytes?: number;
+  captions: Partial<Record<Platform, string>>;
+  uploadPages: Partial<Record<Platform, string>>;
+  /** Platforms Shipreel can fill in through its own Chrome window. */
+  browserPlatforms: Platform[];
+  soundTip?: string;
+};
+
+export type HandoffAction = "airdrop" | "photos" | "open" | "copy";

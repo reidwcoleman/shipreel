@@ -6,8 +6,8 @@ import type { AgentEngine } from "@/lib/types";
 export const dynamic = "force-dynamic";
 export const GET = handle(async () => json(await listRuns(80)));
 export const POST = handle(async (req: Request) => {
-  const b = await body<{ kind: "chat" | "trends"; question?: string; projectId?: string; engine?: AgentEngine }>(req);
+  const b = await body<{ kind: "chat" | "trends"; question?: string; projectId?: string; engine?: AgentEngine; videoId?: string }>(req);
   if (b.kind === "trends") return json(await refreshTrends({ engine: b.engine }));
   if (!b.question?.trim()) return bad("Ask something.");
-  return json(await askAgent(b.projectId, b.question.trim(), { engine: b.engine }));
+  return json(await askAgent(b.projectId, b.question.trim(), { engine: b.engine, videoId: b.videoId }));
 });

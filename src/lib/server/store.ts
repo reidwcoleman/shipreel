@@ -27,6 +27,12 @@ export const paths = {
   run: (runId: string) => path.join(WORKSPACE, "runs", `${safeId(runId)}.json`),
   runLog: (runId: string) => path.join(WORKSPACE, "runs", `${safeId(runId)}.jsonl`),
   tmp: () => path.join(WORKSPACE, ".tmp"),
+  /** Compiled helpers (the AirDrop sender). */
+  bin: () => path.join(WORKSPACE, ".bin"),
+  /** Shipreel's own Chrome profile for assisted uploads (you log in once; SHIPREEL_BROWSER_PROFILE overrides). */
+  browserProfile: () => path.resolve(process.env.SHIPREEL_BROWSER_PROFILE ?? path.join(WORKSPACE, "browser-profile")),
+  /** Screenshots from Chrome uploads that went wrong. */
+  uploads: (id: string) => path.join(WORKSPACE, "projects", safeId(id), "uploads"),
 };
 
 export function safeId(id: string): string {

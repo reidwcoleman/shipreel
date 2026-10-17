@@ -6,6 +6,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { Platform, Post, PostResult, Project, ProviderId, VideoDoc } from "@/lib/types";
 import { startRun, waitForRun } from "./agents";
+import { browserSiteLabel, browserUpload, isBrowserPlatform } from "./browser-upload";
 import { getSecret, getSecrets, getSettings, now, paths } from "./store";
 
 const run = promisify(execFile);
@@ -32,7 +33,8 @@ export type Publisher = {
 
 export function captionFor(post: Post, video: VideoDoc, platform: Platform): string {
   const own = post.captions[platform] ?? video.spec.meta.captions?.[platform];
-  const base = own || post.captions.tiktok || video.spec.meta.caption || video.spec.meta.hook || video.spec.title;
+  // A hashtag glued to the word or emoji before it ("up 😭#textstory") gets its space back.
+  const base = (own || post.captions.tiktok || video.spec.meta.caption || video.spec.meta.hook || video.spec.title).replace(/([^\s/#])#(?=\p{L})/gu, "$1 #");
   const tags = (video.spec.meta.hashtags ?? []).slice(0, 5).map((h) => `#${h.replace(/^#/, "")}`);
   if (platform === "youtube") return base.replace(/#\w+/g, "").trim().slice(0, 95) + " #Shorts";
   if (platform === "linkedin") return base;
@@ -110,7 +112,7 @@ const uploadPost: Publisher = {
   label: "Upload-Post",
   blurb: "One API key posts to TikTok (incl. drafts), Instagram, YouTube, X, LinkedIn, Threads, Facebook, Pinterest and Bluesky.",
   platforms: ["tiktok", "instagram", "youtube", "x", "linkedin", "threads", "facebook", "pinterest", "bluesky"],
-  ready: async () => ((await getSecret("uploadPostKey")) ? { ok: true } : { ok: false, reason: "Add an Upload-Post API key in Settings → Posting." }),
+  ready: async () => ((await getSecret("uploadPostKey")) ? { ok: true } : { ok: false, reason: "Add an Upload-Post API key in Settings → Connect accounts." }),
   async publish({ post, video, file, slides, log }) {
     const key = await getSecret("uploadPostKey");
     if (!key) throw new Error("No Upload-Post API key.");
@@ -191,7 +193,7 @@ type BskySession = { accessJwt: string; did: string; handle: string; pds: string
 async function bskySession(): Promise<BskySession> {
   const handle = await getSecret("blueskyHandle");
   const password = await getSecret("blueskyAppPassword");
-  if (!handle || !password) throw new Error("Add your Bluesky handle and app password in Settings → Posting.");
+  if (!handle || !password) throw new Error("Add your Bluesky handle and app password in Settings → Connect accounts.");
   const res = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -211,7 +213,7 @@ const bluesky: Publisher = {
   platforms: ["bluesky"],
   ready: async () => {
     const s = await getSecrets();
-    return s.blueskyHandle && s.blueskyAppPassword ? { ok: true } : { ok: false, reason: "Add a Bluesky handle and app password in Settings → Posting." };
+    return s.blueskyHandle && s.blueskyAppPassword ? { ok: true } : { ok: false, reason: "Add a Bluesky handle and app password in Settings → Connect accounts." };
   },
   async publish({ post, video, file, slides, log }) {
     const s = await bskySession();
@@ -275,7 +277,7 @@ const webhook: Publisher = {
   label: "Webhook",
   blurb: "POSTs the post (captions, platforms, file path and local URL) to your automation (n8n, Make, your server).",
   platforms: ["tiktok", "instagram", "youtube", "x", "linkedin", "threads", "facebook", "pinterest", "bluesky"],
-  ready: async () => ((await getSecret("webhookUrl")) ? { ok: true } : { ok: false, reason: "Add a webhook URL in Settings → Posting." }),
+  ready: async () => ((await getSecret("webhookUrl")) ? { ok: true } : { ok: false, reason: "Add a webhook URL in Settings → Connect accounts." }),
   async publish({ post, video, project, file, slides }) {
     const url = await getSecret("webhookUrl");
     if (!url) throw new Error("No webhook URL.");
@@ -320,7 +322,7 @@ const claudeChrome: Publisher = {
   label: "Claude in Chrome (experimental)",
   blurb: "Claude Code opens TikTok Studio in your logged-in Chrome and uploads for you. TikTok's terms restrict automated posting, so this is opt-in and at your own risk.",
   platforms: ["tiktok"],
-  ready: async () => ((await getSettings()).allowBrowserPosting ? { ok: true } : { ok: false, reason: "Experimental. Turn it on in Settings → Posting first." }),
+  ready: async () => ((await getSettings()).allowBrowserPosting ? { ok: true } : { ok: false, reason: "Experimental. Turn it on in Settings → Connect accounts first." }),
   async publish({ post, video, project, file, log }) {
     // Chrome extension uploads cap at ~10 MB: make an HEVC upload copy if needed.
     let upload = file;
@@ -363,6 +365,90 @@ Reply with JSON only: {"ok": true|false, "detail": "what happened"}`,
   },
 };
 
+// ── Upload in Chrome (Shipreel's own Chrome window; no API key) ──────────────────
+
+const CHROME_APPS = ["/Applications/Google Chrome.app", path.join(process.env.HOME ?? "", "Applications", "Google Chrome.app")];
+
+const browser: Publisher = {
+  id: "browser",
+  label: "Upload in Chrome",
+  blurb: "Shipreel opens the upload page in its own Chrome window (you log in once), attaches the video and fills the caption, then stops so you press Post. No API key.",
+  platforms: ["tiktok", "youtube", "instagram", "x"],
+  ready: async () => (process.platform !== "darwin" || CHROME_APPS.some((a) => fs.existsSync(a)) ? { ok: true } : { ok: false, reason: "Install Google Chrome (google.com/chrome) to upload through it." }),
+  async publish({ post, video, project, file, log }) {
+    const settings = await getSettings();
+    const results: PostResult[] = [];
+    // One platform at a time: each one gets its own tab in the same window.
+    for (const p of post.platforms) {
+      if (!isBrowserPlatform(p)) {
+        results.push({ platform: p, ok: false, mode: "manual", error: "Chrome uploads cover TikTok, YouTube, Instagram and X. Post this one from the post kit.", at: now() });
+        continue;
+      }
+      const autoPost = post.autoPost ?? !!settings.browserAutoPost?.[p];
+      log(`${browserSiteLabel(p)}: ${autoPost ? "uploading and posting" : "filling in the upload (you press Post)"}…`);
+      const out = await browserUpload({
+        platform: p,
+        file,
+        caption: captionFor(post, video, p),
+        title: captionFor(post, video, "youtube"),
+        description: captionFor(post, video, "instagram"),
+        autoPost,
+        profileDir: paths.browserProfile(),
+        screenshotDir: paths.uploads(project.id),
+        log: (l) => log(`${browserSiteLabel(p)}: ${l}`),
+      });
+      const screenshot = out.screenshot ? path.relative(paths.project(project.id), out.screenshot) : undefined;
+      if (out.status === "posted") results.push(ok(p, { mode: "published", url: out.url }));
+      else if (out.status === "failed") results.push({ ...fail(p, out.detail), screenshot });
+      else results.push({ platform: p, ok: false, mode: "manual", error: out.detail, at: now() });
+    }
+    if (process.platform === "darwin" && results.some((r) => r.mode === "manual")) {
+      const title = video.spec.title.replace(/["\\]/g, "").slice(0, 80);
+      run("osascript", ["-e", `display notification "${title}" with title "Shipreel: ready in Chrome" subtitle "Check it and press Post" sound name "Glass"`]).catch(() => undefined);
+    }
+    return results;
+  },
+};
+
+// ── Connection tests (Settings → Connect accounts) ──────────────────────────────
+
+/** Calls Upload-Post with the saved key and reports which platforms each profile has linked. */
+export async function testUploadPost(): Promise<{ ok: boolean; message: string; profiles: { username: string; platforms: string[] }[]; platforms: string[] }> {
+  const key = await getSecret("uploadPostKey");
+  if (!key) return { ok: false, message: "Paste your Upload-Post API key first.", profiles: [], platforms: [] };
+  try {
+    const j = await upFetch("/uploadposts/users", { method: "GET", key });
+    const raw = (j.profiles as { username: string; social_accounts?: Record<string, unknown> }[]) ?? [];
+    const linked = (v: unknown) => !!v && (typeof v !== "object" || Object.keys(v as object).length > 0);
+    const profiles = raw.map((p) => ({ username: p.username, platforms: Object.entries(p.social_accounts ?? {}).filter(([, v]) => linked(v)).map(([k]) => k) }));
+    const want = (await getSecret("uploadPostUser")) || "shipreel";
+    const mine = profiles.find((p) => p.username === want);
+    const platforms = mine?.platforms ?? [];
+    const message = !profiles.length
+      ? "The key works. Press Connect accounts to link your socials."
+      : !mine
+        ? `The key works, but there's no "${want}" profile yet. Press Connect accounts to create it and link your socials.`
+        : platforms.length
+          ? `Connected: ${platforms.join(", ")}.`
+          : `The key works and the "${want}" profile exists, but no accounts are linked yet. Press Connect accounts.`;
+    return { ok: true, message, profiles, platforms };
+  } catch (e) {
+    const m = (e as Error).message;
+    return { ok: false, message: /40[13]/.test(m) ? "Upload-Post didn't accept that key. Copy it again from upload-post.com → API Keys." : m, profiles: [], platforms: [] };
+  }
+}
+
+/** Logs in to Bluesky with the saved handle and app password (no post). */
+export async function testBluesky(): Promise<{ ok: boolean; message: string; handle?: string }> {
+  try {
+    const s = await bskySession();
+    return { ok: true, message: `Logged in as @${s.handle}.`, handle: s.handle };
+  } catch (e) {
+    const m = (e as Error).message;
+    return { ok: false, message: /AuthenticationRequired|Invalid identifier or password|401/i.test(m) ? "Bluesky didn't accept that handle and app password. Make a new app password in Bluesky → Settings → Privacy and security → App passwords." : m };
+  }
+}
+
 export const PUBLISHERS: Record<ProviderId, Publisher> = {
   "upload-post": uploadPost,
   ayrshare: { ...webhook, id: "ayrshare", label: "Ayrshare (via webhook)" },
@@ -370,6 +456,7 @@ export const PUBLISHERS: Record<ProviderId, Publisher> = {
   webhook,
   manual,
   "claude-chrome": claudeChrome,
+  browser,
 };
 
-export const PUBLISHER_LIST = [uploadPost, bluesky, manual, webhook, claudeChrome];
+export const PUBLISHER_LIST = [uploadPost, bluesky, browser, manual, webhook, claudeChrome];

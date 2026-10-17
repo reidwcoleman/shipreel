@@ -11,7 +11,7 @@ import { LeftPanel } from "@/components/editor/left-panel";
 import { Preview } from "@/components/editor/preview";
 import { player, seek, uid, useEditor } from "@/components/editor/store";
 import { Timeline } from "@/components/editor/timeline";
-import { ScheduleDialog } from "@/components/schedule-dialog";
+import { PostSheet } from "@/components/post-sheet";
 import { ScoreRing } from "@/components/score-ring";
 import { Button, buttonClass, IconButton, Tip } from "@/components/ui/button";
 import { Badge, Empty, Skeleton } from "@/components/ui/misc";
@@ -72,7 +72,7 @@ function Editor() {
   }, [doc, load]);
 
   useEffect(() => {
-    if (search.get("schedule") === "1" && spec) {
+    if ((search.get("schedule") === "1" || search.get("post") === "1") && spec) {
       setScheduleOpen(true);
       // Drop the param so a refresh doesn't reopen the dialog.
       router.replace(pathname, { scroll: false });
@@ -369,13 +369,13 @@ function Editor() {
         <Timeline spec={spec} />
       </div>
 
-      <ScheduleDialog
+      <PostSheet
         open={scheduleOpen}
         onOpenChange={setScheduleOpen}
         projectId={projectId}
         videoId={videoId}
         spec={spec}
-        beforeSubmit={flush}
+        beforeOpen={flush}
         onCaptionsWritten={(meta) => {
           useEditor.getState().edit((s) => ({ ...s, meta: { ...s.meta, captions: meta.captions, hashtags: meta.hashtags, caption: s.meta.caption || meta.caption } }));
         }}

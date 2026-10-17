@@ -2,10 +2,11 @@ import "server-only";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import type { AgentEngine, Idea, Project, Run } from "@/lib/types";
-import { frameworkMarkdown } from "@/framework/docs";
+import { frameworkMarkdown, HOOK_GUIDE } from "@/framework/docs";
 import { buildSpec, FORMAT_MAP, FORMATS } from "@/framework/formats";
 import { instantIdeas } from "@/framework/ideas";
-import { scoreHook } from "@/framework/score";
+import { postCaption } from "@/framework/captions";
+import { rankHooks, scoreHookFor } from "@/framework/hooks";
 import { SOUNDS } from "@/framework/sounds";
 import { PLATFORMS, Scene, safeNormalizeSpec, VideoSpec } from "@/remotion/spec";
 import { startRun, tryParseJson } from "./agents";
@@ -212,6 +213,7 @@ const IDEAS_SCHEMA = obj({
     obj({
       formatId: oneOf(FORMATS.map((f) => f.id)),
       hook: str,
+      hookOptions: arr(str),
       family: str,
       angle: str,
       beats: arr(str),
@@ -223,6 +225,16 @@ const IDEAS_SCHEMA = obj({
     }),
   ),
 });
+
+/** The top instant fill per format (with scores), as a bar for the agent to beat. */
+function ideaBenchmarks(project: Project): string {
+  return FORMATS.map((f) => ({ f, h: rankHooks(f.id, project)[0] }))
+    .filter((x) => x.h && x.h.score >= 75)
+    .sort((a, b) => b.h.score - a.h.score)
+    .slice(0, 8)
+    .map((x) => `- ${x.f.id}: "${x.h.text}" (${x.h.score})`)
+    .join("\n") || "- (none yet)";
+}
 
 export async function generateIdeas(projectId: string, opts: { engine?: AgentEngine | "instant"; count?: number; formats?: string[]; focus?: string }): Promise<{ run?: Run; ideas?: Idea[] }> {
   const project = await getProject(projectId);
@@ -245,7 +257,9 @@ export async function generateIdeas(projectId: string, opts: { engine?: AgentEng
     .map((f) => `- ${f.id}: ${f.name}. ${f.tagline} Needs: ${f.needs.join(", ")}. Beats: ${f.beats.join(" → ")}`)
     .join("\n");
   const sounds = SOUNDS.slice(0, 15).map((s) => `- ${s.title} — ${s.artist} (${s.vibe.join("/")}): ${s.howUsed}`).join("\n");
-  const prompt = `You are Shipreel's hook lab. Generate ${count} short-form video ideas that will get ${project.name} installs.
+  // Ask for a few extra; every hook is scored by the linter and only the best ${count} are kept.
+  const asked = Math.min(30, count + Math.max(2, Math.ceil(count / 3)));
+  const prompt = `You are Shipreel's hook lab. Generate ${asked} short-form video ideas that will get ${project.name} installs.
 
 ## Product brief
 ${briefForPrompt(project)}
@@ -265,11 +279,15 @@ ${existing || "- nothing yet"}
 ## Trending sounds (for soundTip)
 ${sounds || "- (use a mood, e.g. 'upbeat trending pop sound, drop on the reveal')"}
 ${opts.focus ? `\n## Focus for this batch\n${opts.focus}\n` : ""}
+${HOOK_GUIDE}
+## Strong fills for this product (scored by Shipreel's linter; beat these, don't copy them)
+${ideaBenchmarks(project)}
+
 ## Rules
-- Hooks: ≤ 12 words, readable in 1.5s, curiosity first. Mix families: reveal (person + conflict + reveal, the strongest), POV, forbidden ("illegal to know"), time-shock, listicle, mistakes, build-in-public. Specific > clever. Lowercase casual is fine.
+- hook: your best hook for the idea, in the format's voice. hookOptions: 3 more variants on different patterns. Shipreel scores all of them and keeps the best.
 - Explore broadly: use at least 5 different formats unless told otherwise; 2–3 hook variants on the strongest body are fine.
 - Never invent metrics; only use proof from the brief. Skip formats that need real numbers if there are none.
-- caption: ≤ 150 chars, names the app and the outcome. hashtags ≤ 5, without #.
+- caption: ≤ 150 chars, native and lowercase-casual: one line that invites a comment (a question or "tell me I'm not the only one"), names the app once. hashtags 3–5 relevant niche tags, without #, no #fyp/#viral.
 - beats: 3–6 lines describing exactly what's on screen.
 - why: one line on why this should work for this audience.
 Respond with JSON only.`;
@@ -282,7 +300,7 @@ Respond with JSON only.`;
     prompt,
     schema: IDEAS_SCHEMA,
     onResult: async ({ structured, text }) => {
-      type AgentIdea = Idea & { soundTip?: string; why?: string; family?: string };
+      type AgentIdea = Idea & { soundTip?: string; why?: string; family?: string; hookOptions?: string[] };
       const data = (structured ?? tryParseJson(text)) as { ideas?: AgentIdea[] } | AgentIdea[] | undefined;
       const list: AgentIdea[] = Array.isArray(data) ? data : (data?.ideas ?? []);
       if (!list.length) throw new Error("No ideas came back.");
@@ -291,21 +309,30 @@ Respond with JSON only.`;
         list
           .filter((i) => i && i.hook && FORMAT_MAP[i.formatId])
           .map((i) => {
-            const { score, checks } = scoreHook(i.hook);
+            // The best-scoring of the agent's variants wins.
+            const best = [i.hook, ...(i.hookOptions ?? [])]
+              .filter((h) => typeof h === "string" && h.trim())
+              .map((h) => ({ h: h.trim(), lint: scoreHookFor(h.trim(), project, i.formatId) }))
+              .sort((a, b) => b.lint.score - a.lint.score)[0];
+            const score = best.lint.score;
+            const checks = best.lint.reasons.filter((x) => x.delta < 0 && x.tip).map((x) => ({ ok: false, tip: x.tip as string }));
+            const post = postCaption({ project, formatId: i.formatId, hook: best.h });
             return {
               formatId: i.formatId,
-              hook: i.hook,
+              hook: best.h,
               angle: i.why ? `${i.angle} — ${i.why}` : i.angle,
               beats: i.beats ?? [],
               platforms: (i.platforms ?? []).filter((p) => (PLATFORMS as readonly string[]).includes(p)),
-              caption: i.caption,
-              hashtags: (i.hashtags ?? []).map((h) => h.replace(/^#/, "")).slice(0, 5),
+              caption: i.caption?.trim() || post.caption,
+              hashtags: (i.hashtags ?? []).map((h) => h.replace(/^#/, "")).filter((h) => !/^(fyp|foryou|foryoupage|viral|trending)$/i.test(h)).slice(0, 5),
               soundId: undefined,
-              score: Math.min(99, score + 8),
+              score,
               scoreNotes: [i.soundTip ? `Sound: ${i.soundTip}` : "", ...checks.filter((c) => !c.ok).map((c) => c.tip)].filter(Boolean),
               source: (opts.engine ?? "claude") as "claude" | "codex",
             };
-          }),
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, count),
       );
       return { ideaIds: created.map((c) => c.id) };
     },
@@ -517,11 +544,14 @@ export async function refreshTrends(opts: { engine?: AgentEngine } = {}): Promis
 
 // ── 6. Ask the marketing agent ───────────────────────────────────────────────────
 
-export async function askAgent(projectId: string | undefined, question: string, opts: { engine?: AgentEngine; allowWeb?: boolean } = {}): Promise<Run> {
+export async function askAgent(projectId: string | undefined, question: string, opts: { engine?: AgentEngine; allowWeb?: boolean; videoId?: string } = {}): Promise<Run> {
   const project = projectId ? await getProject(projectId) : null;
   const memory = project ? await ensureMemory(project) : "";
+  // Posting requests ("post this to TikTok tomorrow at 6pm") come back as an action block that Shipreel runs.
+  const actions = project ? await import("./agent-actions") : null;
+  const posting = project && actions ? await actions.postingContext(project.id, opts.videoId) : "";
   const prompt = `You are the user's marketing agent inside Shipreel (a tool for marketing apps with short-form video). Be concrete and brief; give steps, hooks, or scripts they can use today. If they ask you to change files, explain what you'd change instead — this run is read-only.
-${project ? `\n## Product\n${briefForPrompt(project)}\n\n## Memory\n${memory.slice(0, 3000)}\n` : ""}
+${project ? `\n## Product\n${briefForPrompt(project)}\n\n## Memory\n${memory.slice(0, 3000)}\n` : ""}${posting ? `\n${posting}\n` : ""}
 ## Question
 ${question}`;
   return startRun({
@@ -532,6 +562,7 @@ ${question}`;
     prompt,
     addDirs: project?.links.repoPath ? [project.links.repoPath] : [],
     allowWeb: opts.allowWeb ?? true,
+    onResult: project && actions ? async ({ text }) => actions.applyActions(project.id, text) : undefined,
   });
 }
 

@@ -11,7 +11,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline";
-import { BASE, boot, get, patch, post, projectId, put, ShipreelError, waitRender, waitRun } from "./lib.mjs";
+import { BASE, boot, CHROME_PLATFORMS, get, handoff, patch, post, postKit, projectId, put, readyVideos, ShipreelError, UPLOAD_PLATFORMS, waitPost, waitRender, waitRun } from "./lib.mjs";
 
 const VERSION = "0.1.0";
 
@@ -119,11 +119,18 @@ const TOOLS = [
   },
   {
     name: "list_videos",
-    description: "Videos for the product with status (draft/rendered), format and title.",
-    inputSchema: obj(projectArg),
-    run: async ({ project }) => {
+    description: "Videos for the product with status (draft/rendered), format and title. ready=true lists only rendered videos that have no post yet (ready to post), with their file path and TikTok caption.",
+    inputSchema: obj({ ...projectArg, ready: bool("Only rendered videos with no post yet, with file + caption") }),
+    run: async ({ project, ready }) => {
       const pid = await projectId(project);
-      return (await get(`/api/projects/${pid}/videos`)).map((v) => ({ id: v.id, title: v.spec.title, format: v.spec.formatId, status: v.status, scenes: v.spec.scenes.length, updatedAt: v.updatedAt }));
+      if (!ready) return (await get(`/api/projects/${pid}/videos`)).map((v) => ({ id: v.id, title: v.spec.title, format: v.spec.formatId, status: v.status, scenes: v.spec.scenes.length, updatedAt: v.updatedAt }));
+      const list = await readyVideos(pid);
+      return Promise.all(
+        list.slice(0, 25).map(async (v) => {
+          const k = await postKit(pid, v.id);
+          return { id: v.id, title: v.spec.title, format: v.spec.formatId, file: k.file, stale: k.stale, durationSec: k.durationSec, caption: k.captions.tiktok, editor: `${BASE}/edit/${pid}/${v.id}` };
+        }),
+      );
     },
   },
   {
@@ -163,7 +170,7 @@ const TOOLS = [
       video: str("Video id"),
       at: str("next | now | ISO datetime"),
       platforms: { type: "array", items: { type: "string" }, description: "tiktok, instagram, youtube, x, linkedin, threads, bluesky, facebook, pinterest" },
-      provider: str("upload-post | bluesky | webhook | manual | claude-chrome"),
+      provider: str("upload-post | bluesky | webhook | browser | manual | claude-chrome"),
       draft: bool("TikTok as draft (default true)"),
       captions: { type: "object", description: "Per-platform captions, e.g. {\"tiktok\": \"…\"}" },
     }, ["video"]),
@@ -195,6 +202,95 @@ const TOOLS = [
       return post(`/api/projects/${pid}/assets/url`, { url });
     },
   },
+  // ── Posting: the same routes as the website's Post sheet ─────────────────────
+  {
+    name: "post_kit",
+    description: "Everything needed to post a video by hand: the MP4 path, cover image path, a ready caption per platform (hashtags included; YouTube gets a Shorts title), and each platform's upload page. ready=false means it needs a render first (render_video).",
+    inputSchema: obj({ ...projectArg, video: str("Video id") }, ["video"]),
+    run: async ({ project, video }) => postKit(await projectId(project), video),
+  },
+  {
+    name: "send_to_phone",
+    description: "Send a rendered video to the user's iPhone so they post from the TikTok/Instagram app (best reach: trending sounds, native editor). via=airdrop opens the Mac's AirDrop picker (the user picks their phone); via=photos imports into a 'Shipreel' album in Photos (iCloud syncs it). Both copy the platform's caption to the clipboard (Universal Clipboard pastes it on the phone).",
+    inputSchema: obj({ ...projectArg, video: str("Video id"), via: str("airdrop | photos", { enum: ["airdrop", "photos"] }), platform: str("Whose caption to copy (default tiktok)"), caption: str("Caption override"), dry_run: bool("Check it would work without sending or importing") }, ["video"]),
+    run: async ({ project, video, via = "airdrop", platform = "tiktok", caption, dry_run }) => handoff(await projectId(project), video, via === "photos" ? "photos" : "airdrop", { platform, caption, dryRun: !!dry_run }),
+  },
+  {
+    name: "open_upload",
+    description: "Open a platform's web upload page in the user's browser (TikTok Studio, Instagram, YouTube Studio, X, Threads, Bluesky, LinkedIn), copy that platform's caption to the clipboard and select the MP4 in Finder so they can drag it in.",
+    inputSchema: obj({ ...projectArg, video: str("Video id"), platform: str(UPLOAD_PLATFORMS.join(" | ")), caption: str("Caption override") }, ["video", "platform"]),
+    run: async ({ project, video, platform, caption }) => handoff(await projectId(project), video, "open", { platform, caption }),
+  },
+  {
+    name: "browser_upload",
+    description: `Upload through Shipreel's own Chrome window (no API key; the user logs in there once). Opens the upload page, attaches the MP4, fills the caption, then STOPS before the final Post button so the user confirms (status "needs-you"). auto_post=true presses Post too: only when the user explicitly asked for that. Platforms: ${CHROME_PLATFORMS.join(", ")}. If the user isn't logged in, the window waits ~5 minutes for them to log in. Waits for the result by default.`,
+    inputSchema: obj({ ...projectArg, video: str("Video id"), platform: str(CHROME_PLATFORMS.join(" | ")), auto_post: bool("Press the final Post button (default false)"), caption: str("Caption override"), wait: bool("Wait for the result (default true)") }, ["video", "platform"]),
+    run: async ({ project, video, platform, auto_post = false, caption, wait = true }) => {
+      const pid = await projectId(project);
+      if (!CHROME_PLATFORMS.includes(platform)) throw new ShipreelError(`Chrome uploads cover ${CHROME_PLATFORMS.join(", ")}. Use open_upload for ${platform}.`);
+      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, platforms: [platform], scheduledAt: "now", provider: "browser", autoPost: !!auto_post, captions: caption ? { [platform]: caption } : undefined });
+      if (!wait) return { post: p.id, status: p.status, check: "post_status" };
+      const done = await waitPost(pid, p.id);
+      return { post: done.id, status: done.status, result: done.results[0] ?? null, log: done.log.slice(-6) };
+    },
+  },
+  {
+    name: "post_now",
+    description: "Post a video right away through a connected service (Upload-Post, Bluesky, webhook) or provider=browser for Shipreel's Chrome window. Renders first if needed. TikTok goes to drafts by default (draft=false to publish).",
+    inputSchema: obj({
+      ...projectArg,
+      video: str("Video id"),
+      platforms: { type: "array", items: { type: "string" }, description: "tiktok, instagram, youtube, x, linkedin, threads, bluesky" },
+      provider: str("upload-post | bluesky | webhook | browser | manual (default: the user's default)"),
+      draft: bool("TikTok as draft (default true)"),
+      captions: { type: "object", description: "Per-platform captions, e.g. {\"tiktok\": \"…\"}" },
+      wait: bool("Wait for the result (default true)"),
+    }, ["video"]),
+    run: async ({ project, video, platforms, provider, draft, captions, wait = true }) => {
+      const pid = await projectId(project);
+      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, scheduledAt: "now", platforms, provider, asDraft: draft, captions });
+      if (!wait) return { post: p.id, status: p.status };
+      const done = await waitPost(pid, p.id);
+      return { post: done.id, status: done.status, provider: done.provider, results: done.results, log: done.log.slice(-6) };
+    },
+  },
+  {
+    name: "schedule_batch",
+    description: "Queue several videos across the next days at the user's posting times (Settings → Posting times), at most per_day a day. Returns the planned times.",
+    inputSchema: obj({
+      ...projectArg,
+      videos: { type: "array", items: { type: "string" }, description: "Video ids (list_videos ready=true)" },
+      per_day: num("Posts per day (default 1)"),
+      platforms: { type: "array", items: { type: "string" }, description: "Default: the user's default platforms" },
+      provider: str("upload-post | bluesky | webhook | browser | manual"),
+      draft: bool("TikTok as draft (default true)"),
+    }, ["videos"]),
+    run: async ({ project, videos, per_day, platforms, provider, draft }) => {
+      const pid = await projectId(project);
+      const ps = await post(`/api/projects/${pid}/posts/batch`, { videoIds: videos, perDay: per_day ?? 1, platforms, provider, asDraft: draft });
+      return ps.map((p) => ({ id: p.id, video: p.videoId, at: p.scheduledAt, platforms: p.platforms, provider: p.provider }));
+    },
+  },
+  {
+    name: "post_status",
+    description: "One post's status (scheduled, rendering, posting, posted, partial, failed, needs-you), per-platform results (links, errors, failure screenshots) and its log.",
+    inputSchema: obj({ ...projectArg, post: str("Post id") }, ["post"]),
+    run: async ({ project, post: postId }) => {
+      const pid = await projectId(project);
+      const p = (await get(`/api/projects/${pid}/posts`)).find((x) => x.id === postId);
+      if (!p) throw new ShipreelError(`Post ${postId} not found`);
+      return { id: p.id, video: p.videoId, at: p.scheduledAt, status: p.status, provider: p.provider, platforms: p.platforms, results: p.results, log: p.log.slice(-12) };
+    },
+  },
+  {
+    name: "test_connections",
+    description: "Check the posting services: which accounts Upload-Post has linked, whether the Bluesky login works, and which services are ready. Posts nothing.",
+    inputSchema: obj({}),
+    run: async () => {
+      const [up, bsky, b] = await Promise.all([post("/api/publishers", { action: "test-upload-post" }), post("/api/publishers", { action: "test-bluesky" }), boot()]);
+      return { uploadPost: up, bluesky: bsky, services: b.publishers.map((p) => ({ id: p.id, ready: p.ok, reason: p.reason, platforms: p.platforms })) };
+    },
+  },
 ];
 
 // ── JSON-RPC over stdio (newline-delimited) ──────────────────────────────────────
@@ -211,7 +307,7 @@ async function handle(msg) {
       capabilities: { tools: { listChanged: false } },
       serverInfo: { name: "shipreel", version: VERSION },
       instructions:
-        "Shipreel makes short-form marketing videos for the user's app and posts them. Typical flow: get_brief → list_formats/list_hooks → create_video (format + hook) → get_video → edit the spec (read get_framework first) → update_video → render_video → schedule_post. Never invent numbers; TikTok posts go to drafts so the user can add a trending sound.",
+        "Shipreel makes short-form marketing videos for the user's app and posts them. Typical flow: get_brief → list_formats/list_hooks → create_video (format + hook) → get_video → edit the spec (read get_framework first) → update_video → render_video → post. Posting, easiest first: send_to_phone (AirDrop/Photos, user posts from the app with a trending sound), open_upload (web upload page + caption copied), browser_upload (Shipreel's Chrome fills it in and stops before Post), post_now / schedule_post / schedule_batch (connected services). Never press a final Post button unless the user asked. Never invent numbers; TikTok posts go to drafts so the user can add a trending sound.",
     });
   }
   if (method === "notifications/initialized" || method?.startsWith("notifications/")) return;

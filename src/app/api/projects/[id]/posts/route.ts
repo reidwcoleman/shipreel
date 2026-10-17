@@ -13,7 +13,7 @@ export const GET = handle(async (req: Request, ctx: Ctx) => {
 });
 export const POST = handle(async (req: Request, ctx: Ctx) => {
   const { id } = await ctx.params;
-  const b = await body<{ videoId: string; platforms?: Platform[]; scheduledAt?: string; provider?: ProviderId; asDraft?: boolean; captions?: Post["captions"] }>(req);
+  const b = await body<{ videoId: string; platforms?: Platform[]; scheduledAt?: string; provider?: ProviderId; asDraft?: boolean; captions?: Post["captions"]; autoPost?: boolean }>(req);
   if (!b.videoId) return bad("Which video?");
   return json(await createPost({ projectId: id, ...b }), 201);
 });

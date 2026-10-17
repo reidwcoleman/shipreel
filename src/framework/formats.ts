@@ -5,9 +5,18 @@
  */
 import type { Asset, Platform, Project } from "@/lib/types";
 import type { Background, CaptionStyleId, SceneInput, VideoSpecInput } from "@/remotion/spec";
-import { fill, hashString, pick, seeded, short, shuffle, toYou, vocab, type Vocab } from "./fill";
+import { fill, hashString, pastOf, pick, seeded, short, shuffle, toYou, vocab, type Vocab } from "./fill";
 import { beatSync, MUSIC_VIBES, pickMusic } from "./music";
+import { postCaption } from "./captions";
+import { bestHook as rankedBestHook, fillTemplate, formatHooks } from "./hooks";
 import handLibrary from "../../public/hands/library.json";
+
+/** "how I finally stopped being the family's human calendar" (a past-tense payoff, never "now I stop being…"). */
+function payoffLine(v: Vocab, max: number): string {
+  const o = v.outcome.replace(/^(to |you )/, "").replace(/^finally /i, "");
+  // State verbs read better in the present: "how I finally know who's driving".
+  return short(`how I finally ${/^(know|have|feel|see|understand)\b/i.test(o) ? o : pastOf(o)}`, max);
+}
 
 export type FormatCategory =
   | "demo"
@@ -254,10 +263,10 @@ function demoScenes(ctx: BuildContext, v: Vocab, opts: { captions?: string[]; to
   ];
 }
 
-const meta = (ctx: BuildContext, v: Vocab, fmt: Pick<FormatDef, "soundTip">, caption?: string) => ({
+/** Post meta. Captions and hashtags come from captions.ts (a native line, the app named once, 3–5 tags). */
+const meta = (ctx: BuildContext, _v: Vocab, fmt: Pick<FormatDef, "soundTip"> & { id?: string }, caption?: string) => ({
   hook: ctx.hook.replace(/\*/g, ""),
-  caption: caption ?? `${ctx.hook.replace(/\*/g, "").replace(/\\n|\n/g, " ")} ${ctx.project.cta.text ? `— ${ctx.project.cta.text.toLowerCase()}` : ""}`.trim(),
-  hashtags: ctx.project.hashtags.length ? ctx.project.hashtags.slice(0, 5) : ["fyp", "app", v.app.toLowerCase().replace(/[^a-z0-9]/g, "")],
+  ...postCaption({ project: ctx.project, formatId: fmt.id, hook: ctx.hook, seed: ctx.seed, custom: caption }),
   soundTip: fmt.soundTip,
 });
 
@@ -280,7 +289,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Upbeat trending sound with a clear beat; land the first zoom on a beat.",
-  hooks: ["I built an app that {does}", "this app {does} and nobody's talking about it", "if {painYou}, this is for you"],
+  hooks: formatHooks("hook-demo"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -320,7 +329,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Upbeat track with a clear drop; the drop lands on the cut into the app.",
-  hooks: ["POV: {painYou}", "nobody warns you that {painYou}", "if {painYou}, you need this", "how I finally {outcome}"],
+  hooks: formatHooks("problem-solution"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -351,7 +360,7 @@ F.push({
         kind: "video",
         device: "none",
         aspect: aspectOf(payoff),
-        caption: { text: `now I ${short(v.outcome, 46)}`, style: top },
+        caption: { text: payoffLine(v, 80), style: top },
       });
     scenes.push(cta(p, v));
     return { title: short(ctx.hook.replace(/\*/g, ""), 60), formatId: this.id, theme: theme(p, this.captionStyle), scenes, meta: meta(ctx, v, this) };
@@ -373,7 +382,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Quiet/funny trending sound under the pops; keep it low so message pops land.",
-  hooks: ["my friend roasted me for this", "the text that made me build {app}", "POV: your friend finds out you {outcome}"],
+  hooks: formatHooks("text-story"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -425,7 +434,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Use a trending sound in-app when you post (post as draft). Calm/aesthetic sounds fit carousels.",
-  hooks: ["{number} things {app} does that feel illegal to know", "apps that make you feel like you're cheating at life", "{number} features I can't believe are {price}"],
+  hooks: formatHooks("slideshow-listicle"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -475,7 +484,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Emotional/aesthetic trending sound; slide changes on the beat.",
-  hooks: ["POV: you finally {outcome}", "POV: it's 2am and {painYou}", "me before vs after finding {app}"],
+  hooks: formatHooks("slideshow-pov"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -487,7 +496,7 @@ F.push({
       `me every day: "${short(v.pain, 60)}"`,
       `then someone showed me *${v.app}*`,
       short(`${v.features[0].name}: ${v.features[0].benefit}`, 80),
-      `now I ${short(v.outcome, 60)}`,
+      payoffLine(v, 60),
       `${v.app} — ${ctaLine(p, v)}`,
     ];
     return {
@@ -527,7 +536,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Original audio or a low trending beat under a voiceover.",
-  hooks: ["what app is this??", "does {app} actually work?", "wait, how does {app} actually work?"],
+  hooks: formatHooks("comment-reply"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -573,7 +582,7 @@ F.push({
   effort: "medium",
   captionStyle: "tiktok-box",
   soundTip: "Lo-fi or 'productive' trending sound; keep the same sound across the series.",
-  hooks: ["Day {day} of building {app} until it makes $10k/month", "day {day}: I almost gave up on {app}", "building {app} in public — day {day}"],
+  hooks: formatHooks("build-in-public"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -635,7 +644,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Hype trending sound; let the notification dings sit on top.",
-  hooks: ["POV: you launched {app} {timeframe} ago", "the sound of {app} working", "I built {app} and this happened"],
+  hooks: formatHooks("money-montage"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -678,7 +687,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Fast, glitchy/tech trending sound.",
-  hooks: ["I built {app} in a weekend with Claude Code", "I told an AI agent to build {app}. it did.", "vibe-coded an app that {does}"],
+  hooks: formatHooks("vibe-coded"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -727,7 +736,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "A sound with an obvious switch/drop at ~2s for the 'after'.",
-  hooks: ["me before {app} vs me after", "how it started vs how it's going", "before vs after {app}"],
+  hooks: formatHooks("before-after"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -768,7 +777,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Soft, aesthetic trending sound.",
-  hooks: ["things I wish I knew sooner", "my secret list to {outcome}", "{number} tiny habits that fixed my life"],
+  hooks: formatHooks("notes-list"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -805,7 +814,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Nostalgic → hype sound with a transition at the reveal.",
-  hooks: ["me 3 months ago vs today", "I tweeted this idea. then I actually built it.", "nobody liked this tweet. so I built it anyway"],
+  hooks: formatHooks("founder-tweet"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -853,7 +862,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Storytime-style low sound.",
-  hooks: ["I asked Reddit to roast my app", "r/SideProject said this would never work", "posted {app} on Reddit. here's what happened"],
+  hooks: formatHooks("reddit-roast"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -896,7 +905,7 @@ F.push({
   effort: "low",
   captionStyle: "hormozi",
   soundTip: "Hard-hitting beat; each word lands on a hit.",
-  hooks: ["stop doing this if {painYou}", "you're doing it wrong", "this is why {painYou}"],
+  hooks: formatHooks("kinetic-pas"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -932,7 +941,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Suspense build → drop when the download finishes.",
-  hooks: ["this app should be illegal", "the app I wish I had in college", "found the app that {does}"],
+  hooks: formatHooks("app-store-reveal"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -978,7 +987,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "The trending sound of the week; this format lives on audio.",
-  hooks: ["POV: you finally found an app that {does}", "POV: {app} just saved your week", "POV: your app does the boring part"],
+  hooks: formatHooks("pov-demo"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1042,7 +1051,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Upbeat sound; items pop on beats.",
-  hooks: ["3 reasons you need {app} if you're {audience}", "3 things {app} does better than {competitor}", "3 signs you need {app}"],
+  hooks: formatHooks("three-reasons"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1083,7 +1092,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Riser into a drop as the number lands.",
-  hooks: ["{metric} with zero ad spend", "how {app} got {metric}", "this number changed everything for {app}"],
+  hooks: formatHooks("stat-shock"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1120,7 +1129,7 @@ F.push({
   effort: "low",
   captionStyle: "serif",
   soundTip: "Optional; carousels mostly play silent.",
-  hooks: ["{app}: {outcome}", "the {audience} toolkit", "everything {app} can do"],
+  hooks: formatHooks("feature-carousel"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1179,19 +1188,24 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Upload as a TikTok draft and add a popular, emotional sound on your phone.",
-  hooks: ["my {doubter} said I'd never {outcome}", "my {doubter} didn't believe {app} would work", "my {doubter} said this app was a waste of time"],
+  hooks: formatHooks("doubter-reveal"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
     const v = vocab(p);
     const imgs = images(ctx);
     const r = seeded(ctx.seed ?? 11);
-    const who = pick(["mom", "landlord", "boss", "girlfriend", "roommate", "grandma", "coach"], r);
+    // The doubter on slide 2 is the one the hook names, and the reaction lines use their pronoun.
+    const named = /\bmy (mom|dad|wife|husband|girlfriend|boyfriend|sister|brother|grandma|grandpa|mother-in-law|landlord|boss|roommate|coach|teacher|friend|best friend)\b/i.exec(ctx.hook)?.[1]?.toLowerCase();
+    const who = named ?? pick(["mom", "landlord", "boss", "girlfriend", "roommate", "grandma", "coach"], r);
+    const pron = /mom|wife|girlfriend|sister|grandma|mother/.test(who) ? "she" : /dad|husband|boyfriend|brother|grandpa/.test(who) ? "he" : "they";
+    const [P, obj, uses, wont, says] =
+      pron === "she" ? ["she", "her", "uses", "won't", "said"] : pron === "he" ? ["he", "him", "uses", "won't", "said"] : ["they", "them", "use", "won't", "said"];
     const reacts = pick(
       [
-        ["she was like… wait", "ok that's actually good", "now she won't stop using it"],
-        ["he went quiet for a second", "then asked me to send it to him", "he uses it more than me now"],
-        ["she said 'no way that's real'", "so I did it again in front of her", "she downloaded it on the spot"],
+        [`${P} ${pron === "they" ? "were" : "was"} like… wait`, "ok that's actually good", `now ${P} ${wont} stop using it`],
+        [`${P} went quiet for a second`, `then asked me to send it to ${obj}`, `${P} ${uses} it more than me now`],
+        [`${P} ${says} 'no way that's real'`, `so I did it again in front of ${obj}`, `${P} downloaded it on the spot`],
       ],
       r,
     );
@@ -1240,7 +1254,7 @@ F.push({
   effort: "medium",
   captionStyle: "tiktok-classic",
   soundTip: "Original voice; no music or very low.",
-  hooks: ["why did nobody tell me about this sooner", "my mom just changed my life with one app", "I'm a {audience} and this is embarrassing"],
+  hooks: formatHooks("talking-head"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1289,7 +1303,7 @@ F.push({
   effort: "medium",
   captionStyle: "headline",
   soundTip: "Your voice; no music.",
-  hooks: ["I built the app I wish I had in college", "why I quit my job to build {app}", "the feature nobody asked for (that everyone uses)"],
+  hooks: formatHooks("founder-split"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1337,7 +1351,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Original voice.",
-  hooks: ["this guy needs to slow down", "people are mad about this app", "I can't believe this got approved"],
+  hooks: formatHooks("green-screen"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1384,7 +1398,7 @@ F.push({
   effort: "medium",
   captionStyle: "hormozi",
   soundTip: "Record scratch on the problem, then your voice + upbeat music.",
-  hooks: ["my app is in TROUBLE", "a user BROKE my app in one day", "did I make {app} TOO simple?"],
+  hooks: formatHooks("stakes-devlog"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1438,13 +1452,13 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-box",
   soundTip: "Trending sound at low volume.",
-  hooks: ["just saw someone do it without {app}. like a psychopath", "give me your most unhinged way to {outcome}"],
+  hooks: formatHooks("text-wall"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
     const v = vocab(p);
     const video = bestVideo(ctx) ?? faceCam(ctx);
-    const rant = `${ctx.hook.replace(/\*/g, "").replace(/[.!?]$/, "")}. no ${v.competitor ? v.competitor.toLowerCase() : "spreadsheets"}, no reminders, no system, just vibes. meanwhile I opened ${v.app}, it ${v.does} and I went back to my life. am I crazy or is everyone else just suffering on purpose??`;
+    const rant = `${ctx.hook.replace(/\*/g, "").replace(/[.!?]$/, "")}. no ${v.competitor ? v.competitor.toLowerCase().replace(/^(the|a|an|your|my|our)\s+/, "") : "spreadsheets"}, no reminders, no system, just vibes. meanwhile I opened ${v.app}, it ${v.does} and I went back to my life. am I crazy or is everyone else just suffering on purpose??`;
     return {
       title: short(ctx.hook.replace(/\*/g, ""), 60),
       formatId: this.id,
@@ -1479,7 +1493,7 @@ F.push({
   effort: "low",
   captionStyle: "minimal",
   soundTip: "None needed (muted autoplay).",
-  hooks: ["I made an app to {outcome}", "what if {app} but for {audience}", "IT WORKS. {app} {does}"],
+  hooks: formatHooks("x-demo"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1583,7 +1597,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-plain",
   soundTip: "One trending or Commercial Music Library track, kept as a bed. No voiceover.",
-  hooks: ["how I stopped {painYou}", "I don't have time to {pain} 💀💀💀", "POV: you found an app that {does}", "this is how I {outcome} now"],
+  hooks: formatHooks("raw-demo"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1628,12 +1642,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-plain",
   soundTip: "Soft trending sound or lo-fi; optionally a whispered 'I can't believe this is real' voiceover.",
-  hooks: [
-    "been {pain} for years and I'm JUST NOW finding this??",
-    "why did nobody tell me you can just {outcome}",
-    "someone made an app that {does}??",
-    "my friend just showed me this and I'm so mad nobody told me sooner",
-  ],
+  hooks: formatHooks("found-this"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1701,7 +1710,7 @@ F.push({
   captionStyle: "tiktok-classic",
   musicVibes: ["emotional", "cinematic", "lofi", "chill"],
   soundTip: "A trending melancholy or ironic sound with no voice.",
-  hooks: ["No one talks about how exhausting it is when {painYou}", "Nobody warns you that {painYou}"],
+  hooks: formatHooks("mental-load"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1743,7 +1752,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Add a trending sped-up sound in TikTok's photo mode; reuse it across the series.",
-  hooks: ["“how do you {outcome}?”", "“you're so organized, how do you remember everything?”", "“I wish I could {outcome} like you”"],
+  hooks: formatHooks("setup-receipts"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1783,13 +1792,16 @@ F.push({
   effort: "low",
   captionStyle: "serif-white",
   soundTip: "A trending upbeat 'that girl' sound, no voiceover.",
-  hooks: ["{number} reasons why {app} is THAT girl", "{number} small things that saved my sanity this year"],
+  hooks: formatHooks("that-girl"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
     const v = vocab(p);
     const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
-    const clips = shuffle(brollClips(ctx).all, r);
+    // A "saved my sanity" list wants calm footage; stressed clips under a happy line read as a mismatch.
+    const all = brollClips(ctx).all;
+    const calm = all.filter((c) => !/overwhelm|chaos|mess|stress|frustrat|rush|tired|sleepy|angry|cry|waiting|sticky|launch/i.test(c.file));
+    const clips = shuffle(calm.length >= 3 ? calm : all, r);
     const screens = orderedScreens(ctx, v);
     const reasons = [...v.features.map((f) => stepLine(f)), ...v.outcomes.map((o) => `I finally ${o}`)].slice(0, 6);
     const hookText = ctx.hook.replace(/\{number\}/g, String(reasons.length));
@@ -1839,7 +1851,7 @@ F.push({
   captionStyle: "tiktok-classic",
   musicVibes: ["funny", "bouncy", "lofi", "chill"],
   soundTip: "A trending meme sound.",
-  hooks: ["me checking {app} to see if anyone else could've done it today", "POV: you finally see how much you were carrying", "the {app} in October be like"],
+  hooks: formatHooks("backdrop-pov"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1874,7 +1886,7 @@ F.push({
   effort: "low",
   captionStyle: "tiktok-classic",
   soundTip: "Trending upbeat song with a drop around 1.6 s.",
-  hooks: ["When you finally ditch the {competitor} nobody looks at", "bye bye {competitor} 👋"],
+  hooks: formatHooks("ditch-old-way"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -1889,7 +1901,7 @@ F.push({
     for (const c of [old, old2].filter(Boolean) as typeof clips)
       scenes.push({ id: sid(), type: "media", duration: 1.6, src: `asset:${c.file}`, kind: "video", device: "none", aspect: aspectOf(c), push: 1.04, transition: "cut" });
     if (launch) scenes.push({ id: sid(), type: "media", duration: 1.8, src: `asset:${launch.file}`, kind: "video", device: "none", anchor: "top", aspect: aspectOf(launch) });
-    const checks = v.features.slice(0, Math.max(3, screens.length)).map((f) => `✅ ${stepLine(f)}`);
+    const checks = v.features.slice(0, Math.max(3, screens.length)).map((f) => `✅\u2002${stepLine(f)}`); // an en space: the emoji sits tight against a normal one
     const startList = scenes.length;
     // The ✅ list builds one line per cut, in TikTok's own text (boxed on light screens so it reads over the UI).
     screens.forEach((m, i) => scenes.push(screenScene(m, { duration: 1.7, caption: { text: checks.slice(0, i + 1).join("\n"), style: { style: lightUi(p) ? "tiktok-box" : "tiktok-classic", size: lightUi(p) ? 0.038 : 0.04, align: "left", position: "low" } } })));
@@ -1923,7 +1935,7 @@ F.push({
   captionStyle: "tiktok-classic",
   musicVibes: [],
   soundTip: "No music: the two voices are the sound (exactly like the text-story pages).",
-  hooks: ["{pain}", "we need to talk about {painYou}", "ok who forgot AGAIN 😭"],
+  hooks: formatHooks("text-card"),
   build(ctx) {
     sceneCounter = 0;
     const p = ctx.project;
@@ -2014,6 +2026,12 @@ function shade(hex: string | undefined, i: number): string {
   return `#${[16, 8, 0].map((s) => ch(s).toString(16).padStart(2, "0")).join("")}`;
 }
 
-export function fillHook(template: string, project: Project, extra: Record<string, string> = {}) {
-  return fill(template, vocab(project), extra);
+/** Fill one hook template for a product: the best-scoring natural fill (hooks.ts), else the plain fill. */
+export function fillHook(template: string, project: Project, extra: Record<string, string> = {}, formatId?: string) {
+  return fillTemplate(template, project, { formatId, extra }) || fill(template, vocab(project), extra);
+}
+
+/** The hook a format opens with by default: top-ranked, or (with a seed) one of the near-best for variety. */
+export function bestHook(formatId: string, project: Project, seed?: number): string {
+  return rankedBestHook(FORMAT_MAP[formatId] ? formatId : "hook-demo", project, seed);
 }

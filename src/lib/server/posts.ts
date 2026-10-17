@@ -65,6 +65,8 @@ export async function createPost(input: {
   provider?: ProviderId;
   asDraft?: boolean;
   captions?: Partial<Record<Platform, string>>;
+  /** Chrome uploads: press Post too (default: the per-platform setting, which is off). */
+  autoPost?: boolean;
 }): Promise<Post> {
   const settings = await getSettings();
   const video = await getVideo(input.projectId, input.videoId);
@@ -87,6 +89,7 @@ export async function createPost(input: {
     provider: input.provider ?? settings.defaultProvider,
     // TikTok drafts let you add a trending sound in-app before publishing (what the pros do).
     asDraft: input.asDraft ?? platforms.includes("tiktok"),
+    ...(input.autoPost !== undefined ? { autoPost: input.autoPost } : {}),
     status: "scheduled",
     results: [],
     log: [`Scheduled for ${when.toLocaleString()}`],
@@ -161,7 +164,14 @@ export async function processPost(projectId: string, postId: string): Promise<vo
     const okCount = results.filter((r) => r.ok).length;
     const manual = results.every((r) => r.mode === "manual");
     const status = manual ? "needs-you" : okCount === results.length ? "posted" : okCount > 0 ? "partial" : "failed";
-    for (const r of results) push(r.ok ? `✓ ${r.platform}${r.mode === "draft" ? " (draft — open TikTok to add a sound and post)" : ""}${r.url ? ` ${r.url}` : ""}` : `✗ ${r.platform}: ${r.error}`);
+    for (const r of results)
+      push(
+        r.ok
+          ? `✓ ${r.platform}${r.mode === "draft" ? " (draft — open TikTok to add a sound and post)" : ""}${r.url ? ` ${r.url}` : ""}`
+          : r.mode === "manual"
+            ? `→ ${r.platform}: ${r.error}`
+            : `✗ ${r.platform}: ${r.error}${r.screenshot ? ` (screenshot: ${r.screenshot})` : ""}`,
+      );
     await savePost(projectId, postId, (p) => ({ ...p, status, results }));
   } catch (e) {
     push(`Failed: ${(e as Error).message}`);
@@ -186,4 +196,68 @@ export function startScheduler() {
   }, 30_000);
   setTimeout(() => tick().catch(() => undefined), 5_000);
   console.log("[shipreel] scheduler running (every 30s)");
+}
+
+// ── Batches: spread several videos across days at your posting times ─────────────
+
+/**
+ * Plan `count` posting times from settings.slots, at most `perDay` per day (counting what this
+ * product already has scheduled that day), never reusing a taken slot.
+ */
+export async function planSlots(projectId: string, count: number, opts: { perDay?: number; from?: Date } = {}): Promise<Date[]> {
+  const settings = await getSettings();
+  const perDay = Math.max(1, Math.min(6, Math.round(opts.perDay ?? 1)));
+  const live = (await listPosts(projectId)).filter((p) => p.status !== "canceled");
+  const taken = new Set(live.map((p) => p.scheduledAt.slice(0, 16)));
+  const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  const perDayCount = new Map<string, number>();
+  for (const p of live) {
+    const k = dayKey(new Date(p.scheduledAt));
+    perDayCount.set(k, (perDayCount.get(k) ?? 0) + 1);
+  }
+  const usable = settings.slots.length ? settings.slots : [{ platform: "tiktok" as Platform, time: "19:00", days: [0, 1, 2, 3, 4, 5, 6] }];
+  const start = new Date((opts.from ?? new Date()).getTime() + 5 * 60_000);
+  const out: Date[] = [];
+  for (let d = 0; d < 120 && out.length < count; d++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + d);
+    const times = [...new Set(usable.filter((s) => s.days.includes(day.getDay())).map((s) => s.time))]
+      .map((time) => {
+        const [h, m] = time.split(":").map(Number);
+        const t = new Date(day);
+        t.setHours(h, m || 0, 0, 0);
+        return t;
+      })
+      .filter((t) => t > start)
+      .sort((a, b) => a.getTime() - b.getTime());
+    for (const t of times) {
+      const k = dayKey(t);
+      if (out.length >= count || (perDayCount.get(k) ?? 0) >= perDay) break;
+      if (taken.has(t.toISOString().slice(0, 16))) continue;
+      out.push(t);
+      taken.add(t.toISOString().slice(0, 16));
+      perDayCount.set(k, (perDayCount.get(k) ?? 0) + 1);
+    }
+  }
+  return out;
+}
+
+export async function createBatch(input: {
+  projectId: string;
+  videoIds: string[];
+  platforms?: Platform[];
+  provider?: ProviderId;
+  asDraft?: boolean;
+  perDay?: number;
+  from?: string;
+}): Promise<Post[]> {
+  const ids = [...new Set(input.videoIds)].filter(Boolean);
+  if (!ids.length) throw new Error("Pick at least one video.");
+  const times = await planSlots(input.projectId, ids.length, { perDay: input.perDay, from: input.from ? new Date(input.from) : undefined });
+  if (times.length < ids.length) throw new Error("Not enough open posting times in the next few months. Add times in Settings → Posting times.");
+  const out: Post[] = [];
+  for (const [i, videoId] of ids.entries()) {
+    out.push(await createPost({ projectId: input.projectId, videoId, platforms: input.platforms, provider: input.provider, asDraft: input.asDraft, scheduledAt: times[i].toISOString() }));
+  }
+  return out;
 }

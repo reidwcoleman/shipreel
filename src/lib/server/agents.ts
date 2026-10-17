@@ -348,8 +348,10 @@ export async function startRun(spec: RunSpec): Promise<Run> {
         try {
           const output = spec.onResult ? await spec.onResult({ structured, text: finalText }) : undefined;
           if (output) r.output = output;
+          // Actions Shipreel carried out for the agent (e.g. posts it scheduled) are part of the answer.
+          for (const n of output?.notes ?? []) push({ kind: "text", text: n });
           r.status = "done";
-          r.summary = finalText.slice(0, 600);
+          r.summary = (output?.notes?.length ? `${finalText.replace(/```shipreel-actions[\s\S]*?```/gi, "").trim()}\n\n${output.notes.join("\n")}` : finalText).slice(0, 600);
           push({ kind: "result", text: "Done" });
         } catch (e) {
           r.status = "failed";

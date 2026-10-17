@@ -10,6 +10,7 @@ import type { CompositionProps } from "@/remotion/spec";
 import { layoutScenes } from "@/remotion/timeline";
 import { probe } from "./media";
 import { getVideo, patchVideo, saveVideoSpec } from "./projects";
+import { fitText } from "./layout";
 import { voiceChats } from "./voice";
 import { APP_ROOT, emit, now, paths } from "./store";
 
@@ -72,6 +73,15 @@ function worker(): ChildProcessWithoutNullStreams {
   return child;
 }
 
+/** Run one job on the render worker (a stills-only job when `out` is omitted). */
+function workerJob(job: { props: CompositionProps; out?: string; stills?: unknown[] }, onProgress: (p: number) => void = () => {}): Promise<void> {
+  const jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return new Promise<void>((resolve, reject) => {
+    jobs.set(jobId, { resolve, reject, onProgress });
+    worker().stdin.write(JSON.stringify({ type: "render", jobId, ...job }) + "\n");
+  });
+}
+
 export function serverOrigin(): string {
   return `http://127.0.0.1:${process.env.PORT ?? 4747}`;
 }
@@ -109,6 +119,12 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
   // Spoken text stories: (re)generate the voices first so bubbles land on their lines.
   const voiced = await voiceChats(projectId, doc.spec).catch(() => null);
   if (voiced) doc = await saveVideoSpec(projectId, videoId, voiced);
+  // Move captions off busy UI and box them on light screens (only captions not fitted yet).
+  const fitted = await fitText(paths.renders(projectId), doc.spec, (p, stills) => workerJob({ props: compositionProps(projectId, p.spec), stills })).catch((e) => {
+    console.log("[fit] skipped:", (e as Error).message);
+    return null;
+  });
+  if (fitted) doc = await saveVideoSpec(projectId, videoId, fitted);
   const hash = specHash(doc.spec);
   const dir = paths.renders(projectId);
   if (!force && doc.render?.specHash === hash && doc.status === "rendered") {
@@ -144,24 +160,14 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
   emit({ type: "render", projectId, videoId, status: "rendering", progress: 0 });
   onStarted();
 
-  const jobId = `${videoId}-${Date.now()}`;
   try {
-    await new Promise<void>((resolve, reject) => {
-      let lastEmit = 0;
-      jobs.set(jobId, {
-        resolve,
-        reject,
-        onProgress: (progress: number) => {
-          const t = Date.now();
-          if (t - lastEmit > 250 || progress >= 1) {
-            lastEmit = t;
-            emit({ type: "render", projectId, videoId, status: "rendering", progress });
-          }
-        },
-      });
-      worker().stdin.write(
-        JSON.stringify({ type: "render", jobId, props: compositionProps(projectId, doc.spec), out: tmpOut, stills }) + "\n",
-      );
+    let lastEmit = 0;
+    await workerJob({ props: compositionProps(projectId, doc.spec), out: tmpOut, stills }, (progress) => {
+      const t = Date.now();
+      if (t - lastEmit > 250 || progress >= 1) {
+        lastEmit = t;
+        emit({ type: "render", projectId, videoId, status: "rendering", progress });
+      }
     });
     await fsp.rename(tmpOut, out);
     const info = await probe(out);

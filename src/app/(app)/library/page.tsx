@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { inputCls } from "@/components/ui/field";
 import { Badge, Empty, SectionLabel, Segmented } from "@/components/ui/misc";
 import { Dialog } from "@/components/ui/overlay";
-import { buildSpec, fillHook } from "@/framework/formats";
+import { bestHook, buildSpec, fillHook } from "@/framework/formats";
+import { rankHooks } from "@/framework/hooks";
 import { PLAYBOOK } from "@/framework/playbook";
 import { post } from "@/lib/client/api";
 import { useActiveProject, useBootstrap, useFramework, useProjectDetail, type FormatMeta } from "@/lib/client/store";
@@ -100,7 +101,7 @@ function Formats() {
 
   const previews = useMemo(() => {
     if (!project || !fw) return new Map<string, ReturnType<typeof buildSpec>>();
-    return new Map(fw.formats.map((f) => [f.id, buildSpec(f.id, { project, hook: fillHook(f.hooks[0] ?? "I built an app that {outcome}", project), media, seed: 3 })]));
+    return new Map(fw.formats.map((f) => [f.id, buildSpec(f.id, { project, hook: bestHook(f.id, project), media, seed: 3 })]));
   }, [project, fw, media]);
 
   const list = (fw?.formats ?? []).filter((f) =>
@@ -199,16 +200,20 @@ function Formats() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <SectionLabel>Hooks that fit</SectionLabel>
-                {open.hooks.map((h) => {
-                  const filled = project ? fillHook(h, project) : h;
+                {(project ? rankHooks(open.id, project).slice(0, 6).map((h) => ({ filled: h.text, score: h.score as number | undefined })) : open.hooks.map((h) => ({ filled: h, score: undefined }))).map(({ filled, score }) => {
                   return (
                     <button
-                      key={h}
+                      key={filled}
                       aria-pressed={hook === filled}
                       onClick={() => setHook(hook === filled ? null : filled)}
                       className={cn("group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-fg hover:bg-hover", hook === filled && "bg-hover ring-1 ring-line-strong")}
                     >
                       <span className="flex-1">“{filled}”</span>
+                      {score != null && (
+                        <span className="text-[11px] text-fg-3 tabular-nums" title="Hook score: length, first words, a specific detail, a gap or pain, voice, no ad-speak">
+                          {score}
+                        </span>
+                      )}
                       {hook === filled ? <Check className="size-3.5 text-fg" /> : <span className="text-[11px] text-fg-3 opacity-0 group-hover:opacity-100">Use this hook</span>}
                     </button>
                   );
