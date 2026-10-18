@@ -37,3 +37,5 @@ npm-debug.log*
 # Mac app build output
 /apps/mac/build/
 DerivedData/
+/apps/ios/build/
+/apps/*/*.xcodeproj/

@@ -1,0 +1,54 @@
+name: ShipreelPhone
+options:
+  bundleIdPrefix: com.reidcoleman
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: JU6MZ954WS
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  ShipreelPhone:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: ../shared
+        excludes:
+          - Fonts/OFL.txt
+      - path: Resources
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Shipreel
+        CFBundleName: Shipreel
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.video
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIUserInterfaceStyle: Dark
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: "Shipreel uses the camera only to scan the pairing code shown by Shipreel on your Mac."
+        NSLocalNetworkUsageDescription: "Shipreel connects to Shipreel on your Mac over your home Wi-Fi to show and approve your videos."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSAllowsArbitraryLoads: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.reidcoleman.shipreel.phone
+            CFBundleURLSchemes: [shipreel]
+    settings:
+      base:
+        PRODUCT_NAME: Shipreel
+        PRODUCT_BUNDLE_IDENTIFIER: com.reidcoleman.shipreel.phone
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_STRICT_CONCURRENCY: minimal
+        GENERATE_INFOPLIST_FILE: NO
