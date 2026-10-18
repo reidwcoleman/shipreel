@@ -34,3 +34,6 @@ npm-debug.log*
 /research/**/*.jpg
 /research/**/*.jpeg
 /research/**/*.png
+# Mac app build output
+/apps/mac/build/
+DerivedData/

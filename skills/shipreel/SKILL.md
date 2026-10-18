@@ -1,6 +1,6 @@
 ---
 name: shipreel
-description: Make, review, caption and post short-form marketing videos for the user's app with Shipreel (the local studio at http://localhost:4747). Use when the user asks to make a TikTok/Reel/Short, review or caption a video, "post this", "schedule it for tonight", "queue the ready videos", send a video to their phone, or upload through TikTok Studio / YouTube Studio / Instagram, with or without an API key.
+description: Make, review, caption and post short-form marketing videos for the user's app with Shipreel (the local studio at http://localhost:4747). Use when the user asks to make a TikTok/Reel/Short, review or caption a video, "send it to review", "approve the second one", "post this", "schedule it for tonight", "queue the ready videos", send a video to their phone, or upload through TikTok Studio / YouTube Studio / Instagram, with or without an API key.
 ---
 
 # Shipreel: make and post videos for the user's app
@@ -14,12 +14,26 @@ $SR status                                        # is it running? active produc
 
 If `status` says Shipreel isn't running, start it in the background (`$SR start`, which serves on 127.0.0.1:4747) and wait a few seconds. Never start a second copy on 4747.
 
+## 0. The loop: make → Review (Mac app) → the user approves → Postbox posts
+
+This is the default way videos go out:
+
+1. **You make the videos** (section 1) and render them.
+2. **They land in Review.** Every new video joins Review as `pending` after its first render; call `submit_for_review {video}` (CLI `$SR submit <video>`) after rendering anyway. Tell the user they're waiting in the Shipreel Mac app's Review.
+3. **The user decides there**: approve (Postbox posts it to TikTok / YouTube / Instagram through their own Chrome, now, at the next posting slot, or at a time), ask for changes (Claude revises it, it re-renders and comes back as `pending`), or reject.
+4. **Postbox posts** what they approved (http://127.0.0.1:4710; it holds scheduled posts itself, so they go out even when Shipreel is closed). `list_review {status: "approved"}` / `$SR review --status approved` shows each post's status and links.
+
+**Never approve, post or schedule on your own.** Use `review_decision`, `post_now`, `schedule_post` or `schedule_batch` only when the user explicitly told you to in this session ("approve the pickup one", "post it now"). Making videos and putting them in Review is always fine; deciding is the user's. When they do ask, `review_decision {video, decision: "approve", when: "now" | "next-slot" | ISO}`; add `dry_run: true` if they want a rehearsal (Postbox fills every form and stops before Post). `postbox_status` / `$SR postbox` shows whether Postbox, its Chrome extension and each account are connected; if an account isn't, say so (the user connects it from Settings or the Postbox dashboard; never log in for them).
+
+`$SR create "3 videos about the new widget" --count 3` asks a headless Claude to do steps 1–2 on its own (the Mac app's Create box uses the same thing).
+
 ## 1. Make videos for the active product
 
 1. `get_brief` / `$SR brief`: read the pitch, features, proof. **Never invent numbers, users or testimonials.**
 2. Pick a format and hook: `list_formats` (prefer `hot`), `list_hooks` / `$SR hooks`, or `generate_ideas` / `$SR ideas --count 5`.
 3. Build it: `create_video {format, hook}` / `$SR make <format> --hook "…"`. Edit with `get_video` + `update_video` (read `get_framework` first), or `$SR edit <video> "instruction"`.
 4. Render: `render_video {video}` / `$SR render <video> --wait` prints the MP4 path.
+5. Review: `submit_for_review {video}` / `$SR submit <video>`. Stop here unless the user asked you to post.
 
 ## 2. Review before posting
 
@@ -43,6 +57,7 @@ Recommend in this order unless the user asked for something specific:
 | **iPhone** | TikTok/Reels with a trending sound (best reach) | `send_to_phone {video, via: "airdrop"}` or `$SR phone <video>`: AirDrop picker opens on the Mac, caption copied (Universal Clipboard pastes it on the phone). `via: "photos"` / `--photos` puts it in a "Shipreel" album instead. |
 | **Upload page** | Posting from the Mac by hand | `open_upload {video, platform}` / `$SR upload-page <video> --platform tiktok`: opens TikTok Studio / Instagram / YouTube Studio / X / Threads / Bluesky, caption copied, MP4 selected in Finder. |
 | **Shipreel's Chrome** | No API key, wants it filled in | `browser_upload {video, platform}` / `$SR chrome <video> --platform tiktok`: Shipreel's own Chrome window (logged in once) attaches the file and fills the caption, then **stops before Post**; status becomes `needs-you`. Platforms: tiktok, youtube, instagram, x. |
+| **Postbox** (recommended auto-post) | The user approved it, or asked you to post it | `review_decision {video, decision: "approve", when}` for a video in Review, or `post_now {video, provider: "postbox"}` / `schedule_post {video, provider: "postbox", at}`. Posts to TikTok, YouTube and Instagram for real (no drafts); `dry_run: true` stops before Post. |
 | **Connected service** | Upload-Post / Bluesky / webhook set up | `post_now`, `schedule_post {at}`, `schedule_batch {videos, per_day}` / `$SR post <video> --at …`, `$SR queue …`. TikTok goes to drafts by default so the user adds a sound in-app. |
 | **Claude in Chrome** | The user wants you to upload in *their* Chrome | See section 5. |
 

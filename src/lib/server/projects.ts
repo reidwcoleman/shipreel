@@ -141,7 +141,8 @@ export async function createVideo(projectId: string, spec: unknown, source: Vide
   const id = newId("v_");
   const normalized = normalizeSpec({ ...(spec as object), id });
   const t = now();
-  const doc: VideoDoc = { id, projectId, spec: normalized, status: "draft", source, createdAt: t, updatedAt: t };
+  // New videos land in Review once their first render succeeds (render.ts).
+  const doc: VideoDoc = { id, projectId, spec: normalized, status: "draft", source, createdAt: t, updatedAt: t, reviewOnRender: true };
   await writeJson(paths.video(projectId, id), doc);
   emit({ type: "videos", projectId });
   return doc;

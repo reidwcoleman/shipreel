@@ -213,9 +213,10 @@ export const StyledText: React.FC<StyledTextProps> = ({
   const sceneInfo = useSceneInfo();
   // The first frame of the video is its thumbnail and the moment the scroll stops: hook text is
   // already on screen there (it settles with a small punch instead of fading in).
-  const coldOpen = sceneInfo?.index === 0 && delay === 0 && !r.native;
+  // Native TikTok text is simply there on frame 0 (an entrance would leave the thumbnail without its hook).
+  const coldOpen = sceneInfo?.index === 0 && delay === 0;
   const requested = style?.animation ?? (r.native ? "none" : "pop");
-  const anim = coldOpen && requested !== "words" && requested !== "typewriter" ? "settle" : requested;
+  const anim = coldOpen && requested !== "words" && requested !== "typewriter" ? (r.native ? "none" : "settle") : requested;
   const align = style?.align ?? "center";
   const lines = parseRich(text);
 

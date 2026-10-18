@@ -103,6 +103,32 @@ type Pack = {
   time: string;
   captionQs: string[];
   tags: string[];
+  /** Carousel copy in the niche's voice (carousels.ts). Every list falls back to lines built from the brief. */
+  carousel?: Partial<CarouselKit>;
+};
+
+/** One beat of a day-in-my-life carousel: a time, a line, the photo it wants and (optionally) the app screen it shows. */
+export type RoutineBeat = { time: string; line: string; photo: RegExp; screen?: RegExp };
+/** A non-app "app" in an app-stack carousel: an emoji tile, a name and why it's on the home screen. */
+export type StackItem = { glyph: string; name: string; line: string; photo?: RegExp };
+export type CarouselKit = {
+  /** Advice that isn't the app (things I wish I knew / Pinterest tips / what I'd do). Lowercase, ≤ 12 words. */
+  tips: string[];
+  /** What I used to do wrong (gerund phrases): "keeping the whole schedule in my head". */
+  mistakes: string[];
+  routine: RoutineBeat[];
+  stack: StackItem[];
+  /** Hot takes the niche nods along to. */
+  opinions: string[];
+  /** A group chat in chaos (texts-receipts). */
+  chat: { from: "me" | "them"; name?: string; text: string }[];
+  chatName: string;
+  /** The thing being rated in rate-my-setup ("our family command center"). */
+  setup: string;
+  /** "as a new parent", "as a college student": who the advice is for. */
+  who: string;
+  /** Photo file hints for the old way (wall calendar, paper planner…). */
+  oldPhoto: RegExp;
 };
 
 const PACKS: Pack[] = [
@@ -145,6 +171,54 @@ const PACKS: Pack[] = [
     time: "3:55pm",
     captionQs: ["be honest, who's the default parent in your house? 👇", "who else is the family's human calendar 🙋‍♀️", "what's the one thing only YOU remember in your house? 👇", "tell me I'm not the only one 😭"],
     tags: ["mentalload", "defaultparent", "momlife", "familyorganization", "momhack"],
+    carousel: {
+      tips: [
+        "put it on the calendar the second the email comes in",
+        "plan the week on Sunday night, together",
+        "decide who's on pickup the night before, not at 3:55",
+        "one grocery list the whole house can add to",
+        "give every kid one chore that's only theirs",
+        "plan dinners once a week, not every night at 5pm",
+      ],
+      mistakes: [
+        "keeping the whole schedule in my head",
+        "running the house through a group chat nobody reads",
+        "saying “just ask me” instead of writing it down",
+        "deciding dinner at 5:45 every single night",
+        "being the only one who could see the calendar",
+      ],
+      routine: [
+        { time: "6:45am", line: "coffee before anyone's up. today's plan is already waiting", photo: /coffee|sleepy|breakfast/i, screen: /digest|briefing/i },
+        { time: "7:40am", line: "school run. nobody asks me what day it is", photo: /backpack|shoes|walk-to-school/i },
+        { time: "12:30pm", line: "practice moved. one message and everyone knows", photo: /texting|hands-iphone|phone/i, screen: /remind/i },
+        { time: "3:30pm", line: "pickup was decided last night. not by me", photo: /soccer|waiting-in-car/i, screen: /calendar/i },
+        { time: "5:30pm", line: "dinner got planned on Sunday", photo: /cooking|dinner/i, screen: /meals/i },
+        { time: "8:30pm", line: "couch. nothing left in my head", photo: /couch|popcorn|calm/i },
+      ],
+      stack: [
+        { glyph: "📸", name: "a shared photo album", line: "so the grandparents stop asking for pictures", photo: /dinner|popcorn|laugh/i },
+        { glyph: "🌙", name: "a white noise app", line: "bedtime is not up for debate", photo: /couch|calm|evening/i },
+        { glyph: "📝", name: "one packing list we reuse every trip", line: "made once, never again", photo: /backpack|shoes/i },
+      ],
+      opinions: [
+        "the family group chat is where plans go to die",
+        "a fridge calendar only works for the person standing in the kitchen",
+        "“just tell me what to do” is not help",
+        "nobody volunteers to be the default parent. it just happens",
+      ],
+      chat: [
+        { from: "them", name: "Dad", text: "who's getting Emma today?" },
+        { from: "them", name: "Jake", text: "practice moved to 5:30" },
+        { from: "them", name: "Dad", text: "wait which day" },
+        { from: "me", text: "it's on the fridge 🙃" },
+        { from: "them", name: "Emma", text: "what's for dinner" },
+        { from: "them", name: "Dad", text: "is the dentist today or tomorrow??" },
+      ],
+      chatName: "Family 🏠",
+      setup: "our family command center",
+      who: "as a parent",
+      oldPhoto: /wall-calendar|sticky|paper|whiteboard|fridge/i,
+    },
   },
   {
     id: "study",
@@ -168,6 +242,21 @@ const PACKS: Pack[] = [
     time: "1:47am",
     captionQs: ["be honest, how many hours did you study for your last exam? 👇", "rereaders vs flashcard people, go 👇", "what's your worst cramming story 😭"],
     tags: ["studytok", "studytips", "college", "finals", "studyhacks"],
+    carousel: {
+      tips: ["test yourself instead of rereading", "study in 25-minute blocks with your phone in another room", "start the review a week out, not the night before", "explain it out loud like you're teaching it", "sleep before the exam beats one more hour of cramming"],
+      mistakes: ["rereading my notes and calling it studying", "highlighting entire chapters", "cramming everything the night before", "making flashcards and never using them"],
+      opinions: ["highlighting is decorating, not studying", "rereading your notes is the slowest way to learn", "an all-nighter costs you more than it gives you"],
+      chat: [
+        { from: "them", name: "Maya", text: "did anyone actually start studying" },
+        { from: "them", name: "Leo", text: "the exam is cumulative??" },
+        { from: "me", text: "since when 😭" },
+        { from: "them", name: "Maya", text: "since the syllabus" },
+      ],
+      chatName: "Bio 101 study group",
+      setup: "my finals study setup",
+      who: "as a student",
+      oldPhoto: /highlight|notes|textbook|flashcard|desk/i,
+    },
   },
   {
     id: "habits",
@@ -191,6 +280,14 @@ const PACKS: Pack[] = [
     time: "11:48pm",
     captionQs: ["be honest, what day do you usually quit? 👇", "Monday restarters where you at 🙋‍♀️", "what's the one habit you can't keep? 👇"],
     tags: ["habits", "selfimprovement", "productivity", "habittracker", "discipline"],
+    carousel: {
+      tips: ["make the habit so small it feels silly", "attach it to something you already do", "never miss twice", "track it where you'll actually see it", "plan tomorrow's version tonight"],
+      mistakes: ["starting five habits on the same Monday", "relying on motivation instead of reminders", "quitting the whole thing after one missed day", "tracking habits in a notes app I never opened"],
+      opinions: ["Monday is not a magic day", "motivation is overrated. reminders are underrated", "a habit you can't miss isn't a habit, it's a punishment"],
+      setup: "my habit setup",
+      who: "if you keep restarting",
+      oldPhoto: /planner|notebook|sticky|paper/i,
+    },
   },
 ];
 
@@ -204,6 +301,38 @@ export function packFor(p: Project): Pack | undefined {
     if (n > hits) [best, hits] = [pk, n];
   }
   return best;
+}
+
+/**
+ * Carousel copy for a product: the niche pack's lines first, then lines built from the brief (pains,
+ * outcomes, features), so every carousel format has something true to say for any app.
+ */
+export function carouselKit(p: Project): CarouselKit {
+  const pack = packFor(p)?.carousel ?? {};
+  const s = hookSlots(p);
+  const clause = (b: string) => {
+    const c = b.replace(/^just\s+/i, "").split(/[,;:]|\s+—\s+|\s+-\s+/)[0].trim().replace(/[.!]+$/, "");
+    return c && words(c) <= 12 ? lcFirst(c) : "";
+  };
+  const featureTips = p.features.map((f) => clause(f.benefit || f.name)).filter(Boolean);
+  const audience = s.audience[0] ?? "";
+  return {
+    tips: pack.tips?.length ? pack.tips : uniq(featureTips),
+    mistakes: pack.mistakes?.length ? pack.mistakes : uniq([...s.painBeing, ...s.habit]).slice(0, 5),
+    routine: pack.routine ?? [],
+    stack: pack.stack ?? [],
+    opinions: pack.opinions?.length ? pack.opinions : s.painYou.slice(0, 3).map((x) => `${x} shouldn't be normal`),
+    chat: pack.chat?.length
+      ? pack.chat
+      : [
+          ...s.line.slice(0, 3).map((t, i) => ({ from: "them" as const, name: ["Sam", "Alex", "Jo"][i], text: t })),
+          { from: "me" as const, text: "i know 😭" },
+        ],
+    chatName: pack.chatName ?? "group chat",
+    setup: pack.setup ?? (s.category[0] ? `my ${s.category[0]} setup` : "my setup"),
+    who: pack.who ?? (audience ? `as one of the ${audience}` : ""),
+    oldPhoto: pack.oldPhoto ?? /calendar|paper|notes|sticky|planner/i,
+  };
 }
 
 // ── slots ────────────────────────────────────────────────────────────────────────
@@ -297,6 +426,10 @@ export function hookSlots(p: Project): Slots {
     found: pack?.found ?? [],
     listTitle: pack?.listTitles ?? [],
     free: free ? ["free"] : [],
+    // Carousel slots (carouselKit has the full lists).
+    setup: pack?.carousel?.setup ? [pack.carousel.setup] : category ? [`my ${category.toLowerCase()} setup`] : [],
+    who: pack?.carousel?.who ? [pack.carousel.who] : [],
+    opinion: pack?.carousel?.opinions ?? [],
   };
 }
 
@@ -494,6 +627,85 @@ const BANK: Record<string, Entry[]> = {
     ["dialogue", "{line}"],
     ["dialogue", "ok who forgot AGAIN 😭"],
   ],
+
+  // ── carousels (carousels.ts) ──
+  // Larry's best formula: [person] + [doubt] (the story's slide 5 is that person's reaction).
+  "photo-story": [
+    ["dialogue", "my {doubter} said I was overreacting about {oldWay}"],
+    ["dialogue", "my {doubter} said we didn't need another app"],
+    ["dialogue", "my {doubter} said {oldWay} was working fine"],
+    ["dialogue", "my {doubter} thought I was being dramatic about {oldWay}"],
+  ],
+  "app-stack": [
+    ["list", "{number} apps I can't live without {who}"],
+    ["identity", "if you're {identity}, steal my home screen"],
+    ["list", "{number} apps that make me look way more organized than I am"],
+  ],
+  "wish-i-knew": [
+    ["list", "{number} things I wish I knew {who}"],
+    ["confession", "what I wish I knew before I became {identity}"],
+    ["confession", "things I wish someone told me sooner"],
+  ],
+  "day-in-life": [
+    ["specific", "a day in my life {who} (the organized version)"],
+    ["specific", "what a normal day looks like now that I {outcomePast}"],
+    ["pov", "POV: {win}"],
+  ],
+  "before-after-slides": [
+    ["before-after", "{ourThing} before vs after"],
+    ["before-after", "{oldWay} vs this"],
+    ["before-after", "how it started vs how it's going"],
+  ],
+  "texts-receipts": [
+    ["dialogue", "my group chat every single day 😭"],
+    ["identity", "if your group chat looks like this, keep swiping"],
+    ["before-after", "this is why I {outcomePast}"],
+  ],
+  "notes-carousel": [
+    ["before-after", "how I {outcomePast} (my exact list)"],
+    ["identity", "if {painYou}, copy this list"],
+    ["confession", "the list on my phone that saved my sanity"],
+  ],
+  "old-vs-new": [
+    ["contrarian", "{oldWay} vs the way we do it now"],
+    ["contrarian", "still using {oldWay}? swipe"],
+    ["before-after", "the old way vs the new way"],
+  ],
+  "rate-my-setup": [
+    ["proof", "rate {setup} out of 10, be honest"],
+    ["confession", "I finally fixed {setup} and I need opinions"],
+  ],
+  "pinterest-tips": [
+    ["curiosity", "{category} ideas that actually stuck"],
+    ["before-after", "small changes that fixed {ourThing}"],
+    ["identity", "for the {audience} who want a calmer week"],
+  ],
+  "what-id-do": [
+    ["specific", "what I'd do if I were starting over {who}"],
+    ["specific", "what I'd do if I had to {outcome} starting tomorrow"],
+  ],
+  "mistakes-list": [
+    ["list", "{number} mistakes I made before I {outcomePast}"],
+    ["list", "{number} mistakes I made {who}"],
+    ["confession", "I was {painBeing}. here's what I did wrong"],
+  ],
+  "hot-take": [
+    ["contrarian", "unpopular opinion: {opinion}"],
+    ["contrarian", "hot take: {oldWay} doesn't work"],
+  ],
+
+  // ── videos copied from the AI-UGC / montage tools ──
+  "double-take": [
+    ["discovery", "wait… you can {magic}??"],
+    ["discovery", "why did nobody tell me you can just {magic}"],
+    ["discovery", "{found}"],
+    ["curiosity", "someone made an app that {does}??"],
+  ],
+  "flip-through": [
+    ["before-after", "how I {outcomePast}"],
+    ["identity", "if {painYou}, you need this"],
+    ["pov", "POV: you finally {outcome}"],
+  ],
 };
 
 /** Raw templates for a format (FormatDef.hooks). */
@@ -515,11 +727,22 @@ const PROFILE: Record<string, Profile> = {
   "three-reasons": "list",
   "notes-list": "list",
   "backdrop-pov": "long",
+  "app-stack": "list",
+  "wish-i-knew": "list",
+  "mistakes-list": "list",
+  "notes-carousel": "long",
+  "photo-story": "long",
+  "double-take": "long",
 };
 /** Formats where naming the app in the hook is native. */
 const NAMED_OK = new Set(["that-girl", "x-demo", "build-in-public", "stakes-devlog", "founder-tweet", "founder-split", "reddit-roast", "vibe-coded", "feature-carousel", "money-montage", "stat-shock", "three-reasons", "before-after", "comment-reply"]);
 /** Formats that must not name the app on screen at all. */
-const NO_APP = new Set(["mental-load", "text-card", "setup-receipts", "text-story", "slideshow-pov", "problem-solution", "found-this", "backdrop-pov"]);
+const NO_APP = new Set([
+  "mental-load", "text-card", "setup-receipts", "text-story", "slideshow-pov", "problem-solution", "found-this", "backdrop-pov",
+  // Carousels: slide 1 never names the app (research/viral/slideshow.md §10); it shows up late, as proof.
+  "photo-story", "app-stack", "wish-i-knew", "day-in-life", "before-after-slides", "texts-receipts", "notes-carousel", "old-vs-new",
+  "rate-my-setup", "pinterest-tips", "what-id-do", "mistakes-list", "hot-take", "double-take", "flip-through",
+]);
 
 /**
  * The number a list hook must say = the items the format's build() shows. Keep in sync with
@@ -538,6 +761,13 @@ export function listCount(formatId: string, p: Project): number | undefined {
       return Math.min(3, f) + 1;
     case "that-girl":
       return Math.min(6, f + o);
+    // Carousels (keep in sync with carousels.ts).
+    case "app-stack":
+      return Math.min(3, carouselKit(p).stack.length) + 1;
+    case "wish-i-knew":
+      return Math.min(4, carouselKit(p).tips.length) + 1;
+    case "mistakes-list":
+      return Math.min(4, carouselKit(p).mistakes.length);
     default:
       return undefined;
   }

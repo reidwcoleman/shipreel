@@ -40,6 +40,17 @@ Posting by hand (easiest first):
   queue <video> [<video>…] [--per-day 1] [--platforms …] [--provider …]
                                      Spread videos across the next days at your posting times
   connect                            Test Upload-Post and Bluesky (posts nothing)
+
+Review & auto-post (approve in the Shipreel Mac app; Postbox posts it):
+  create "3 videos about …" [--count 3] [--formats a,b]
+                                     Claude makes, renders and submits videos to Review (streams its output)
+  review [--status pending|approved|rejected|revising|all]
+                                     What's waiting for you (and what was approved, with post status)
+  submit <video>                     Put a video in Review
+  approve <video> [--when now|next-slot|ISO] [--platforms tiktok,youtube] [--dry-run]
+  revise <video> "make the hook shorter"     Claude edits, re-renders, back to pending
+  reject <video> ["why"]   reopen <video>
+  postbox                            Postbox daemon, Chrome extension and accounts
   mcp                                How to add Shipreel to Claude Code or Codex as an MCP server
 
 Options: --project <id> targets a product other than the active one. --json prints raw JSON.
@@ -336,6 +347,77 @@ async function main() {
         console.log(`${bold("Upload-Post")}  ${up.ok ? green(up.message) : up.message}`);
         console.log(`${bold("Bluesky")}      ${bsky.ok ? green(bsky.message) : bsky.message}`);
         if (!up.ok) console.log(dim(`Set up: ${BASE}/settings#connect`));
+      });
+      return;
+    }
+
+    case "create": {
+      const prompt = args.join(" ").trim();
+      if (!prompt) throw new ShipreelError('Usage: shipreel create "2 videos about the new widget" [--count 2] [--formats found-this]');
+      const { runId } = await post("/api/create", { prompt, projectId: opt.project, count: opt.count ? Number(opt.count) : undefined, formats: opt.formats ? String(opt.formats).split(",") : undefined });
+      process.stderr.write(dim(`Claude is making videos (run ${runId}); they land in Review.\n`));
+      let seen = 0;
+      for (;;) {
+        const r = await get(`/api/create/${runId}`);
+        const lines = r.output ? r.output.split("\n") : [];
+        for (const l of lines.slice(seen)) console.log(l);
+        seen = lines.length;
+        if (r.status !== "running") {
+          console.log(`${r.status === "done" ? green("Done") : "Failed"}: ${r.videoIds.length ? r.videoIds.join(", ") : "no videos"}${r.videoIds.length ? dim("  (shipreel review)") : ""}`);
+          if (r.status !== "done") process.exitCode = 1;
+          return;
+        }
+        await new Promise((res) => setTimeout(res, 1500));
+      }
+    }
+
+    case "review": {
+      const q = new URLSearchParams({ status: String(opt.status ?? "pending") });
+      if (opt.project) q.set("projectId", String(opt.project));
+      const r = await get(`/api/review?${q}`);
+      out(r, opt, () => {
+        console.log(dim(Object.entries(r.counts).map(([k, v]) => `${k} ${v}`).join(" · ")));
+        if (!r.items.length) return console.log("Nothing here.");
+        for (const i of r.items) {
+          console.log(`${bold(i.videoId)}  ${i.review.status.padEnd(9)} ${i.formatId.padEnd(16)} ${i.hook.replace(/\s+/g, " ").slice(0, 70)}${dim(`  ${i.projectId}`)}`);
+          if (i.review.note) console.log(dim(`  note: ${i.review.note.replace(/\s+/g, " ").slice(0, 120)}`));
+          if (i.post) console.log(dim(`  post ${i.post.id}: ${i.post.status}${i.post.dryRun ? " (dry run)" : ""} ${new Date(i.post.scheduledAt).toLocaleString()}`));
+        }
+      });
+      return;
+    }
+
+    case "submit":
+    case "approve":
+    case "revise":
+    case "reject":
+    case "reopen": {
+      const pid = await projectId(opt.project);
+      const [vid, ...rest] = args;
+      if (!vid) throw new ShipreelError(`Usage: shipreel ${cmd} <video>`);
+      const note = rest.join(" ").trim();
+      if (cmd === "revise" && !note) throw new ShipreelError('Usage: shipreel revise <video> "what to change"');
+      const b =
+        cmd === "approve"
+          ? { action: "approve", when: opt.when ?? "now", platforms: opt.platforms ? String(opt.platforms).split(",") : undefined, dryRun: !!opt["dry-run"] }
+          : cmd === "revise" || cmd === "reject"
+            ? { action: cmd, note: note || undefined }
+            : { action: cmd };
+      const r = await post(`/api/review/${pid}/${vid}`, b);
+      out(r, opt, () => {
+        console.log(`${green(r.review.status)}  ${r.videoId}  ${r.title}`);
+        if (r.post) console.log(dim(`  post ${r.post.id}: ${r.post.status}${r.post.dryRun ? " (dry run)" : ""} → ${r.post.platforms.join(", ")} at ${new Date(r.post.scheduledAt).toLocaleString()}`));
+        if (r.review.status === "revising") console.log(dim("  Claude is applying the note; it re-renders and comes back as pending."));
+      });
+      return;
+    }
+
+    case "postbox": {
+      const st = await get("/api/postbox");
+      out(st, opt, () => {
+        console.log(`${bold("Postbox")}    ${st.daemon ? green("running") : "not running"} ${dim(st.dashboardUrl)}`);
+        console.log(`${bold("Extension")}  ${st.extension ? green("connected") : "not connected (turn it on in Chrome)"}`);
+        for (const a of st.accounts) console.log(`  ${a.connected ? green("✓") : a.connected === null ? "?" : "✗"} ${a.name}`);
       });
       return;
     }

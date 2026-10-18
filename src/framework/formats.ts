@@ -9,6 +9,7 @@ import { fill, hashString, pastOf, pick, seeded, short, shuffle, toYou, vocab, t
 import { beatSync, MUSIC_VIBES, pickMusic } from "./music";
 import { postCaption } from "./captions";
 import { bestHook as rankedBestHook, fillTemplate, formatHooks } from "./hooks";
+import { CAROUSELS } from "./carousels";
 import handLibrary from "../../public/hands/library.json";
 
 /** "how I finally stopped being the family's human calendar" (a past-tense payoff, never "now I stop being…"). */
@@ -101,7 +102,8 @@ function bestVideo(ctx: BuildContext) {
 }
 /** Real-life footage (stock or your own): the relatable problem shot and the calm payoff shot. */
 function brollClips(ctx: BuildContext) {
-  const clips = ctx.media.filter((m) => m.kind === "video" && m.role === "broll");
+  // AI hook clips (hookclip-*) are only for formats that open on a reaction (double-take, flip-through).
+  const clips = ctx.media.filter((m) => m.kind === "video" && m.role === "broll" && !AI_FILE.test(m.file));
   // Rotate by hook so a batch of videos doesn't open on the same shot.
   const r = seeded((ctx.seed ?? 0) + hashString(ctx.hook));
   const firstMatch = (res: RegExp[], not?: (typeof clips)[number]) => {
@@ -116,8 +118,10 @@ function brollClips(ctx: BuildContext) {
   return { problem, payoff, all: clips };
 }
 const aspectOf = (m?: { width?: number; height?: number }) => (m?.width && m?.height ? +(m.width / m.height).toFixed(4) : undefined);
+/** AI-generated media: used only by the formats that ask for it (a carousel's locked AI look, reaction hook clips). */
+const AI_FILE = /^(ai-|hookclip-)/i;
 function images(ctx: BuildContext) {
-  return ctx.media.filter((m) => m.kind === "image" && m.role !== "logo");
+  return ctx.media.filter((m) => m.kind === "image" && m.role !== "logo" && !AI_FILE.test(m.file));
 }
 function faceCam(ctx: BuildContext) {
   return ctx.media.find((m) => m.kind === "video" && m.role === "facecam");
@@ -491,11 +495,21 @@ F.push({
     const v = vocab(p);
     const imgs = images(ctx);
     const bg = (i: number): Background => ({ kind: "mesh", colors: [p.brand.bg || "#0B0B0F", shade(p.brand.accent, i), "#17151d"] });
+    const r = seeded((ctx.seed ?? 0) + hashString(`pov|${ctx.hook}`));
+    // Struggle photos first, the calm ones for the after.
+    // One still per clip (photo-x.jpg and photo-x-b.jpg are the same scene).
+    const clip = (f: string) => f.replace(/\.[a-z]+$/i, "").replace(/-b$/, "");
+    const ph = shuffle(photosOf(ctx), r).filter((m, i, a) => a.findIndex((x) => clip(x.file) === clip(m.file)) === i);
+    const STRESSED = /overwhelm|frustrat|rush|waiting|sticky|wall-calendar|head-down/i;
+    const stressed = ph.filter((m) => STRESSED.test(m.file));
+    const calm = ph.filter((m) => !STRESSED.test(m.file) && /calm|couch|laugh|dinner|popcorn|coffee|cooking|walk/i.test(m.file));
+    const phone = ph.find((m) => !STRESSED.test(m.file) && /hands-iphone|texting|on-phone/i.test(m.file));
+    const photos = stressed.length >= 2 && calm.length >= 3 ? [stressed[0], stressed[1], phone ?? calm[2], undefined, calm[0], calm[1]] : ph;
     const slides = [
       ctx.hook,
       `me every day: "${short(v.pain, 60)}"`,
       `then someone showed me *${v.app}*`,
-      short(`${v.features[0].name}: ${v.features[0].benefit}`, 80),
+      stepLine(v.features[0]),
       payoffLine(v, 60),
       `${v.app} — ${ctaLine(p, v)}`,
     ];
@@ -505,17 +519,22 @@ F.push({
       kind: "slideshow",
       aspect: "3:4",
       theme: theme(p, this.captionStyle),
-      scenes: slides.map((text, i) => ({
-        id: sid(),
-        type: "slide" as const,
-        duration: 2.4,
-        transition: i ? ("fade" as const) : ("cut" as const),
-        text,
-        image: i === 3 && imgs[0] ? `asset:${imgs[0].file}` : undefined,
-        layout: i === 3 && imgs[0] ? ("phone" as const) : ("photo" as const),
-        background: bg(i),
-        textStyle: { position: "center" as const, size: i === 0 ? 0.072 : 0.064 },
-      })),
+      // Real candid photos under the story (the hits never use brand gradients), the app's raw screen as the turning point.
+      scenes: slides.map((text, i) => {
+        const shot = i === 3 ? orderedScreens(ctx, v)[0] : undefined;
+        const photo = i === 3 ? undefined : photos[i % Math.max(1, photos.length)];
+        return {
+          id: sid(),
+          type: "slide" as const,
+          duration: 2.4,
+          transition: i ? ("slide-left" as const) : ("cut" as const),
+          text,
+          image: shot ? `asset:${shot.file}` : photo ? `asset:${photo.file}` : i === 3 && imgs[0] ? `asset:${imgs[0].file}` : undefined,
+          layout: shot ? ("screenshot" as const) : photo ? ("photo" as const) : i === 3 && imgs[0] ? ("phone" as const) : ("photo" as const),
+          background: shot || photo ? undefined : bg(i),
+          textStyle: shot ? { style: lightUi(p) ? ("tiktok-box-dark" as const) : ("tiktok-box" as const), y: 0.47 } : { position: "center" as const, y: photo ? 0.38 : undefined, size: i === 0 ? 0.064 : 0.056 },
+        };
+      }),
       meta: meta(ctx, v, this),
     };
   },
@@ -1570,7 +1589,7 @@ function lightUi(p: Project): boolean {
 /** TikTok text over the app's own screens: plain white on dark UIs (as the hits do), the white box on light ones. */
 const uiText = (p: Project): CaptionStyleId => (lightUi(p) ? "tiktok-box" : "tiktok-plain");
 const nativeTheme = (p: Project, captionStyle: CaptionStyleId) => ({ ...theme(p, captionStyle), grain: false, sfx: false });
-const photosOf = (ctx: BuildContext) => ctx.media.filter((m) => m.kind === "image" && m.role === "photo");
+const photosOf = (ctx: BuildContext) => ctx.media.filter((m) => m.kind === "image" && m.role === "photo" && !AI_FILE.test(m.file));
 /** First match of each regex, in order, among a list of files. */
 function firstFile<T extends { file: string }>(list: T[], res: RegExp[], not: T[] = []): T | undefined {
   for (const re of res) {
@@ -1981,6 +2000,132 @@ F.push({
   },
 });
 
+// ── video formats copied from the AI-UGC and montage tools (research/viral/competitors.md) ─────────
+
+/** Reaction hook clips: the project's AI hook-clip library first (hookclip-*), then real b-roll of a face/phone moment. */
+function reactionClip(ctx: BuildContext, r: () => number) {
+  const lib = ctx.media.filter((m) => m.kind === "video" && /^hookclip-/i.test(m.file));
+  if (lib.length) return { clip: pick(lib, r), ai: true };
+  const clips = brollClips(ctx).all;
+  const clip = firstFile(shuffle(clips, r), [/frustrat|head-down|on-phone|texting|overwhelm/i]) ?? (clips.length ? pick(clips, r) : undefined);
+  return { clip, ai: false };
+}
+
+F.push({
+  id: "double-take",
+  name: "Double-take (reaction → demo)",
+  tagline: "A 3-second disbelief reaction with the hook, then a hard cut on the drop into the app in a hand.",
+  category: "reaction",
+  kind: "video",
+  platforms: ["tiktok", "instagram", "youtube"],
+  status: "hot",
+  why: "The format the AI-UGC tools (Arcads, MakeUGC, Hooked, Creatify) mass-produce, copied from organic hits (Stronger 851K / 2.7M, Nomad Table 1.0M): a face or moment of disbelief with a native hook for ~3 s, then a hard cut on the beat to the phone doing the thing, one benefit line every ~2 s, no outro, the app named only in the caption. Opens on the project's hook-clip library (opt-in AI reaction clips) or its own b-roll.",
+  beats: ["0–3 s: reaction clip + hook (TikTok Classic, upper third)", "Hard cut on the drop: the app in a hand, 3 screens", "One ≤ 6-word benefit line per screen", "Hold the last screen (loops); app named in the caption"],
+  lengthSec: [9, 14],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-classic",
+  musicVibes: ["upbeat", "hype", "bouncy", "pop", "trap"],
+  soundTip: "A trending 'type beat' or sped-up song with a drop at ~3 s; the cut into the app lands on it.",
+  hooks: formatHooks("double-take"),
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const r = seeded((ctx.seed ?? 0) + hashString(`dt|${ctx.hook}`));
+    const { clip } = reactionClip(ctx, r);
+    // The screen the hook talks about comes first ("wait… you can send one message…" → the Remind screen).
+    const hookWords = new Set(ctx.hook.toLowerCase().split(/[^a-z']+/).filter((w) => w.length > 3));
+    const overlap = (file: string) => {
+      const f = featureFor(file, v.features);
+      return f ? `${f.name} ${f.benefit ?? ""}`.toLowerCase().split(/[^a-z']+/).filter((w) => hookWords.has(w)).length : 0;
+    };
+    const all = orderedScreens(ctx, v);
+    const lead = all.reduce<(typeof all)[number] | undefined>((best, m) => (overlap(m.file) > (best ? overlap(best.file) : 0) ? m : best), undefined);
+    const screens = (lead ? [lead, ...all.filter((m) => m !== lead)] : all).slice(0, 3);
+    const scenes: SceneInput[] = [];
+    const hookStyle = { style: "tiktok-classic" as const, position: "upper" as const, size: 0.064 };
+    if (clip) scenes.push({ id: sid(), type: "media", duration: 3, src: `asset:${clip.file}`, kind: "video", device: "none", aspect: aspectOf(clip), push: 1.04, caption: { text: ctx.hook, style: hookStyle } });
+    else scenes.push({ id: sid(), type: "hook", duration: 3, text: ctx.hook, image: heroScreen(ctx), textStyle: { style: "tiktok-classic", animation: "pop" } });
+    if (screens.length) {
+      const per = 2.3;
+      const lines = screens.map((m, i) => {
+        const f = featureFor(m.file, v.features);
+        return { at: +(i * per).toFixed(2), text: f ? stepLine(f) : v.outcome };
+      });
+      scenes.push({
+        id: sid(),
+        type: "media",
+        duration: +(screens.length * per + 0.8).toFixed(2),
+        transition: "cut",
+        src: `asset:${screens[0].file}`,
+        kind: "image",
+        device: HANDS.length ? "hand" : "none",
+        hand: HANDS.length ? pick(HANDS, r).id : undefined,
+        anchor: "top",
+        aspect: aspectOf(screens[0]),
+        flow: screens.slice(1).map((m, i) => ({ at: +((i + 1) * per).toFixed(2), src: `asset:${m.file}`, kind: "image" as const, transition: "push" as const })),
+        lines,
+        caption: { text: lines[0].text, style: { style: uiText(p), position: "top" } },
+      } as SceneInput);
+    } else scenes.push(...demoScenes(ctx, v, { total: 6 }));
+    return {
+      title: short(ctx.hook.replace(/\*/g, ""), 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      meta: meta(ctx, v, this, `erm who was gonna tell me 😭 app is called ${v.app}`),
+    };
+  },
+});
+
+F.push({
+  id: "flip-through",
+  name: "Flip-through (hook clip → screen montage)",
+  tagline: "A real-life hook clip, then a beat-cut flip through every screen of the app under one boxed line.",
+  category: "demo",
+  kind: "video",
+  platforms: ["tiktok", "instagram", "youtube"],
+  status: "hot",
+  why: "The video-slideshow variant behind Lemon8's biggest posts (Leticia 3.9M, Yolandaro 31M; research/viral/slideshow.md §7 V2) and the 'hook + demo' combinatorics the automation tools sell: 2–3 s of a relatable clip with the hook, then 7–12 app screens at one per beat with a persistent white-box line, ending on the best screen. Every cut is a new screen, so it's dense enough to rewatch.",
+  beats: ["0–2.6 s: real-life clip + hook", "Drop: one app screen per beat (~0.4–0.6 s), raw, full screen", "A persistent boxed line over the montage", "Hold the best screen"],
+  lengthSec: [8, 13],
+  needs: ["screenshots"],
+  effort: "low",
+  captionStyle: "tiktok-box",
+  musicVibes: ["upbeat", "pop", "hype", "bouncy"],
+  soundTip: "A fast trending sound (120+ bpm); every screen lands on a beat.",
+  hooks: formatHooks("flip-through"),
+  build(ctx) {
+    sceneCounter = 0;
+    const p = ctx.project;
+    const v = vocab(p);
+    const r = seeded((ctx.seed ?? 0) + hashString(`ft|${ctx.hook}`));
+    const { payoff, all } = brollClips(ctx);
+    const opener = firstFile(shuffle(all, r), [/overwhelm|frustrat|rush|chaos/i]) ?? payoff;
+    const screens = orderedScreens(ctx, v);
+    const extra = images(ctx).filter((m) => m.role === "screen" && !screens.includes(m) && isPortrait(m));
+    const flip = [...screens, ...extra].slice(0, 10);
+    const scenes: SceneInput[] = [];
+    if (opener) scenes.push({ id: sid(), type: "media", duration: 2.6, src: `asset:${opener.file}`, kind: "video", device: "none", aspect: aspectOf(opener), push: 1.04, caption: { text: ctx.hook, style: { style: "tiktok-classic", position: "upper" } } });
+    else scenes.push({ id: sid(), type: "hook", duration: 2.6, text: ctx.hook, textStyle: { style: "tiktok-classic" } });
+    const montageStart = scenes[0].duration;
+    flip.forEach((m, i) => scenes.push(screenScene(m, { duration: i === flip.length - 1 ? 1.8 : 0.5 })));
+    const total = scenes.reduce((a, s) => a + s.duration, 0);
+    const line = `I found an app that ${v.does.length <= 72 ? v.does.replace(/\s+in one app$/i, " in one place") : `helps me ${v.outcome}`} and it's ${/free/i.test(p.cta.text || p.price || "") ? "free" : "so good"} 😭`;
+    return {
+      title: short(ctx.hook.replace(/\*/g, ""), 60),
+      formatId: this.id,
+      theme: nativeTheme(p, this.captionStyle),
+      scenes,
+      overlays: flip.length ? [{ id: "box", type: "text", start: +montageStart.toFixed(2), end: +total.toFixed(2), text: line, textStyle: { style: lightUi(p) ? "tiktok-box-dark" : "tiktok-box", position: "lower", size: 0.042, animation: "none" } }] : [],
+      meta: meta(ctx, v, this, `the way this runs my whole week now 😭 (${v.app})`),
+    };
+  },
+});
+
+for (const c of CAROUSELS) F.push(c);
+
 /** The chat contact that matches whoever a hook mentions ("my girlfriend thought…" → her chat). */
 export function contactFor(hook: string): string | undefined {
   const who = /\bmy (mum|mom|dad|girlfriend|boyfriend|roommate|boss|nan|grandma|coach|landlord|sister|brother|friend|wife|husband)\b/i.exec(hook)?.[1]?.toLowerCase();
@@ -2005,7 +2150,15 @@ export function buildSpec(formatId: string, ctx: BuildContext): VideoSpecInput {
  * you swap in a trending sound when posting). The project's own music asset wins over the library.
  */
 function withMusic(spec: VideoSpecInput, fmt: FormatDef, p: Project, seed: number): VideoSpecInput {
-  if (spec.kind === "slideshow" || spec.audio?.src || (fmt.musicVibes && fmt.musicVibes.length === 0)) return spec;
+  if (spec.audio?.src || (fmt.musicVibes && fmt.musicVibes.length === 0)) return spec;
+  if (spec.kind === "slideshow") {
+    // Carousels post as photo-mode videos too: a calm bed, slides ≥ 2 s, each swipe on a beat and the
+    // drop on the first raw app screen (the reveal).
+    const track = pickMusic(fmt.musicVibes ?? MUSIC_VIBES.slideshow, seed);
+    if (!track) return spec;
+    const reveal = spec.scenes.findIndex((s, i) => i > 0 && ((s.type === "slide" && s.layout === "screenshot") || s.type === "media"));
+    return beatSync({ ...spec, audio: { ...(spec.audio ?? {}), volume: 0.6 } }, track, { minShot: 2, dropScene: reveal > 0 ? reveal : 1 });
+  }
   const familyish = /famil|parent|mom|dad|kid|home|household/i.test(`${p.category} ${p.audience.map((a) => a.name).join(" ")} ${p.tone ?? ""}`);
   const vibes = fmt.musicVibes ?? (fmt.category === "story" ? MUSIC_VIBES.story : familyish ? MUSIC_VIBES.family : (MUSIC_VIBES[fmt.category] ?? MUSIC_VIBES.demo));
   const track = pickMusic(vibes, seed);
@@ -2014,7 +2167,9 @@ function withMusic(spec: VideoSpecInput, fmt: FormatDef, p: Project, seed: numbe
   const quiet = spec.scenes.some((s) => s.type === "chat" || s.type === "notes" || s.type === "terminal");
   // The drop lands on the first cut into the product (scene 1 for most formats).
   const firstApp = spec.scenes.findIndex((s, i) => i > 0 && s.type === "media" && s.device !== "none");
-  return beatSync({ ...spec, audio: { ...(spec.audio ?? {}), volume: quiet ? 0.32 : 0.55 } }, track, { dropScene: firstApp > 0 ? firstApp : 1 });
+  // Montages cut on every beat (flip-through); everything else keeps shots ≥ 0.55 s.
+  const minShot = fmt.id === "flip-through" ? 0.32 : undefined;
+  return beatSync({ ...spec, audio: { ...(spec.audio ?? {}), volume: quiet ? 0.32 : 0.55 } }, track, { dropScene: firstApp > 0 ? firstApp : 1, minShot });
 }
 
 /** A lighter/darker step of the brand accent for gradients, by index. */

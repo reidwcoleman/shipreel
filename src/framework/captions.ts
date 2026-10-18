@@ -22,6 +22,10 @@ const FORMAT_TAG: Record<string, string> = {
   "reddit-roast": "buildinpublic",
   "notes-list": "lifehacks",
   "mental-load": "mentalload",
+  "day-in-life": "dayinmylife",
+  "app-stack": "appsyouneed",
+  "rate-my-setup": "ratemysetup",
+  "hot-take": "unpopularopinion",
 };
 
 const GENERIC_QS = ["tell me I'm not the only one 😭", "be honest, is this you? 👇", "what would you add? 👇"];
@@ -29,7 +33,7 @@ const GENERIC_QS = ["tell me I'm not the only one 😭", "be honest, is this you
 const BUILDER = new Set(["build-in-public", "money-montage", "vibe-coded", "founder-tweet", "founder-split", "reddit-roast", "stakes-devlog", "x-demo", "green-screen", "stat-shock"]);
 const BUILDER_QS = ["would you use this? be honest 👇", "roast it, I can take it 👇", "what should I add next? 👇"];
 /** List formats keep the hook in the caption (people search the list title). */
-const HOOK_FIRST = new Set(["slideshow-listicle", "three-reasons", "notes-list", "that-girl", "feature-carousel"]);
+const HOOK_FIRST = new Set(["slideshow-listicle", "three-reasons", "notes-list", "that-girl", "feature-carousel", "app-stack", "wish-i-knew", "mistakes-list"]);
 
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/s$/, "");
 

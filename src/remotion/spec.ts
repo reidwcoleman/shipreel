@@ -286,6 +286,8 @@ export const ChatScene = z.object({
   assist: ChatAssist.optional(),
   /** The contact, or the group's name when messages carry sender names ("Family 🏠"). */
   contact: z.string().default("Sam"),
+  /** Bubble scale (1.5 = the zoomed screen-recording look; ~1.1 fits a whole thread in one screenshot). */
+  zoom: z.number().min(0.8).max(2).optional(),
   messages: z.array(ChatMessage).min(1),
   caption: Caption.optional(),
 });
@@ -410,6 +412,21 @@ export const CtaScene = z.object({
   background: Background.optional(),
 });
 
+/**
+ * An AI photo for a carousel slide (opt-in, Settings → AI images). `prompt` is this slide's moment;
+ * `look` is the locked description shared by every slide of the carousel (same person, home, light),
+ * so the set reads like one camera roll. Until it's generated the slide shows its fallback `image`.
+ */
+export const SlideAi = z.object({
+  prompt: z.string(),
+  look: z.string().default(""),
+  /** Same seed across a carousel keeps the subject consistent. */
+  seed: z.number().int().optional(),
+  /** The cached file once generated (asset:…); the slide's image is set to it too. */
+  file: MediaSrc.optional(),
+});
+export type SlideAi = z.infer<typeof SlideAi>;
+
 /** One frame of a TikTok/Instagram photo carousel. Also plays as a ~2.5s beat in video mode. */
 export const SlideScene = z.object({
   ...sceneBase,
@@ -418,9 +435,25 @@ export const SlideScene = z.object({
   image: MediaSrc.optional(),
   /**
    * photo = full-bleed image under the text; phone = text on top, the image (an app screen) in a phone below;
-   * screenshot = a raw app screenshot at its native 9:16 (the carousel still keeps that size; videos letterbox it).
+   * screenshot = a raw app screenshot at its native 9:16 (the carousel still keeps that size; videos letterbox it);
+   * app = an app-stack tile: the photo, softly dimmed, with a big iOS icon (`icon` or `glyph`), `title` and the text.
    */
-  layout: z.enum(["photo", "phone", "screenshot"]).default("photo"),
+  layout: z.enum(["photo", "phone", "screenshot", "app"]).default("photo"),
+  /** Small second text block (TikTok's second text box): a punchline, a "this is the app" line. */
+  sub: z.string().optional(),
+  /** Where `sub` sits (0–1 of the frame height). Defaults to under the main text. */
+  subY: z.number().min(0.05).max(0.95).optional(),
+  /** Darken the photo under the text (0–0.5): the 20–30% overlay the slideshow tools use on bright photos. */
+  shade: z.number().min(0).max(0.6).optional(),
+  /** The second box's look (default TikTok's white box; the black box over light app screens). */
+  subStyle: CaptionStyleId.optional(),
+  /** A small byline on every slide of an app-output list ("@famsync"), top of the frame. */
+  byline: z.string().optional(),
+  /** app layout: the tile's title, its icon (asset) or an emoji glyph when it isn't a real app. */
+  title: z.string().optional(),
+  icon: MediaSrc.optional(),
+  glyph: z.string().optional(),
+  ai: SlideAi.optional(),
   background: Background.optional(),
   textStyle: TextStyle.optional(),
 });

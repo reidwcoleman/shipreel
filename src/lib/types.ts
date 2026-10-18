@@ -82,6 +82,24 @@ export type VideoDoc = {
   source: "template" | "claude" | "codex" | "manual";
   createdAt: string;
   updatedAt: string;
+  /** Review & auto-post: set once the first render of a new video succeeds (see apps/REVIEW-API.md). */
+  review?: Review;
+  /** New videos enter Review (pending) when their first render succeeds. */
+  reviewOnRender?: boolean;
+};
+
+export type ReviewStatus = "pending" | "approved" | "rejected" | "revising";
+
+export type Review = {
+  status: ReviewStatus;
+  /** The user's change request or reject reason. */
+  note?: string;
+  /** ISO time of the last status change. */
+  at: string;
+  /** Shipreel post created on approve. */
+  postId?: string;
+  /** Agent run applying a "revise" note. */
+  runId?: string;
 };
 
 export type AssetRole = "screen" | "facecam" | "broll" | "photo" | "logo" | "music";
@@ -111,6 +129,7 @@ export type PostResult = {
   at: string;
   /** Browser uploads: a screenshot of the page when something went wrong (relative to the project folder). */
   screenshot?: string;
+  note?: string;
 };
 
 export type Post = {
@@ -130,6 +149,8 @@ export type Post = {
   log: string[];
   /** Performance, entered by hand, from a screenshot (agent) or a provider. */
   metrics?: PostMetrics;
+  /** Provider "postbox": the post Postbox holds for us, and what we sent it. */
+  postbox?: { id?: string; status?: string; dryRun?: boolean; title?: string; captions?: Partial<Record<"tiktok" | "instagram" | "youtube", string>> };
   createdAt: string;
   updatedAt: string;
 };
@@ -148,7 +169,7 @@ export type PostMetrics = {
 
 export type Verdict = "double-down" | "keep" | "retry" | "drop" | "unknown";
 
-export type ProviderId = "upload-post" | "ayrshare" | "bluesky" | "webhook" | "claude-chrome" | "browser" | "manual";
+export type ProviderId = "postbox" | "upload-post" | "ayrshare" | "bluesky" | "webhook" | "claude-chrome" | "browser" | "manual";
 
 export type PostingSlot = { platform: Platform; time: string; days: number[] };
 
@@ -169,6 +190,14 @@ export type Settings = {
   allowBrowserPosting?: boolean;
   /** Chrome uploads (provider "browser"): platforms where Shipreel may press Post itself. Off = stop for you. */
   browserAutoPost?: Partial<Record<Platform, boolean>>;
+  /** Postbox was made the default service once (so a later choice of yours sticks). */
+  postboxDefaulted?: boolean;
+  /** Opt-in: AI photos for carousels and AI reaction hook clips through the Higgsfield CLI (costs credits). */
+  aiImages?: boolean;
+  /** Higgsfield image model for carousel photos (default text2image_soul_v2). */
+  aiImageModel?: string;
+  /** Most Higgsfield credits Shipreel may spend in total (default 25). */
+  aiCreditBudget?: number;
 };
 
 export type SecretKey =
@@ -225,7 +254,8 @@ export type ServerEvent =
   | { type: "render"; projectId: string; videoId: string; status: VideoStatus; progress?: number; error?: string }
   | { type: "run"; run: Run }
   | { type: "run-event"; runId: string; event: RunEvent }
-  | { type: "post"; post: Post }
+  | { type: "post"; post: Post; postId?: string; status?: PostSummary["status"] }
+  | { type: "review"; projectId: string; videoId: string; status: ReviewStatus | null }
   | { type: "project"; projectId: string }
   | { type: "ideas"; projectId: string }
   | { type: "videos"; projectId: string };
@@ -254,3 +284,50 @@ export type PostKit = {
 };
 
 export type HandoffAction = "airdrop" | "photos" | "open" | "copy";
+
+// ── Review & auto-post (contract with the Mac app: apps/REVIEW-API.md) ───────────────
+
+export type PostSummary = {
+  id: string;
+  status: "scheduled" | "posting" | "posted" | "partial" | "failed" | "cancelled" | "needs-you";
+  scheduledAt: string;
+  platforms: ("tiktok" | "instagram" | "youtube")[];
+  results: { platform: string; ok: boolean; url?: string; error?: string; note?: string }[];
+  dryRun?: boolean;
+};
+
+export type ReviewItem = {
+  projectId: string;
+  projectName: string;
+  appIcon?: string;
+  videoId: string;
+  title: string;
+  hook: string;
+  formatId: string;
+  formatName: string;
+  kind: "video" | "slideshow";
+  aspect: VideoSpec["aspect"];
+  durationSec: number;
+  hookScore?: number;
+  mp4Url?: string;
+  thumbUrl?: string;
+  slideUrls: string[];
+  captions: { tiktok: string; instagram: string; youtube: string };
+  youtubeTitle: string;
+  soundTip?: string;
+  review: Review;
+  renderStatus: "draft" | "rendering" | "rendered" | "failed";
+  renderProgress?: number;
+  createdAt: string;
+  source: VideoDoc["source"];
+  post?: PostSummary;
+};
+
+export type PostboxPlatform = "tiktok" | "youtube" | "instagram";
+
+export type PostboxStatus = {
+  daemon: boolean;
+  extension: boolean | null;
+  accounts: { id: PostboxPlatform; name: string; connected: boolean | null }[];
+  dashboardUrl: "http://127.0.0.1:4710";
+};

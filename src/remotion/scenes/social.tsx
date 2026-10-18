@@ -275,7 +275,7 @@ const ChatScreen: React.FC<P<typeof ChatScene>> = ({ scene }) => {
   const resolve = useResolve();
   const skin = CHAT_SKINS[scene.app][scene.theme];
   // Viral text stories are screen recordings zoomed ~120%: bubbles fill the frame and stay legible after compression.
-  const k = (width / 390) * 1.5;
+  const k = (width / 390) * (scene.zoom ?? 1.5);
   // The header stays close to real size; only the conversation is zoomed.
   const kh = (width / 390) * 1.1;
   const fs = 17 * k;

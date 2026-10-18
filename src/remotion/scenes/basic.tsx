@@ -107,18 +107,21 @@ export const Slide: React.FC<P<typeof SlideScene>> = ({ scene }) => {
   const { theme } = useRender();
   const safe = useSafeArea();
   if (scene.layout === "phone" && scene.image) return <PhoneShowcase text={scene.text} image={scene.image} background={scene.background} textStyle={scene.textStyle} drift={drift} />;
+  const extras = <SlideExtras scene={scene} />;
   if (scene.layout === "screenshot" && scene.image) {
     // A raw screenshot exactly as the phone saved it: no frame, no crop, black around it if the canvas differs.
     return (
       <AbsoluteFill style={{ background: "#000" }}>
         <MediaView src={scene.image} kind="image" fit={height / width > 1.7 ? "cover" : "contain"} style={{ objectPosition: "50% 0%" }} />
         {scene.text && <TextBlock text={scene.text} style={{ position: "center", ...scene.textStyle }} />}
+        {extras}
       </AbsoluteFill>
     );
   }
+  if (scene.layout === "app") return <AppTileSlide scene={scene} extras={extras} />;
   // Carousel photos are real phone photos: shown as they are (no darkening, no drift on stills).
   const bg = scene.image
-    ? ({ kind: "media", src: scene.image, dim: 0, blur: 0, kenBurns: false } as const)
+    ? ({ kind: "media", src: scene.image, dim: scene.shade ?? 0, blur: 0, kenBurns: false } as const)
     : scene.background;
   return (
     <AbsoluteFill>
@@ -126,6 +129,60 @@ export const Slide: React.FC<P<typeof SlideScene>> = ({ scene }) => {
         <Backdrop bg={bg} />
       </AbsoluteFill>
       {scene.text && <TextBlock text={scene.text} style={{ position: "center", ...scene.textStyle }} />}
+      {extras}
+    </AbsoluteFill>
+  );
+};
+
+/** The byline ("@famsync" on app-output lists) and TikTok's second text box (a punchline under the first). */
+const SlideExtras: React.FC<{ scene: z.infer<typeof SlideScene> }> = ({ scene }) => {
+  const { width, height } = useVideoConfig();
+  const { theme } = useRender();
+  const k = width / 1080;
+  const mainY = scene.textStyle?.y ?? 0.5;
+  const mainH = scene.text ? estimateTextHeight(scene.text, scene.textStyle, theme.captionStyle, width, 0.84) / height : 0;
+  return (
+    <>
+      {scene.byline && (
+        <div style={{ position: "absolute", left: 0, right: 0, top: height * 0.06, textAlign: "center", fontFamily: fontFamily("tiktok-sans"), fontWeight: 600, fontSize: 30 * k, letterSpacing: "0.02em", color: "rgba(255,255,255,0.92)", textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}>
+          {scene.byline}
+        </div>
+      )}
+      {scene.sub && (
+        <TextBlock
+          text={scene.sub}
+          style={{ style: scene.subStyle ?? "tiktok-box", size: 0.042, align: scene.textStyle?.align, animation: "none", y: scene.subY ?? Math.min(0.9, mainY + mainH / 2 + 0.06) }}
+        />
+      )}
+    </>
+  );
+};
+
+/**
+ * App-stack tile: the photo (softly dimmed so the tile pops), a big iOS-style icon, its name and why
+ * it's on the home screen. Real apps use their icon; categories ("a white noise app") use an emoji tile.
+ */
+const AppTileSlide: React.FC<{ scene: z.infer<typeof SlideScene>; extras: React.ReactNode }> = ({ scene, extras }) => {
+  const { width, height } = useVideoConfig();
+  const { theme } = useRender();
+  const k = width / 1080;
+  const size = 300 * k;
+  const iconY = height * 0.3;
+  return (
+    <AbsoluteFill>
+      <Backdrop bg={scene.image ? { kind: "media", src: scene.image, dim: 0.38, blur: 0, kenBurns: false } : (scene.background ?? { kind: "solid", color: theme.bg })} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: iconY - size / 2, display: "flex", justifyContent: "center" }}>
+        {scene.icon || !scene.glyph ? (
+          <AppIcon src={scene.icon} name={scene.title ?? scene.text} size={size} color={theme.accent} />
+        ) : (
+          <div style={{ width: size, height: size, borderRadius: size * 0.225, background: "linear-gradient(170deg, #FFFFFF, #ECECEF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.56, boxShadow: `0 ${size * 0.08}px ${size * 0.22}px rgba(0,0,0,0.35)` }}>
+            {scene.glyph}
+          </div>
+        )}
+      </div>
+      {scene.title && <TextBlock text={scene.title} style={{ style: "tiktok-classic", size: 0.062, animation: "none", y: (iconY + size / 2) / height + 0.075 }} />}
+      {scene.text && <TextBlock text={scene.text} style={{ style: "tiktok-classic", size: 0.046, animation: "none", ...scene.textStyle, y: scene.textStyle?.y ?? (iconY + size / 2) / height + 0.2 }} />}
+      {extras}
     </AbsoluteFill>
   );
 };

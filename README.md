@@ -50,6 +50,14 @@ The viral app accounts don't use phone mockups, zooms or end cards. They post th
 | `backdrop-pov` | One “me checking the app…” line over a single screen. |
 | `setup-receipts` | A 3:4 photo carousel: a quoted compliment, then the screens that are the answer. |
 
+### Carousels
+
+13 photo-mode carousel formats copied from what the slideshow tools and the viral app accounts post (`research/viral/competitors.md`, `slideshow.md`): `photo-story` (a six-photo story, AI photos optional), `app-stack`, `wish-i-knew`, `day-in-life`, `before-after-slides`, `texts-receipts`, `notes-carousel`, `old-vs-new`, `rate-my-setup`, `pinterest-tips`, `what-id-do`, `mistakes-list` and `hot-take`. Slides are 3:4 with TikTok's own text; the hook is on slide 1, the app arrives late as a raw screenshot, and the soft CTA sits in the last slide's second text box. Photos come from your uploads and from stills Shipreel pulls out of your b-roll (the two sharpest moments of each clip). Every carousel renders as numbered PNG slides *and* a 9:16 photo-mode MP4 with a swipe on each beat of the music bed.
+
+**AI images (optional, off by default):** Settings → AI images uses your signed-in Higgsfield CLI for the AI-photo story (one locked, faceless look per product, so the photos read as one camera roll) and for 3-second reaction clips in the project's hook-clip library (`double-take` opens on them). Costs are shown from `higgsfield generate cost`, every result is cached, and spending stops at your credit budget (default 25).
+
+New video formats: `double-take` (a 3 s reaction hook, then a hard cut on the drop into the app) and `flip-through` (a hook clip, then a beat-cut flip through every screen under one boxed line).
+
 When a video renders, Shipreel renders it once without text at low resolution and checks what's under each caption. It moves captions off busy UI, and swaps white text for TikTok's boxed text on light screens. Captions you place by hand (a `y` in the text style) are left alone.
 
 ## Claude Code and Codex
@@ -91,6 +99,15 @@ node bin/shipreel.mjs post <video> --at next --platforms tiktok,instagram
 ```
 
 (`npm link` puts `shipreel` on your PATH.)
+
+## Review & auto-post
+
+The loop: make videos (in the terminal with Claude, the Mac app's Create box, the Hook Lab or by hand) → each one lands in **Review** after its first render → you watch it in the Shipreel Mac app and **approve**, **ask for changes** (Claude edits it, it re-renders and comes back) or **reject** → approved videos are posted by **[Postbox](http://127.0.0.1:4710)** (`~/Postbox`), the local poster that uploads to TikTok, YouTube and Instagram through your own logged-in Chrome. Postbox holds scheduled posts itself, so they go out even when Shipreel is closed; Shipreel syncs the status and links back.
+
+- API (the Mac app's contract): `apps/REVIEW-API.md`: `/api/review`, `/api/postbox`, `/api/create` (Claude Code makes videos from a prompt with the Shipreel MCP server; it never posts).
+- Terminal: `shipreel create "2 videos about the new widget" --count 2`, `shipreel review`, `shipreel approve <video> --when next-slot [--dry-run]`, `shipreel revise <video> "shorter hook"`, `shipreel postbox`. MCP: `submit_for_review`, `list_review`, `review_decision`, `postbox_status`; `post_now` / `schedule_post` take `provider: "postbox"`.
+- Editor → ⋯ → *Send to review* puts any video in the queue. Settings → Connect accounts shows Postbox, its Chrome extension and each account (*Connect* opens the login page in your Chrome). Postbox becomes the default posting service the first time Shipreel sees it running.
+- Claude never approves or posts on its own; that's your call in Review (or an explicit "post it" in the terminal).
 
 ## Posting
 

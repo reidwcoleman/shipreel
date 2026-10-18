@@ -117,6 +117,15 @@ export type RunSpec = {
   onResult?: (out: { structured: unknown; text: string }) => Promise<Run["output"] | void>;
   /** Claude Code in Chrome integration for browser tasks (posting via TikTok Studio). */
   chrome?: boolean;
+  /** Claude only: MCP servers for this run ({ mcpServers: … }); only these load (--strict-mcp-config). */
+  mcpConfig?: { mcpServers: Record<string, unknown> };
+  /** Claude only: extra allowed / disallowed tools (e.g. "mcp__shipreel", "mcp__shipreel__post_now"). */
+  allowedTools?: string[];
+  disallowedTools?: string[];
+  /** Log tool results as "tool-result" events (terminal-style output). */
+  toolResults?: boolean;
+  /** Every parsed Claude stream-json message, for callers that track what the agent did. */
+  onMessage?: (msg: Record<string, unknown>) => void;
 };
 
 type Live = { child: ChildProcess; run: Run; events: RunEvent[] };
@@ -182,9 +191,26 @@ function summarizeToolInput(name: string, input: Record<string, unknown>): strin
     case "Task":
     case "Agent":
       return short(s(input.description ?? input.prompt ?? ""));
-    default:
+    default: {
+      // MCP tools ("mcp__shipreel__create_video"): the arguments that say what it's doing.
+      if (name.startsWith("mcp__")) {
+        const keys = ["format", "video", "hook", "decision", "action", "status", "url", "at", "note"];
+        const picked = keys.filter((k) => input[k] !== undefined && input[k] !== "").map((k) => (k === "hook" || k === "note" ? `"${short(s(input[k]), 60)}"` : s(input[k])));
+        if (picked.length) return picked.join(" ");
+        if (input.spec && typeof input.spec === "object") return `spec ${short(s((input.spec as { formatId?: unknown }).formatId ?? ""), 40)}`.trim();
+        const { project: _p, ...rest } = input;
+        return Object.keys(rest).length ? short(s(rest)) : "";
+      }
+      if (name === "ToolSearch") return short(s(input.query ?? ""));
       return short(s(input));
+    }
   }
+}
+
+function toolResultText(content: unknown): string {
+  const raw = typeof content === "string" ? content : Array.isArray(content) ? content.map((c) => (c && typeof c === "object" && "text" in c ? String((c as { text: unknown }).text) : "")).join(" ") : "";
+  const flat = raw.replace(/\s+/g, " ").trim();
+  return flat.length > 160 ? `${flat.slice(0, 160)}…` : flat;
 }
 
 async function codexCommand(): Promise<string[]> {
@@ -214,6 +240,7 @@ export async function startRun(spec: RunSpec): Promise<Run> {
 
   let argv: string[];
   let schemaFile: string | undefined;
+  let mcpFile: string | undefined;
   let lastMsgFile: string | undefined;
   const addDirs = (spec.addDirs ?? []).filter((d) => d && fs.existsSync(d));
 
@@ -233,11 +260,18 @@ export async function startRun(spec: RunSpec): Promise<Run> {
       "--permission-mode",
       spec.allowWrite ? "acceptEdits" : "dontAsk",
       "--allowedTools",
-      [...readTools, ...webTools, ...writeTools, ...chromeTools].join(","),
+      [...readTools, ...webTools, ...writeTools, ...chromeTools, ...(spec.allowedTools ?? [])].join(","),
       "-n",
       `Shipreel: ${spec.title}`.slice(0, 60),
     ];
-    if (!spec.allowWeb) argv.push("--disallowedTools", "WebSearch,WebFetch");
+    const disallowed = [...(spec.allowWeb ? [] : ["WebSearch", "WebFetch"]), ...(spec.disallowedTools ?? [])];
+    if (disallowed.length) argv.push("--disallowedTools", disallowed.join(","));
+    if (spec.mcpConfig) {
+      mcpFile = path.join(paths.tmp(), `${id}.mcp.json`);
+      await fsp.mkdir(paths.tmp(), { recursive: true });
+      await fsp.writeFile(mcpFile, JSON.stringify(spec.mcpConfig), { mode: 0o600 });
+      argv.push("--mcp-config", mcpFile, "--strict-mcp-config");
+    }
     for (const d of addDirs) argv.push("--add-dir", d);
     if (spec.schema) argv.push("--json-schema", JSON.stringify(spec.schema));
     if (settings.claudeModel) argv.push("--model", settings.claudeModel);
@@ -282,6 +316,15 @@ export async function startRun(spec: RunSpec): Promise<Run> {
     }
     if (engine === "claude") {
       const type = msg.type as string;
+      try {
+        spec.onMessage?.(msg);
+      } catch {
+        /* a tracker's bug never breaks the run */
+      }
+      if (type === "user" && spec.toolResults) {
+        const content = ((msg.message as { content?: unknown[] })?.content ?? []) as Record<string, unknown>[];
+        for (const c of content) if (c.type === "tool_result") push({ kind: "tool-result", text: `${c.is_error ? "error: " : ""}${toolResultText(c.content)}` });
+      }
       if (type === "system" && msg.subtype === "init") {
         push({ kind: "status", text: `Model: ${String(msg.model ?? "default")}` });
       } else if (type === "assistant") {
@@ -366,7 +409,7 @@ export async function startRun(spec: RunSpec): Promise<Run> {
       logStream.end();
       await writeJson(paths.run(id), r);
       emit({ type: "run", run: r });
-      for (const f of [schemaFile, lastMsgFile]) if (f) fsp.rm(f, { force: true }).catch(() => undefined);
+      for (const f of [schemaFile, lastMsgFile, mcpFile]) if (f) fsp.rm(f, { force: true }).catch(() => undefined);
     }
   });
   child.on("error", async (e) => {

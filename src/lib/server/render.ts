@@ -12,6 +12,8 @@ import { probe } from "./media";
 import { getVideo, patchVideo, saveVideoSpec } from "./projects";
 import { fitText } from "./layout";
 import { voiceChats } from "./voice";
+import { prepareCarousel } from "./imagegen";
+import { composeSlideshow, photoModeMp4 } from "./slideshow";
 import { APP_ROOT, emit, now, paths } from "./store";
 
 const run = promisify(execFile);
@@ -125,6 +127,14 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
     return null;
   });
   if (fitted) doc = await saveVideoSpec(projectId, videoId, fitted);
+  // Carousels: cache b-roll stills and fill opt-in AI photos (cached, budget-capped) before the stills.
+  if (doc.spec.kind === "slideshow") {
+    const prepared = await prepareCarousel(projectId, doc.spec).catch((e) => {
+      console.log("[carousel] prep skipped:", (e as Error).message);
+      return null;
+    });
+    if (prepared) doc = await saveVideoSpec(projectId, videoId, prepared);
+  }
   const hash = specHash(doc.spec);
   const dir = paths.renders(projectId);
   if (!force && doc.render?.specHash === hash && doc.status === "rendered") {
@@ -146,11 +156,14 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
     ? timed.map((t, i) => {
         const out = path.join(dir, `${videoId}-slides`, `${String(i + 1).padStart(2, "0")}.png`);
         const sc = t.scene;
-        // Screenshot slides go into the carousel at the phone's own 9:16 size, like a saved screenshot.
-        if (sc.type === "slide" && sc.layout === "screenshot" && doc.spec.aspect !== "9:16") {
+        // Screenshot slides (a raw screen, a Notes list, a chat) go into the carousel at the phone's own
+        // 9:16 size, like a saved screenshot. Notes and chats are shown complete (their last frame).
+        const built = sc.type === "notes" || (sc.type === "chat" && sc.layout !== "card");
+        if (((sc.type === "slide" && sc.layout === "screenshot") || built) && doc.spec.aspect !== "9:16") {
           const solo = { ...doc.spec, aspect: "9:16" as const, scenes: [{ ...sc, transition: "cut" as const }], overlays: [], captions: undefined };
-          return { frame: Math.round(t.frames * 0.55), out, props: compositionProps(projectId, solo) };
+          return { frame: built ? t.frames - 2 : Math.round(t.frames * 0.55), out, props: compositionProps(projectId, solo) };
         }
+        if (built) return { frame: t.from + t.frames - 2, out };
         // The settled frame of each slide: after its entrance, before its exit.
         return { frame: t.from + Math.min(t.frames - 1, t.enterFrames + Math.round(t.frames * 0.55)), out };
       })
@@ -162,18 +175,26 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
 
   try {
     let lastEmit = 0;
-    await workerJob({ props: compositionProps(projectId, doc.spec), out: tmpOut, stills }, (progress) => {
+    const onProgress = (progress: number) => {
       const t = Date.now();
       if (t - lastEmit > 250 || progress >= 1) {
         lastEmit = t;
         emit({ type: "render", projectId, videoId, status: "rendering", progress });
       }
-    });
+    };
+    if (isSlideshow && photoModeMp4(doc.spec)) {
+      // Photo-mode MP4: the stills themselves, 9:16, a swipe on each beat of the bed (slideshow.ts).
+      await workerJob({ props: compositionProps(projectId, doc.spec), stills }, (p) => onProgress(p * 0.8));
+      await composeSlideshow(projectId, doc.spec, stills.map((s) => s.out), tmpOut);
+      onProgress(1);
+    } else await workerJob({ props: compositionProps(projectId, doc.spec), out: tmpOut, stills }, onProgress);
     await fsp.rename(tmpOut, out);
     const info = await probe(out);
     const thumbRel = `renders/${videoId}.jpg`;
     const hookEnd = Math.min(1.2, (timed[0]?.frames ?? 30) / 30 - 0.1);
-    await run("ffmpeg", ["-v", "error", "-y", "-ss", String(Math.max(0.3, hookEnd)), "-i", out, "-frames:v", "1", "-vf", "scale=540:-2", "-q:v", "3", path.join(paths.project(projectId), thumbRel)]).catch(() => undefined);
+    // A carousel's cover is its first slide, not a letterboxed video frame.
+    if (isSlideshow && stills[0]) await run("ffmpeg", ["-v", "error", "-y", "-i", stills[0].out, "-vf", "scale=540:-2", "-q:v", "3", path.join(paths.project(projectId), thumbRel)]).catch(() => undefined);
+    else await run("ffmpeg", ["-v", "error", "-y", "-ss", String(Math.max(0.3, hookEnd)), "-i", out, "-frames:v", "1", "-vf", "scale=540:-2", "-q:v", "3", path.join(paths.project(projectId), thumbRel)]).catch(() => undefined);
     const stat = await fsp.stat(out);
     const next = await patchVideo(projectId, videoId, {
       status: "rendered",
@@ -190,6 +211,12 @@ async function doRender(projectId: string, videoId: string, { force }: { force?:
     });
     emit({ type: "render", projectId, videoId, status: "rendered", progress: 1 });
     emit({ type: "videos", projectId });
+    // A new video's first good render puts it in Review (apps/REVIEW-API.md).
+    if (next?.reviewOnRender && !next.review) {
+      const reviewed = await patchVideo(projectId, videoId, { review: { status: "pending", at: now() }, reviewOnRender: undefined });
+      emit({ type: "review", projectId, videoId, status: "pending" });
+      return reviewed!;
+    }
     return next!;
   } catch (e) {
     const message = (e as Error).message ?? String(e);

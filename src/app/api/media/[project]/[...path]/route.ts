@@ -44,7 +44,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ project: string
       start = Math.max(0, stat.size - Number(m[2]));
       end = stat.size - 1;
     }
-    if (start >= stat.size || end >= stat.size || start > end) {
+    // A last byte past the end means "to the end" (RFC 9110); AVPlayer and Safari send such ranges.
+    end = Math.min(end, stat.size - 1);
+    if (start >= stat.size || start > end) {
       return new Response(null, { status: 416, headers: { "content-range": `bytes */${stat.size}` } });
     }
     const stream = fs.createReadStream(file, { start, end });
@@ -59,5 +61,6 @@ export async function GET(req: Request, ctx: { params: Promise<{ project: string
 
 export async function HEAD(req: Request, ctx: { params: Promise<{ project: string; path: string[] }> }) {
   const res = await GET(req, ctx);
+  await res.body?.cancel().catch(() => undefined);
   return new Response(null, { status: res.status, headers: res.headers });
 }

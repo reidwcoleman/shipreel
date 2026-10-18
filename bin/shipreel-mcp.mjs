@@ -170,14 +170,16 @@ const TOOLS = [
       video: str("Video id"),
       at: str("next | now | ISO datetime"),
       platforms: { type: "array", items: { type: "string" }, description: "tiktok, instagram, youtube, x, linkedin, threads, bluesky, facebook, pinterest" },
-      provider: str("upload-post | bluesky | webhook | browser | manual | claude-chrome"),
-      draft: bool("TikTok as draft (default true)"),
+      provider: str("postbox (auto-post through the user's Chrome; holds the post until its time) | upload-post | bluesky | webhook | browser | manual | claude-chrome"),
+      draft: bool("TikTok as draft (default true; Postbox has no drafts)"),
       captions: { type: "object", description: "Per-platform captions, e.g. {\"tiktok\": \"…\"}" },
+      title: str("YouTube title (Postbox)"),
+      dry_run: bool("Postbox: fill every form but stop before the final Post button"),
     }, ["video"]),
-    run: async ({ project, video, at = "next", platforms, provider, draft, captions }) => {
+    run: async ({ project, video, at = "next", platforms, provider, draft, captions, title, dry_run }) => {
       const pid = await projectId(project);
-      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, scheduledAt: at, platforms, provider, asDraft: draft, captions });
-      return { id: p.id, scheduledAt: p.scheduledAt, platforms: p.platforms, provider: p.provider, asDraft: p.asDraft, calendar: `${BASE}/calendar` };
+      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, scheduledAt: at, platforms, provider, asDraft: draft, captions, title, dryRun: dry_run });
+      return { id: p.id, scheduledAt: p.scheduledAt, platforms: p.platforms, provider: p.provider, asDraft: p.asDraft, ...(p.postbox ? { postbox: p.postbox } : {}), calendar: `${BASE}/calendar` };
     },
   },
   {
@@ -236,19 +238,21 @@ const TOOLS = [
   },
   {
     name: "post_now",
-    description: "Post a video right away through a connected service (Upload-Post, Bluesky, webhook) or provider=browser for Shipreel's Chrome window. Renders first if needed. TikTok goes to drafts by default (draft=false to publish).",
+    description: "Post a video right away through a connected service (Postbox, Upload-Post, Bluesky, webhook) or provider=browser for Shipreel's Chrome window. Renders first if needed. TikTok goes to drafts by default (draft=false to publish) except through Postbox, which posts for real (dry_run=true fills the forms and stops before Post). Only when the user explicitly asked to post.",
     inputSchema: obj({
       ...projectArg,
       video: str("Video id"),
       platforms: { type: "array", items: { type: "string" }, description: "tiktok, instagram, youtube, x, linkedin, threads, bluesky" },
-      provider: str("upload-post | bluesky | webhook | browser | manual (default: the user's default)"),
-      draft: bool("TikTok as draft (default true)"),
+      provider: str("postbox | upload-post | bluesky | webhook | browser | manual (default: the user's default)"),
+      draft: bool("TikTok as draft (default true; Postbox has no drafts)"),
       captions: { type: "object", description: "Per-platform captions, e.g. {\"tiktok\": \"…\"}" },
+      title: str("YouTube title (Postbox)"),
+      dry_run: bool("Postbox: fill every form but stop before the final Post button"),
       wait: bool("Wait for the result (default true)"),
     }, ["video"]),
-    run: async ({ project, video, platforms, provider, draft, captions, wait = true }) => {
+    run: async ({ project, video, platforms, provider, draft, captions, title, dry_run, wait = true }) => {
       const pid = await projectId(project);
-      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, scheduledAt: "now", platforms, provider, asDraft: draft, captions });
+      const p = await post(`/api/projects/${pid}/posts`, { videoId: video, scheduledAt: "now", platforms, provider, asDraft: draft, captions, title, dryRun: dry_run });
       if (!wait) return { post: p.id, status: p.status };
       const done = await waitPost(pid, p.id);
       return { post: done.id, status: done.status, provider: done.provider, results: done.results, log: done.log.slice(-6) };
@@ -262,7 +266,7 @@ const TOOLS = [
       videos: { type: "array", items: { type: "string" }, description: "Video ids (list_videos ready=true)" },
       per_day: num("Posts per day (default 1)"),
       platforms: { type: "array", items: { type: "string" }, description: "Default: the user's default platforms" },
-      provider: str("upload-post | bluesky | webhook | browser | manual"),
+      provider: str("postbox | upload-post | bluesky | webhook | browser | manual"),
       draft: bool("TikTok as draft (default true)"),
     }, ["videos"]),
     run: async ({ project, videos, per_day, platforms, provider, draft }) => {
@@ -281,6 +285,58 @@ const TOOLS = [
       if (!p) throw new ShipreelError(`Post ${postId} not found`);
       return { id: p.id, video: p.videoId, at: p.scheduledAt, status: p.status, provider: p.provider, platforms: p.platforms, results: p.results, log: p.log.slice(-12) };
     },
+  },
+  // ── Review & auto-post: videos land in the Shipreel Mac app's Review; the user approves; Postbox posts ──
+  {
+    name: "submit_for_review",
+    description: "Put a video in Review, where the user watches it in the Shipreel Mac app and approves it (then Postbox posts it), asks for changes or rejects it. New videos join Review on their own after their first render; call this after rendering anyway. A video that isn't rendered yet joins when its render is done.",
+    inputSchema: obj({ ...projectArg, video: str("Video id") }, ["video"]),
+    run: async ({ project, video }) => {
+      const pid = await projectId(project);
+      const r = await post(`/api/review/${pid}/${video}`, { action: "submit" });
+      return { video: r.videoId, title: r.title, review: r.review.status, render: r.renderStatus, note: r.renderStatus === "rendered" ? "In Review. The user approves it in the Shipreel Mac app." : "Joins Review when its render is done." };
+    },
+  },
+  {
+    name: "list_review",
+    description: "Videos in Review: pending (waiting for the user), approved (with their Postbox post status), revising, rejected, or all. Includes counts per status.",
+    inputSchema: obj({ project: str("Only this product (default: every product)"), status: str("pending | approved | rejected | revising | all (default pending)", { enum: ["pending", "approved", "rejected", "revising", "all"] }) }),
+    run: async ({ project, status = "pending" }) => {
+      const q = new URLSearchParams({ status });
+      if (project) q.set("projectId", project);
+      const r = await get(`/api/review?${q}`);
+      return {
+        counts: r.counts,
+        items: r.items.map((i) => ({ project: i.projectId, video: i.videoId, title: i.title, hook: i.hook, format: i.formatId, review: i.review.status, note: i.review.note, render: i.renderStatus, mp4: i.mp4Url, post: i.post ? { id: i.post.id, status: i.post.status, at: i.post.scheduledAt, dryRun: i.post.dryRun, results: i.post.results } : undefined })),
+      };
+    },
+  },
+  {
+    name: "review_decision",
+    description: "Decide on a video in Review ONLY when the user explicitly told you to in this conversation (\"approve the morning one\", \"ask Claude to shorten it\"). Never approve on your own. approve: posts through Postbox (when: now | next-slot | ISO; dry_run fills the forms and stops before Post). revise: the agent applies the note, it re-renders and comes back as pending. reject: out of the queue. reopen: back to pending (cancels a post that hasn't gone out).",
+    inputSchema: obj({
+      ...projectArg,
+      video: str("Video id"),
+      decision: str("approve | revise | reject | reopen", { enum: ["approve", "revise", "reject", "reopen"] }),
+      note: str("revise: what to change; reject: why (optional)"),
+      when: str("approve: now | next-slot | ISO time (default now)"),
+      platforms: { type: "array", items: { type: "string", enum: ["tiktok", "youtube", "instagram"] }, description: "approve: default the user's default platforms" },
+      captions: { type: "object", description: "approve: caption overrides {tiktok, instagram, youtube}" },
+      youtube_title: str("approve: YouTube title override"),
+      dry_run: bool("approve: fill every form but stop before the final Post button"),
+    }, ["video", "decision"]),
+    run: async ({ project, video, decision, note, when, platforms, captions, youtube_title, dry_run }) => {
+      const pid = await projectId(project);
+      const body = decision === "approve" ? { action: "approve", when, platforms, captions, youtubeTitle: youtube_title, dryRun: dry_run } : decision === "revise" ? { action: "revise", note } : decision === "reject" ? { action: "reject", note } : { action: "reopen" };
+      const r = await post(`/api/review/${pid}/${video}`, body);
+      return { video: r.videoId, title: r.title, review: r.review, post: r.post };
+    },
+  },
+  {
+    name: "postbox_status",
+    description: "Is Postbox (the local auto-poster, http://127.0.0.1:4710) running, is its Chrome extension connected, and which of TikTok, YouTube and Instagram are logged in. Starts Postbox if it's down. Posts nothing.",
+    inputSchema: obj({}),
+    run: async () => get("/api/postbox"),
   },
   {
     name: "test_connections",
@@ -307,7 +363,7 @@ async function handle(msg) {
       capabilities: { tools: { listChanged: false } },
       serverInfo: { name: "shipreel", version: VERSION },
       instructions:
-        "Shipreel makes short-form marketing videos for the user's app and posts them. Typical flow: get_brief → list_formats/list_hooks → create_video (format + hook) → get_video → edit the spec (read get_framework first) → update_video → render_video → post. Posting, easiest first: send_to_phone (AirDrop/Photos, user posts from the app with a trending sound), open_upload (web upload page + caption copied), browser_upload (Shipreel's Chrome fills it in and stops before Post), post_now / schedule_post / schedule_batch (connected services). Never press a final Post button unless the user asked. Never invent numbers; TikTok posts go to drafts so the user can add a trending sound.",
+        "Shipreel makes short-form marketing videos for the user's app and posts them. Typical flow: get_brief → list_formats/list_hooks → create_video (format + hook) → get_video → edit the spec (read get_framework first) → update_video → render_video → submit_for_review. The user approves in the Shipreel Mac app's Review and Postbox posts it; never call review_decision, post_now or schedule_post unless the user explicitly asked in this conversation. Posting, easiest first: send_to_phone (AirDrop/Photos, user posts from the app with a trending sound), open_upload (web upload page + caption copied), browser_upload (Shipreel's Chrome fills it in and stops before Post), post_now / schedule_post / schedule_batch (connected services). Never press a final Post button unless the user asked. Never invent numbers; TikTok posts go to drafts so the user can add a trending sound.",
     });
   }
   if (method === "notifications/initialized" || method?.startsWith("notifications/")) return;

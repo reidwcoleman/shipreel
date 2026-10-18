@@ -24,14 +24,14 @@ import type { VideoSpec } from "@/remotion/spec";
  *   iPhone      → AirDrop (or Save to Photos) and post from the app, where trending sounds live
  *   Upload page → caption copied, MP4 shown in Finder, the platform's web upload page opened
  *   Chrome      → Shipreel's Chrome window fills the upload in and stops before Post
- *   Auto-post   → Post now / Schedule through Upload-Post, Bluesky or a webhook
+ *   Auto-post   → Post now / Schedule through Postbox (recommended), Upload-Post, Bluesky or a webhook
  */
 
 type Mode = "phone" | "page" | "chrome" | "auto";
 const SHEET_PLATFORMS: Platform[] = ["tiktok", "instagram", "youtube", "x", "threads", "bluesky"];
 const PAGE_NAME: Partial<Record<Platform, string>> = { tiktok: "TikTok Studio", youtube: "YouTube Studio", instagram: "Instagram", x: "X", threads: "Threads", bluesky: "Bluesky" };
 const LIMITS: Partial<Record<Platform, number>> = { tiktok: 2200, x: 280, bluesky: 300, threads: 500, youtube: 100, instagram: 2200 };
-const API_PROVIDERS: ProviderId[] = ["upload-post", "bluesky", "webhook"];
+const API_PROVIDERS: ProviderId[] = ["postbox", "upload-post", "bluesky", "webhook"];
 const short = (p: Platform) => PLATFORM_LABEL[p].replace(" Shorts", "");
 
 /** Caption edits survive closing and reopening the sheet (per video, this tab). */
@@ -613,12 +613,14 @@ export function PostSheet({
                           {apiReady.map((p) => (
                             <option key={p.id} value={p.id}>
                               via {p.label}
+                              {p.id === "postbox" ? " · recommended" : ""}
                             </option>
                           ))}
                         </select>
                       </div>
                       {autoMissing.length > 0 && <p className="text-xs text-fg-3">{pub?.label} can&apos;t post to {autoMissing.map(short).join(", ")}; those get marked for you to post by hand.</p>}
-                      {autoPlatforms.includes("tiktok") && (
+                      {provider === "postbox" && pub?.reason && <p className="text-xs text-fg-3">{pub.reason}</p>}
+                      {autoPlatforms.includes("tiktok") && provider !== "postbox" && (
                         <label className="flex items-center justify-between gap-4 text-xs text-fg-3">
                           <span>Send TikTok to drafts, so you add a trending sound in the app before it goes live (recommended)</span>
                           <Switch checked={asDraft} onCheckedChange={setAsDraft} label="Send TikTok to drafts" />

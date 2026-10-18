@@ -1,7 +1,8 @@
 import "server-only";
 import path from "node:path";
-import type { Platform, Post, PostMetrics, ProviderId } from "@/lib/types";
+import type { Platform, Post, PostMetrics, PostStatus, PostSummary, ProviderId } from "@/lib/types";
 import { verdictFor } from "@/lib/verdict";
+import { maybeDefaultToPostbox, mapPostbox, postboxCancel, postboxGet } from "./postbox";
 import { PUBLISHERS, type PublishCtx } from "./publishers";
 import { getProject, getVideo, listProjects } from "./projects";
 import { renderVideo } from "./render";
@@ -28,8 +29,17 @@ async function savePost(projectId: string, postId: string, fn: (p: Post) => Post
       return out;
     }),
   );
-  if (out) emit({ type: "post", post: out });
+  if (out) emitPost(out);
   return out;
+}
+
+/** The Mac app's spelling of a post status (apps/REVIEW-API.md). */
+export function summaryStatus(s: PostStatus): PostSummary["status"] {
+  return s === "rendering" ? "posting" : s === "canceled" ? "cancelled" : s;
+}
+
+function emitPost(post: Post) {
+  emit({ type: "post", post, postId: post.id, status: summaryStatus(post.status) });
 }
 
 /** Next free posting slot (settings.slots) at or after `from`, not already taken by this project. */
@@ -67,6 +77,11 @@ export async function createPost(input: {
   captions?: Partial<Record<Platform, string>>;
   /** Chrome uploads: press Post too (default: the per-platform setting, which is off). */
   autoPost?: boolean;
+  /** Postbox: fill every form but stop before the final Post button. */
+  dryRun?: boolean;
+  /** Postbox: YouTube title and exact captions (verbatim). */
+  title?: string;
+  postboxCaptions?: NonNullable<Post["postbox"]>["captions"];
 }): Promise<Post> {
   const settings = await getSettings();
   const video = await getVideo(input.projectId, input.videoId);
@@ -79,6 +94,7 @@ export async function createPost(input: {
         ? await nextFreeSlot(input.projectId)
         : new Date(input.scheduledAt);
   const t = now();
+  const provider = input.provider ?? settings.defaultProvider;
   const post: Post = {
     id: newId("p_"),
     projectId: input.projectId,
@@ -86,10 +102,12 @@ export async function createPost(input: {
     platforms,
     captions: input.captions ?? { ...(video.spec.meta.captions ?? {}) },
     scheduledAt: when.toISOString(),
-    provider: input.provider ?? settings.defaultProvider,
+    provider,
     // TikTok drafts let you add a trending sound in-app before publishing (what the pros do).
-    asDraft: input.asDraft ?? platforms.includes("tiktok"),
+    // Postbox posts for real (it has no drafts), so it never asks for one.
+    asDraft: provider === "postbox" ? false : (input.asDraft ?? platforms.includes("tiktok")),
     ...(input.autoPost !== undefined ? { autoPost: input.autoPost } : {}),
+    ...(provider === "postbox" ? { postbox: { dryRun: !!input.dryRun, ...(input.title ? { title: input.title } : {}), ...(input.postboxCaptions ? { captions: input.postboxCaptions } : {}) } } : {}),
     status: "scheduled",
     results: [],
     log: [`Scheduled for ${when.toLocaleString()}`],
@@ -97,18 +115,38 @@ export async function createPost(input: {
     updatedAt: t,
   };
   await updateJson<Post[]>(paths.posts(input.projectId), [], (cur) => [...cur, post]);
-  emit({ type: "post", post });
-  if (input.scheduledAt === "now") void processPost(input.projectId, post.id);
+  emitPost(post);
+  // Postbox holds scheduled posts itself: hand it over now (after the render), not at post time.
+  if (input.scheduledAt === "now" || provider === "postbox") void processPost(input.projectId, post.id);
   else void renderVideo(input.projectId, input.videoId).catch(() => undefined); // pre-render so it's ready
   return post;
 }
 
 export async function updatePost(projectId: string, postId: string, patch: Partial<Post>): Promise<Post | null> {
-  return savePost(projectId, postId, (p) => ({ ...p, ...patch, id: p.id, projectId: p.projectId }));
+  if (patch.status === "canceled") await cancelInPostbox(projectId, postId);
+  // Retrying a Postbox post sends it to Postbox again (a new Postbox post).
+  const retry = patch.status === "scheduled";
+  const out = await savePost(projectId, postId, (p) => ({
+    ...p,
+    ...patch,
+    ...(retry && p.provider === "postbox" && p.status !== "scheduled" ? { postbox: { ...(p.postbox ?? {}), id: undefined, status: undefined } } : {}),
+    id: p.id,
+    projectId: p.projectId,
+  }));
+  if (retry && out?.provider === "postbox" && !out.postbox?.id) void processPost(projectId, postId);
+  return out;
 }
 
 export async function deletePost(projectId: string, postId: string): Promise<void> {
+  await cancelInPostbox(projectId, postId);
   await updateJson<Post[]>(paths.posts(projectId), [], (cur) => cur.filter((p) => p.id !== postId));
+}
+
+/** A post Postbox is still holding for later gets cancelled there too. */
+async function cancelInPostbox(projectId: string, postId: string): Promise<void> {
+  const post = (await listPosts(projectId)).find((p) => p.id === postId);
+  if (post?.provider !== "postbox" || !post.postbox?.id || post.status !== "scheduled") return;
+  await postboxCancel(post.postbox.id).catch((e) => console.error("[postbox] cancel", (e as Error).message));
 }
 
 export async function recordMetrics(projectId: string, postId: string, metrics: Omit<PostMetrics, "updatedAt">): Promise<Post | null> {
@@ -138,6 +176,8 @@ export async function processPost(projectId: string, postId: string): Promise<vo
   try {
     const post = (await listPosts(projectId)).find((p) => p.id === postId);
     if (!post || ["posted", "canceled", "posting"].includes(post.status)) return;
+    // Already handed to Postbox: its status comes back through syncPostbox.
+    if (post.postbox?.id) return;
     const project = await getProject(projectId);
     if (!project) throw new Error("project missing");
     const publisher = PUBLISHERS[post.provider] ?? PUBLISHERS.manual;
@@ -160,6 +200,11 @@ export async function processPost(projectId: string, postId: string): Promise<vo
       slides: (doc.render.slides ?? []).map((s) => path.join(paths.project(projectId), s)),
       log: push,
     };
+    if (publisher.handoff) {
+      const h = await publisher.handoff(ctx);
+      await savePost(projectId, postId, (p) => ({ ...p, status: h.status, results: h.results, postbox: { ...(p.postbox ?? {}), id: h.externalId, status: h.external.status } }));
+      return;
+    }
     const results = await publisher.publish(ctx);
     const okCount = results.filter((r) => r.ok).length;
     const manual = results.every((r) => r.mode === "manual");
@@ -191,11 +236,44 @@ const g = globalThis as unknown as { __shipreelScheduler?: NodeJS.Timeout };
 
 export function startScheduler() {
   if (g.__shipreelScheduler) return;
+  // SHIPREEL_SCHEDULER=off: a second instance on the same workspace (testing) leaves posting to the first.
+  const posting = process.env.SHIPREEL_SCHEDULER !== "off";
   g.__shipreelScheduler = setInterval(() => {
-    tick().catch((e) => console.error("[scheduler]", e));
+    if (posting) tick().catch((e) => console.error("[scheduler]", e));
+    syncPostbox().catch((e) => console.error("[postbox] sync", e));
   }, 30_000);
-  setTimeout(() => tick().catch(() => undefined), 5_000);
-  console.log("[shipreel] scheduler running (every 30s)");
+  if (posting) setTimeout(() => tick().catch(() => undefined), 5_000);
+  setTimeout(() => maybeDefaultToPostbox().catch(() => undefined), 3_000);
+  console.log(`[shipreel] scheduler running (every 30s${posting ? "" : ", posting off"})`);
+}
+
+// ── Postbox status sync ─────────────────────────────────────────────────────────
+
+const gs = globalThis as unknown as { __shipreelPbSync?: { at: number; p?: Promise<void> } };
+
+/** Pull the status of every post Postbox still holds or is running (throttled; cheap when there are none). */
+export function syncPostbox(opts: { maxAgeMs?: number } = {}): Promise<void> {
+  const st = (gs.__shipreelPbSync ??= { at: 0 });
+  if (st.p) return st.p;
+  if (Date.now() - st.at < (opts.maxAgeMs ?? 3000)) return Promise.resolve();
+  st.p = (async () => {
+    const live = (await allPosts()).filter((p) => p.provider === "postbox" && p.postbox?.id && ["scheduled", "posting", "rendering"].includes(p.status));
+    for (const p of live) {
+      try {
+        const pbPost = await postboxGet(p.postbox!.id!);
+        const m = mapPostbox(pbPost);
+        if (m.status === p.status && pbPost.status === p.postbox?.status && JSON.stringify(m.results.map((r) => [r.platform, r.ok, r.url, r.error])) === JSON.stringify(p.results.map((r) => [r.platform, r.ok, r.url, r.error]))) continue;
+        const lines = m.results.filter((r) => !p.results.some((o) => o.platform === r.platform && o.ok === r.ok && o.error === r.error)).map((r) => `${r.ok ? "✓" : "✗"} ${r.platform}${r.url ? ` ${r.url}` : ""}${r.error ? `: ${r.error}` : ""}${r.note ? ` (${r.note})` : ""}`);
+        await savePost(p.projectId, p.id, (cur) => ({ ...cur, status: m.status, results: [...m.results, ...cur.results.filter((r) => r.mode === "manual" && !m.results.some((x) => x.platform === r.platform))], postbox: { ...(cur.postbox ?? {}), status: pbPost.status }, log: [...cur.log, ...lines.map((l) => `${new Date().toLocaleTimeString()} Postbox: ${l}`)] }));
+      } catch (e) {
+        if (/No post/i.test((e as Error).message)) await savePost(p.projectId, p.id, (cur) => ({ ...cur, status: "failed", log: [...cur.log, "Postbox no longer has this post."] }));
+      }
+    }
+  })().finally(() => {
+    st.at = Date.now();
+    st.p = undefined;
+  });
+  return st.p;
 }
 
 // ── Batches: spread several videos across days at your posting times ─────────────

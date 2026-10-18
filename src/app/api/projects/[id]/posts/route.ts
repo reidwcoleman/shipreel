@@ -1,5 +1,5 @@
 import { bad, body, handle, json } from "@/lib/server/http";
-import { createPost, deletePost, listPosts, nextFreeSlot, updatePost } from "@/lib/server/posts";
+import { createPost, deletePost, listPosts, nextFreeSlot, syncPostbox, updatePost } from "@/lib/server/posts";
 import type { Platform, Post, ProviderId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +9,12 @@ export const GET = handle(async (req: Request, ctx: Ctx) => {
   const { id } = await ctx.params;
   const url = new URL(req.url);
   if (url.searchParams.get("nextSlot")) return json({ at: (await nextFreeSlot(id)).toISOString() });
+  await syncPostbox().catch(() => undefined);
   return json(await listPosts(id));
 });
 export const POST = handle(async (req: Request, ctx: Ctx) => {
   const { id } = await ctx.params;
-  const b = await body<{ videoId: string; platforms?: Platform[]; scheduledAt?: string; provider?: ProviderId; asDraft?: boolean; captions?: Post["captions"]; autoPost?: boolean }>(req);
+  const b = await body<{ videoId: string; platforms?: Platform[]; scheduledAt?: string; provider?: ProviderId; asDraft?: boolean; captions?: Post["captions"]; autoPost?: boolean; dryRun?: boolean; title?: string }>(req);
   if (!b.videoId) return bad("Which video?");
   return json(await createPost({ projectId: id, ...b }), 201);
 });

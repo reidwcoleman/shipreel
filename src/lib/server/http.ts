@@ -29,3 +29,12 @@ export function handle<A extends unknown[]>(fn: (...args: A) => Promise<Response
     }
   };
 }
+
+/**
+ * The origin this request reached (from its Host header: Next rewrites req.url to "localhost"), so
+ * absolute media URLs point at the instance serving them. The proxy only lets local hostnames in.
+ */
+export function requestOrigin(req: Request): string {
+  const host = req.headers.get("host");
+  return host ? `http://${host}` : new URL(req.url).origin;
+}

@@ -52,7 +52,7 @@ type Scene =
   | { type: "stat"; to: number; from?: number; prefix?: string; suffix?: string; decimals?: number; label: string; sub?: string; chart?: boolean }
   | { type: "split"; top: Side; bottom: Side; caption?: Caption }       // Side = { label; text?; src?; kind?; tone?: "bad"|"good"|"neutral" }; the caption always sits on the seam
   | { type: "cta"; appName: string; headline: string; sub?: string; icon?: string; action?: "link-in-bio" | "app-store" | "google-play" | "search" | "url" | "comment"; url?: string }
-  | { type: "slide"; text: string; image?: string; layout?: "photo" | "phone"; background?: Background; textStyle?: TextStyle }  // carousel slide; layout "phone" puts an app screenshot in a phone under the text (never put text straight over a busy screenshot)
+  | { type: "slide"; text: string; image?: string; layout?: "photo" | "phone" | "screenshot" | "app"; sub?: string; subY?: number; subStyle?: CaptionStyle; byline?: string; title?: string; icon?: string; glyph?: string; shade?: number; ai?: { prompt: string; look?: string; seed?: number }; background?: Background; textStyle?: TextStyle }  // carousel slide: "photo" = full-bleed photo + TikTok text (textStyle.y ≈ 0.3–0.5); "screenshot" = raw 9:16 app screen; "app" = app-stack tile (title + icon or emoji glyph); sub = TikTok's second text box (soft CTA); ai = opt-in AI photo (Settings → AI images), the slide's image is the fallback
   | { type: "kinetic"; words: string[]; background?: Background; textStyle?: TextStyle }             // one word per beat
   | { type: "notifications"; items: { app: string; title: string; body: string; time?: string; color?: string; glyph?: string }[]; caption?: Caption }
   | { type: "terminal"; title?: string; agent?: "claude" | "codex" | "shell"; lines: { kind: "input" | "output" | "success" | "dim"; text: string }[]; caption?: Caption }
@@ -89,6 +89,7 @@ Measured from ~200 viral app videos and carousels (research/viral/*.md). The hit
 - **One short caption per step** (2–7 words), hard cuts every 1.7–2.5 s, 3–5 steps, the result held 2.4–3 s at the end with no text.
 - **No end card.** End on the result or a loopable frame; name the app in the post caption, a pinned comment, or one late line ("it's called X"). In emotional/mental-load posts, never show the app on screen at all.
 - **Real-life footage** (role "broll" / "photo") for the problem and the payoff; carousels use candid 3:4 phone photos and a raw 9:16 screenshot slide (layout "screenshot").
+- **Carousels** (src/framework/carousels.ts): 3:4, 4–9 slides, hook on slide 1 over a photo (never the app's name), the app late as a raw screenshot with a boxed punchline, a soft CTA in the last slide's second box. They also post as a 9:16 photo-mode MP4 with a swipe on each beat.
 
 1. **Frame 1 has words.** The hook is on screen from the first frame and readable in ~1.5s (4–12 words). Curiosity first: person + conflict + reveal, POV, "nobody talks about", a specific number.
 2. **Get to beat two by 2.5s.** Hook scenes are 1.8–2.6s. Total length 7–15s for most formats (slideshows 4–7 slides).

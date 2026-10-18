@@ -1,5 +1,8 @@
 import { handle, json } from "@/lib/server/http";
-import { allPosts } from "@/lib/server/posts";
+import { allPosts, syncPostbox } from "@/lib/server/posts";
 
 export const dynamic = "force-dynamic";
-export const GET = handle(async () => json(await allPosts()));
+export const GET = handle(async () => {
+  await syncPostbox().catch(() => undefined);
+  return json(await allPosts());
+});

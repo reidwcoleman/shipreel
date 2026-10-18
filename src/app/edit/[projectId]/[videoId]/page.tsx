@@ -1,5 +1,5 @@
 "use client";
-import { ArrowLeft, Check, Clapperboard, Copy, Download, FileJson, FolderOpen, Loader2, Monitor, MoreHorizontal, Redo2, RotateCw, Send, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Clapperboard, Copy, Download, FileJson, FolderOpen, Inbox, Loader2, Monitor, MoreHorizontal, Redo2, RotateCw, Send, Trash2, Undo2 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -315,6 +315,20 @@ function Editor() {
                 Show render in Finder
               </MenuItem>
             )}
+            <MenuItem
+              icon={<Inbox className="size-3.5" />}
+              onSelect={async () => {
+                await flush();
+                try {
+                  const r = await post<{ renderStatus: string }>(`/api/review/${projectId}/${videoId}`, { action: "submit" });
+                  toast.success(r.renderStatus === "rendered" ? "In Review: approve it in the Shipreel Mac app" : "It joins Review when the render is done");
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+            >
+              {doc.review?.status === "pending" ? "In Review (send again)" : "Send to review"}
+            </MenuItem>
             <MenuItem icon={<FileJson className="size-3.5" />} onSelect={() => post("/api/open", { projectId, rel: `videos/${videoId}.json`, reveal: true }).catch(() => toast.error("Couldn't open Finder"))}>
               Show spec file (for agents)
             </MenuItem>

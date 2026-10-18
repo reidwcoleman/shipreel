@@ -11,7 +11,7 @@ import { Badge, Dot, SectionLabel, Skeleton, Switch } from "@/components/ui/misc
 import { api, post, put, refresh, useApi } from "@/lib/client/api";
 import { useBootstrap } from "@/lib/client/store";
 import { cn } from "@/lib/cn";
-import type { Platform, PostingSlot, ProviderId, SecretKey, Settings } from "@/lib/types";
+import type { Platform, PostboxStatus, PostingSlot, ProviderId, SecretKey, Settings } from "@/lib/types";
 import { PLATFORMS } from "@/remotion/spec";
 
 export default function SettingsPage() {
@@ -151,10 +151,11 @@ function SettingsInner() {
           hint={
             <>
               <p>You don&apos;t need any of this to post: every video&apos;s Post sheet can AirDrop it to your iPhone or open the upload page with the caption copied.</p>
-              <p className="mt-2">Connect a service when you want Shipreel to post on its own at your posting times (it posts while the app is running). Upload-Post is the simplest: one key covers TikTok, Instagram, YouTube, X, LinkedIn, Threads and more.</p>
+              <p className="mt-2">Connect a service when you want Shipreel to post on its own. Postbox (recommended) posts what you approve in Review through your own Chrome and holds scheduled posts even when Shipreel is closed. Upload-Post covers more platforms with one key.</p>
             </>
           }
         >
+          <PostboxCard />
           <UploadPostCard set={secrets.uploadPostKey} userSet={secrets.uploadPostUser} connected={connected} profilesError={profiles?.error} onConnect={connect} onSaved={reload} />
           <BlueskyCard handleSet={secrets.blueskyHandle} passwordSet={secrets.blueskyAppPassword} onSaved={reload} />
           <ChromeCard autoPost={s.browserAutoPost ?? {}} onAutoPost={(browserAutoPost) => save({ browserAutoPost })} />
@@ -294,6 +295,10 @@ function SettingsInner() {
             </div>
           )}
           <SecretField k="elevenlabsKey" label="ElevenLabs API key" set={secrets.elevenlabsKey} placeholder="sk_…" onSaved={reload} />
+        </Section>
+
+        <Section id="ai-images" title="AI images" hint="Optional and off by default. Carousels use your own photos and b-roll stills; with this on, the AI-photo story gets matching AI photos and you can add AI reaction hook clips, through your signed-in Higgsfield CLI. Each one is generated once and cached.">
+          <AiImagesCard enabled={!!s.aiImages} budget={s.aiCreditBudget ?? 25} onSave={save} />
         </Section>
 
         <Section id="about" title="Workspace" hint="Your products, videos, renders and the agent framework live in plain files. Back them up, put them in git, or point an agent at them.">
@@ -490,6 +495,65 @@ function BlueskyCard({ handleSet, passwordSet, onSaved }: { handleSet: boolean; 
   );
 }
 
+/** Postbox: the local auto-poster (TikTok, YouTube, Instagram through your own Chrome). */
+function PostboxCard() {
+  const { data: st, isLoading, mutate } = useApi<PostboxStatus>("/api/postbox");
+  const [busy, setBusy] = useState<string | null>(null);
+  const connect = async (platform: string) => {
+    setBusy(platform);
+    try {
+      const r = await post<{ message: string }>("/api/postbox/connect", { platform });
+      toast.success(r.message);
+      setTimeout(() => mutate(), 4000);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-panel p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex flex-1 flex-col gap-1">
+          <span className="flex items-center gap-2 text-sm font-semibold">
+            Postbox (auto-post)
+            <Badge tone="ok">Recommended</Badge>
+            <Dot tone={!st ? "neutral" : st.daemon && st.extension ? "ok" : st.daemon ? "warn" : "bad"} />
+          </span>
+          <span className="text-[13px] leading-relaxed text-fg-2">
+            Approve a video in Review (Mac app) and Postbox posts it to TikTok, YouTube and Instagram in your own logged-in Chrome. Scheduled posts wait in Postbox, so they go out even when Shipreel is closed.
+          </span>
+        </div>
+        <a href={st?.dashboardUrl ?? "http://127.0.0.1:4710"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-fg-3 underline underline-offset-2 hover:text-fg-2">
+          Dashboard <ExternalLink className="size-3" />
+        </a>
+      </div>
+      {isLoading || !st ? (
+        <Skeleton className="h-7 w-64" />
+      ) : !st.daemon ? (
+        <p className="text-xs text-bad">Postbox isn&apos;t running and didn&apos;t start. Run: launchctl kickstart -k gui/$(id -u)/com.reidcoleman.postbox</p>
+      ) : (
+        <>
+          {!st.extension && <p className="text-xs text-warn">The Postbox Chrome extension isn&apos;t connected. Open Chrome and turn it on (setup steps on the dashboard).</p>}
+          <div className="flex flex-wrap items-center gap-2">
+            {st.accounts.map((a) =>
+              a.connected ? (
+                <Badge key={a.id} tone="ok" icon={<Check className="size-3" />}>
+                  {a.name}
+                </Badge>
+              ) : (
+                <Button key={a.id} size="sm" loading={busy === a.id} onClick={() => connect(a.id)}>
+                  Connect {a.name}
+                </Button>
+              ),
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 const CHROME_PLATFORMS: Platform[] = ["tiktok", "youtube", "instagram", "x"];
 
 /** Uploads through Shipreel's own Chrome window: log in once, choose where it may press Post. */
@@ -543,6 +607,33 @@ function ChromeCard({ autoPost, onAutoPost }: { autoPost: Partial<Record<Platfor
         </div>
         <span className="text-xs text-fg-3">Off (recommended) means Shipreel stops on the final screen and you press Post. TikTok&apos;s terms restrict automated posting.</span>
       </div>
+    </div>
+  );
+}
+
+/** Opt-in AI photos / hook clips: what one costs (from `higgsfield generate cost`), what's been spent, the cap. */
+function AiImagesCard({ enabled, budget, onSave }: { enabled: boolean; budget: number; onSave: (patch: Partial<Settings>) => Promise<void> }) {
+  const { data: st } = useApi<{ available: boolean; imageCost?: number; clipCost?: number; balance?: number; spent: number; budget: number; model: string; error?: string }>("/api/imagegen");
+  const [cap, setCap] = useState(String(budget));
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex flex-1 flex-col gap-1">
+          <span className="text-sm font-semibold">AI photos and hook clips</span>
+          <span className="text-[13px] leading-relaxed text-fg-2">
+            {st?.available
+              ? `About ${st.imageCost ?? "?"} credits a photo (${st.model}), ${st.clipCost ?? "?"} credits a 3-second reaction clip. ${st.balance != null ? `${st.balance} credits left in your Higgsfield account.` : ""}`
+              : st
+                ? `Higgsfield CLI not ready: ${st.error ?? "run higgsfield auth login"}`
+                : "Checking the Higgsfield CLI…"}
+          </span>
+          <span className="text-xs text-fg-3">Invented, faceless people only, no text or logos in the picture. Spent so far: {st?.spent ?? 0} of {budget} credits.</span>
+        </div>
+        <Switch checked={enabled} onCheckedChange={(v) => onSave({ aiImages: v })} label="Use AI images" />
+      </div>
+      <Field label="Spend at most (credits, total)">
+        <input type="number" min={0} step={1} value={cap} onChange={(e) => setCap(e.target.value)} onBlur={() => onSave({ aiCreditBudget: Math.max(0, Number(cap) || 0) })} className={cn(inputCls, "h-9 w-32 font-mono text-[13px]")} aria-label="AI credit budget" />
+      </Field>
     </div>
   );
 }

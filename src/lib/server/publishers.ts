@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import type { Platform, Post, PostResult, Project, ProviderId, VideoDoc } from "@/lib/types";
 import { startRun, waitForRun } from "./agents";
 import { browserSiteLabel, browserUpload, isBrowserPlatform } from "./browser-upload";
+import { mapPostbox, POSTBOX_PLATFORMS, POSTBOX_URL, postboxCaptions, postboxGet, postboxReady, postboxSubmit, type PbPost } from "./postbox";
 import { getSecret, getSecrets, getSettings, now, paths } from "./store";
 
 const run = promisify(execFile);
@@ -29,6 +30,11 @@ export type Publisher = {
   platforms: Platform[];
   ready: () => Promise<{ ok: boolean; reason?: string }>;
   publish: (ctx: PublishCtx) => Promise<PostResult[]>;
+  /**
+   * Services that hold the post themselves (Postbox): hand it over and return right away; Shipreel
+   * then syncs the status back (posts.ts syncPostbox) instead of waiting in publish().
+   */
+  handoff?: (ctx: PublishCtx) => Promise<{ externalId: string; external: PbPost; status: Post["status"]; results: PostResult[] }>;
 };
 
 export function captionFor(post: Post, video: VideoDoc, platform: Platform): string {
@@ -410,6 +416,47 @@ const browser: Publisher = {
   },
 };
 
+// ── Postbox (local daemon; posts through the user's own Chrome) ───────────────────
+
+const postboxHandoff: NonNullable<Publisher["handoff"]> = async ({ post, video, file, log }) => {
+  const platforms = POSTBOX_PLATFORMS.filter((p) => post.platforms.includes(p));
+  if (!platforms.length) throw new Error(`Postbox posts to ${POSTBOX_PLATFORMS.join(", ")}.`);
+  const c = postboxCaptions(post, video, captionFor);
+  // Postbox holds scheduled posts itself (and fires them within 30 s), so Shipreel needn't be running then.
+  const later = new Date(post.scheduledAt).getTime() > Date.now() + 60_000;
+  const pbPost = await postboxSubmit({
+    file,
+    platforms,
+    captions: { tiktok: c.tiktok, instagram: c.instagram, youtube: c.youtube },
+    title: c.title,
+    scheduleAt: later ? post.scheduledAt : undefined,
+    dryRun: post.postbox?.dryRun,
+  });
+  log(`Handed to Postbox (post ${pbPost.id}${pbPost.dryRun ? ", dry run" : ""})${later ? `; it posts at ${new Date(post.scheduledAt).toLocaleString()}` : ""}. ${POSTBOX_URL}`);
+  const skipped = post.platforms.filter((p) => !POSTBOX_PLATFORMS.includes(p as never));
+  const m = mapPostbox(pbPost);
+  const results = [...m.results, ...skipped.map((p) => ({ platform: p, ok: false, mode: "manual" as const, error: "Postbox posts to TikTok, YouTube and Instagram. Post this one from the post kit.", at: now() }))];
+  return { externalId: pbPost.id, external: pbPost, status: m.status, results };
+};
+
+const postbox: Publisher = {
+  id: "postbox",
+  label: "Postbox (auto-post)",
+  blurb: "Recommended. Your local Postbox posts to TikTok, YouTube and Instagram through your own logged-in Chrome, and holds scheduled posts even when Shipreel is closed.",
+  platforms: POSTBOX_PLATFORMS,
+  ready: postboxReady,
+  handoff: postboxHandoff,
+  async publish(ctx) {
+    const h = await postboxHandoff(ctx);
+    let cur = h.external;
+    for (let i = 0; i < 120 && (cur.status === "queued" || cur.status === "running"); i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      cur = await postboxGet(h.externalId);
+    }
+    return mapPostbox(cur).results;
+  },
+};
+
 // ── Connection tests (Settings → Connect accounts) ──────────────────────────────
 
 /** Calls Upload-Post with the saved key and reports which platforms each profile has linked. */
@@ -450,6 +497,7 @@ export async function testBluesky(): Promise<{ ok: boolean; message: string; han
 }
 
 export const PUBLISHERS: Record<ProviderId, Publisher> = {
+  postbox,
   "upload-post": uploadPost,
   ayrshare: { ...webhook, id: "ayrshare", label: "Ayrshare (via webhook)" },
   bluesky,
@@ -459,4 +507,4 @@ export const PUBLISHERS: Record<ProviderId, Publisher> = {
   browser,
 };
 
-export const PUBLISHER_LIST = [uploadPost, bluesky, browser, manual, webhook, claudeChrome];
+export const PUBLISHER_LIST = [postbox, uploadPost, bluesky, browser, manual, webhook, claudeChrome];
